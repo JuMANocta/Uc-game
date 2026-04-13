@@ -132,6 +132,19 @@ input[type=text]::placeholder { color: rgba(255,255,255,0.2); }
 .chip.dead { background: rgba(255,42,109,0.08); border-color: rgba(255,42,109,0.2); color: #ff2a6d; text-decoration: line-through; }
 .chip.dead.civ { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); }
 
+/* History */
+.hist-box { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); margin-bottom: 6px; }
+.hist-list { display: flex; flex-direction: column; }
+.hist-row { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.04); flex-wrap: wrap; }
+.hist-row:last-child { border-bottom: none; }
+.hist-cat { font-family: 'Orbitron', sans-serif; font-size: 9px; color: rgba(255,42,109,0.7); letter-spacing: 1px; border: 1px solid rgba(255,42,109,0.2); padding: 1px 5px; }
+.hist-words { flex: 1; font-size: 12px; }
+.hist-details { margin: 8px 0; }
+.hist-details summary { cursor: pointer; padding: 6px 0; list-style: none; }
+.hist-details summary::-webkit-details-marker { display: none; }
+.mt4 { margin-top: 4px; }
+.mt6 { margin-top: 6px; }
+
 /* Timer */
 .timer-disp { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 900; color: #05d9e8; padding: 6px 14px; border: 1px solid rgba(5,217,232,0.3); background: rgba(5,217,232,0.06); min-width: 80px; text-align: center; }
 .timer-disp.urgent { color: #ff2a6d; border-color: rgba(255,42,109,0.5); background: rgba(255,42,109,0.08); animation: pulseRed 0.8s infinite; }

@@ -20,7 +20,7 @@ var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}
 
-var S={phase:"setup",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false};
+var S={phase:"setup",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false};
 
 function N(id){return S.nm[id]||("Joueur "+id)}
 function MUC(){return Math.max(1,S.pc-(S.mw?2:1))}
@@ -57,6 +57,15 @@ var SND={
   win:function(w){var f=w==="civil"?[523,659,784,1047]:w==="uc"?[400,330,260,180]:[523,784,1047,784];f.forEach(function(freq,i){tone(freq,"sine",0.28,0.28,i*0.16)})}
 };
 function VIB(p){if(navigator.vibrate)navigator.vibrate(p)}
+
+function recordTurn(elim){S.hist.push({turn:S.turn,cat:S.ct,pair:S.pair.slice(),skipped:S.skipt,elim:elim||null})}
+function HIST(max){
+var h=S.hist.slice(0,max||S.hist.length);
+if(!h.length)return'<p class="color-dim3 fs12 tc mb0">Aucun tour précédent.</p>';
+return'<div class="hist-list">'+h.map(function(e){
+var el=e.skipped?'<span class="color-dim5">🚫 Vote nul</span>':e.elim?'<span class="'+(e.elim.role==="civil"?"color-dim6":"color-red")+'">'+N(e.elim.id)+' '+(e.elim.role==="civil"?"👤":"🕵️")+'</span>':'';
+return'<div class="hist-row"><span class="orb fs9 color-dim3 min-w24">T'+e.turn+'</span>'+(e.cat?'<span class="hist-cat">'+e.cat+'</span>':'')+'<span class="hist-words"><span class="color-cyan fw600">'+e.pair[0]+'</span><span class="color-dim3"> / </span><span class="color-red fw600">'+e.pair[1]+'</span></span>'+el+'</div>'
+}).join('')+'</div>'}
 
 // ══════════════════════════════════════════════════════════════
 function render(){
@@ -117,6 +126,7 @@ app.innerHTML='<div class="hline"></div><div class="flex flex-between mb10"><spa
 eh+
 '<div class="flex gap8 mb10 flex-center"><div class="imposteur-box"><span class="orb fs18 fw900">'+bad+'</span><span class="orb fs10 color-dim5 ls2">IMPOSTEUR'+(bad>1?"S":"")+'<br>RESTANT'+(bad>1?"S":"")+'</span></div>'+(S.timer?'<div id="tdisp" class="timer-disp'+(S.trem<=10&&S.trem>0?" urgent":S.trem===0?" done":"")+'">'+( S.trem===0?"VOTEZ !":TF(S.trem))+'</div>':'')+'</div>'+
 '<button class="btn red glow" onclick="stopTimer();S.phase=\'vote\';S.vt=null;render()">🗳️ VOTER POUR ÉLIMINER</button>'+
+(S.hist.length?'<button class="btn ghost mt4" onclick="S.showHist=!S.showHist;render()">📋 Historique ('+S.hist.length+' tour'+(S.hist.length>1?"s":"")+')</button>'+(S.showHist?'<div class="hist-box mt6">'+HIST()+'</div>':''): '')+
 CSC()+'<div class="fline"></div>';return}
 
 if(p==="vote"){
@@ -146,6 +156,7 @@ app.innerHTML='<div class="hline"></div><span class="tag">FIN DU TOUR '+S.turn+'
 WR()+
 '<p class="orb fs10 color-dim3 ls2 mb0">'+bl+' IMPOSTEUR'+(bl>1?"S":"")+" RESTANT"+(bl>1?"S":"")+"</p>"+
 CSC()+
+(S.hist.length>1?'<details class="hist-details"><summary class="orb fs10 color-dim3 ls2">TOURS PRÉCÉDENTS</summary>'+HIST(S.hist.length-1)+'</details>':'')+
 '<button class="btn" onclick="startTurn()">▶ TOUR SUIVANT — NOUVEAUX MOTS</button><div class="fline"></div>';return}
 var li=S.elim[S.elim.length-1];var la=S.players.filter(function(x){return x.id===li})[0];var ok=la.role!=="civil";
 app.innerHTML='<div class="hline"></div><span class="tag">FIN DU TOUR '+S.turn+'</span>'+
@@ -173,6 +184,7 @@ WR()+
 '<div class="role-grid">'+rh+'</div>'+
 '<p class="orb fs10 color-dim ls2 mb0">CLASSEMENT FINAL</p>'+
 FSC()+
+(S.hist.length?'<details class="hist-details"><summary class="orb fs10 color-dim3 ls2">TOUS LES TOURS ('+S.hist.length+')</summary>'+HIST()+'</details>':'')+
 '<button class="btn gold" onclick="fullReset()">🏆 NOUVELLE PARTIE</button><div class="fline"></div>';return}
 }
 
@@ -208,7 +220,7 @@ function confirmSeen(){SND.click();VIB(30);S.wv=false;if(S.ri<S.tp.length-1){S.r
 
 function doElim(){
 if(S.vt===null)return;
-if(S.vt===-1){SND.click();VIB(50);S.skipt=true;S.phase="turn_recap";render();return}
+if(S.vt===-1){SND.click();VIB(50);S.skipt=true;recordTurn(null);S.phase="turn_recap";render();return}
 SND.elim();VIB([80,40,120]);
 var tid=S.vt;var tg=S.players.filter(function(p){return p.id===tid})[0];
 S.alive=S.alive.filter(function(id){return id!==tid});S.elim.push(tid);
@@ -216,7 +228,7 @@ if(tg.role==="mrwhite"){S.phase="mrwhite_guess";render();return}
 checkEnd(tg)}
 
 function mwGuess(ok){
-if(ok){var mw=S.players.filter(function(p){return p.role==="mrwhite"})[0];S.sc[mw.id]+=5;S.gr={winner:"mrwhite",msg:N(mw.id)+" (Mr. White) a deviné le mot civil !"};S.phase="game_over";SND.win("mrwhite");VIB([100,50,100,50,200]);render()}
+if(ok){var mw=S.players.filter(function(p){return p.role==="mrwhite"})[0];S.sc[mw.id]+=5;S.gr={winner:"mrwhite",msg:N(mw.id)+" (Mr. White) a deviné le mot civil !"};S.phase="game_over";recordTurn({id:mw.id,role:"mrwhite"});SND.win("mrwhite");VIB([100,50,100,50,200]);render()}
 else{var mwp=S.players.filter(function(p){return p.id===S.vt})[0];checkEnd(mwp)}}
 
 function checkEnd(le){
@@ -227,9 +239,10 @@ var acv=ap.filter(function(p){return p.role==="civil"}).length;
 if(auc===0&&amw===0){ap.filter(function(p){return p.role==="civil"}).forEach(function(p){S.sc[p.id]+=3});S.gr={winner:"civil",msg:"Tous les imposteurs ont été démasqués !"};S.phase="game_over"}
 else if(auc>=acv+amw){ap.filter(function(p){return p.role==="undercover"}).forEach(function(p){S.sc[p.id]+=4});ap.filter(function(p){return p.role==="mrwhite"}).forEach(function(p){S.sc[p.id]+=2});S.gr={winner:"uc",msg:"Les Undercover ont pris le contrôle !"};S.phase="game_over"}
 else{if(le&&le.role!=="civil"){ap.filter(function(p){return p.role==="civil"}).forEach(function(p){S.sc[p.id]+=1})}S.phase="turn_recap"}
+recordTurn(le);
 if(S.phase==="game_over"){SND.win(S.gr.winner);VIB([100,50,100,50,200])}
 render()}
 
-function fullReset(){stopTimer();S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:S.timer,tid:null,trem:0,skipvote:S.skipvote,skipt:false};render()}
+function fullReset(){stopTimer();S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:S.timer,tid:null,trem:0,skipvote:S.skipvote,skipt:false,hist:[],showHist:false};render()}
 
 render();
