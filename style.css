@@ -144,6 +144,7 @@ input[type=text]::placeholder { color: rgba(255,255,255,0.2); }
 .hist-details summary::-webkit-details-marker { display: none; }
 .mt4 { margin-top: 4px; }
 .mt6 { margin-top: 6px; }
+.ml4 { margin-left: 4px; }
 
 /* Timer */
 .timer-disp { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 900; color: #05d9e8; padding: 6px 14px; border: 1px solid rgba(5,217,232,0.3); background: rgba(5,217,232,0.06); min-width: 80px; text-align: center; }
