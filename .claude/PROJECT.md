@@ -157,6 +157,7 @@ Anti-répétition : `S.used` trace les indices déjà tirés, reset quand tout a
 | 1 | `185a1f0` | `mwGuess(false)` passait `null` à `checkEnd` → civils ne recevaient pas leur +1 pt |
 | 2 | `6354c6c` | "Animal Crossing" × 2 dans Jeux vidéo, "Vampire" × 2 dans Divers |
 | 3 | `d1ded0e` | `element.style.width` remplacé par CSS custom property `--pbar-w` |
+| 4 | `8613ee9` | `style=""` vide sur bouton Hall of Fame (game_over) + historique manquant dans turn_recap normal |
 
 ### Améliorations UX
 
@@ -168,6 +169,10 @@ Anti-répétition : `S.used` trace les indices déjà tirés, reset quand tout a
 | D | `f44675e` | Vote nul "Personne" en option (toggle setup, `S.vt === -1`) |
 | E | `1f4ac5c` | Sons Web Audio API + vibrations sur toutes les transitions clés |
 | F | `f2d9515` | Historique des tours : toggle en phase playing, `<details>` en récap/game_over |
+| M | `764887e` | Tap sur l'ordre de parole pour cocher un joueur (spoke state, reset chaque tour) |
+| N | `501d912` | Bouton "Abandonner" discret en phase playing (confirm natif avant fullReset) |
+| O | `7b820ba` | Confirmation avant d'effacer le Hall of Fame (setup + game_over) |
+| P | `d8e3749` | Saisie directe du nombre de joueurs (input number dans le stepper) |
 
 ### Nouvelles fonctionnalités
 
@@ -177,6 +182,8 @@ Anti-répétition : `S.used` trace les indices déjà tirés, reset quand tout a
 | I | `9b75aa5` | Mode nuit : compteur imposteurs masqué, rôles éliminés masqués pendant débat |
 | K | `f1d06ac` | Splash screen animé : boot log CSS staggeré, icône zoom/glow, bouton fade-in |
 | L | `3fada63` | PWA : `manifest.json`, `sw.js` cache-first offline, metas iOS, icône SVG |
+| Q | `935e1f4` | Mode Enfant : toggle setup, filtre les paires adultes, active Animaux/Contes/École |
+| Q | `935e1f4` | DB étendue : 225 → 394 paires, 11 → 14 catégories, toutes taggées kid-safe |
 
 ---
 
@@ -193,17 +200,27 @@ Anti-répétition : `S.used` trace les indices déjà tirés, reset quand tout a
 
 | Idée | Description |
 |---|---|
+| Niveaux de difficulté | Flag `facile/moyen/difficile` par paire dans la DB (4 éléments → 5), filtre activable en options. Ex : Cappuccino/Latte = difficile, iPhone/Samsung = facile |
 | Animations de transition | Fade/slide entre les phases plutôt que le rendu instantané |
 | Mode multi-appareils | Chaque joueur sur son propre téléphone (nécessite un backend WebSocket) |
 | Thèmes visuels | Alterner entre Night City et d'autres palettes (rétro, nature, etc.) |
 | Export de partie | Partager le résumé d'une partie (screenshot ou texte) |
 | Statistiques joueur | Dans le Hall of Fame, détailler les victoires par rôle |
-| Catégories désactivables | Permettre d'exclure certaines catégories (ex : pas de "Tech" pour des enfants) |
 | Raccourci clavier | Navigation au clavier pour les grandes tablettes |
 
 ---
 
 ## Notes techniques importantes
+
+### Base de données (`DB`)
+Chaque entrée : `[mot_civil, mot_uc, catégorie, kid_safe]`
+- `kid_safe = true` : paire visible en Mode Enfant
+- `kid_safe = false` : paire filtrée en Mode Enfant
+- 394 paires — 14 catégories : Cinéma · Séries · Jeux vidéo · Musique · Nourriture · Sport · Culture · Tech · Personnages · Marques · Divers · Animaux · Contes · École
+
+### État global `S` — nouveaux champs
+- `kids` : Mode Enfant activé (bool) — filtre `PP()` + conservé dans `fullReset()`
+- `spoken` : `[id]` — joueurs ayant parlé ce tour (reset dans `startTurn()`)
 
 ### PWA & HTTPS
 Le service worker ne s'enregistre que sur HTTPS (ou `localhost`).
@@ -217,7 +234,6 @@ La largeur de la progress bar passe par `element.style.setProperty('--pbar-w', .
 
 ### localStorage
 - `uc_lb` : Hall of Fame `{nom: {name, pts, games}}`
-- Aucune autre clé utilisée pour l'instant
 - Clé prévue : `uc_custom` pour les mots personnalisés (Feature G)
 
 ### Audio
