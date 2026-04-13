@@ -85,8 +85,8 @@ var eh="";
 if(S.elim.length){eh='<div class="mb10"><p class="orb fs10 color-dim3 ls2 mb4">ÉLIMINÉS</p><div class="flex gap4 flex-wrap flex-center">'+S.elim.map(function(id){var pl=S.players.filter(function(x){return x.id===id})[0];return '<span class="chip dead'+(pl.role==="civil"?" civ":"")+'">'+N(id)+" "+(pl.role==="undercover"?"🕵️":pl.role==="mrwhite"?"🤍":"👤")+"</span>"}).join("")+"</div></div>"}
 app.innerHTML='<div class="hline"></div><div class="flex flex-between mb10"><span class="tag">TOUR '+S.turn+'</span><span class="tag">'+S.alive.length+' EN JEU</span></div>'+
 '<h1 class="orb fs18 fw700 color-cyan mb8">'+G("DÉBAT EN COURS")+'</h1>'+
-'<p class="color-dim4 fs13 lh15 mb12">Décrivez votre mot, débattez, puis votez !</p>'+
-'<div class="flex gap5 flex-wrap flex-center mb10">'+ap.map(function(x){return '<span class="chip">'+N(x.id)+"</span>"}).join("")+"</div>"+
+'<p class="color-dim4 fs13 lh15 mb6">Décrivez votre mot dans l\'ordre, puis votez !</p>'+
+'<div class="speak-order mb10">'+S.ro.map(function(i,rank){return '<div class="speak-item"><span class="speak-num orb">'+(rank+1)+'</span><span class="speak-name">'+N(S.tp[i].id)+'</span></div>'}).join("")+'</div>'+
 eh+
 '<div class="flex gap8 mb10 flex-center"><div class="imposteur-box"><span class="orb fs18 fw900">'+bad+'</span><span class="orb fs10 color-dim5 ls2">IMPOSTEUR'+(bad>1?"S":"")+'<br>RESTANT'+(bad>1?"S":"")+'</span></div></div>'+
 '<button class="btn red glow" onclick="S.phase=\'vote\';S.vt=null;render()">🗳️ VOTER POUR ÉLIMINER</button>'+
