@@ -101,13 +101,28 @@ app.innerHTML='<div class="hline"></div>'+
 if(p==="setup"){
 var uc=Math.min(S.uc,MUC());var nh="";
 for(var i=1;i<=S.pc;i++)nh+='<input type="text" id="n'+i+'" placeholder="Joueur '+i+'" value="'+(S.nm[i]||"")+'" oninput="S.nm['+i+']=this.value">';
-app.innerHTML='<div class="hline"></div><div class="mb24">'+G("UNDERCOVER","orb fs28 fw900 ls4 color-cyan text-shadow-cyan")+'<p class="subtitle-red">// NIGHT CITY EDITION</p></div>'+
-'<div class="mb20 tl"><label class="lbl"><span class="lbl-a">01</span> JOUEURS</label><div class="stepper"><button onclick="CP(-1)">−</button><span class="val">'+S.pc+'</span><button onclick="CP(1)">+</button></div></div>'+
-'<div class="mb20 tl"><label class="lbl"><span class="lbl-a">02</span> NOMS</label><div class="names-grid">'+nh+'</div></div>'+
-'<div class="mb20 tl"><label class="lbl"><span class="lbl-a">03</span> UNDERCOVER</label><input type="range" min="1" max="'+MUC()+'" value="'+uc+'" oninput="S.uc=+this.value;render()"><div class="flex items-center flex-center gap6 flex-wrap"><span class="color-cyan fs13 fw600">🕵️ '+uc+' UC</span><span class="color-sep">·</span><span class="color-dim7 fs13">👤 '+CC()+' civils</span>'+(WW()?'<span class="color-sep">·</span><span class="color-red fs13 fw600">🤍 1 Mr.W</span>':"")+'</div></div>'+
-'<div class="mb16 tl"><label class="lbl"><span class="lbl-a">04</span> OPTIONS</label><div class="flex items-center gap14 mb10"><button class="tog '+(S.mw?"on":"")+'" onclick="S.mw=!S.mw;S.uc=Math.min(S.uc,MUC());render()"><span class="dot"></span></button><span class="color-dim8 fs14">Mr. White <span class="color-dim fs12">(pas de mot)</span></span></div><div class="flex items-center gap14 mb10"><button class="tog '+(S.cat?"on":"")+'" onclick="S.cat=!S.cat;render()"><span class="dot"></span></button><span class="color-dim8 fs14">Afficher la catégorie</span></div><div class="tl"><span class="color-dim8 fs14 mr8">⏱ Timer débat :</span><div class="flex gap4 flex-wrap mt6">'+[0,60,120,180,300].map(function(v){var l=v===0?"Off":Math.floor(v/60)+"min";return'<button class="timer-preset'+(S.timer===v?" active":"")+'" onclick="S.timer='+v+';render()">'+l+'</button>'}).join("")+'</div></div>'+
-'<div class="flex items-center gap14 mb10"><button class="tog '+(S.skipvote?"on":"")+'" onclick="S.skipvote=!S.skipvote;render()"><span class="dot"></span></button><span class="color-dim8 fs14">Vote nul <span class="color-dim fs12">(personne éliminé)</span></span></div>'+
-'<div class="flex items-center gap14"><button class="tog '+(S.night?"on":"")+'" onclick="S.night=!S.night;render()"><span class="dot"></span></button><span class="color-dim8 fs14">Mode nuit <span class="color-dim fs12">(rôles masqués pendant le débat)</span></span></div></div>'+
+app.innerHTML='<div class="hline"></div><div class="mb20">'+G("UNDERCOVER","orb fs28 fw900 ls4 color-cyan text-shadow-cyan")+'<p class="subtitle-red">// NIGHT CITY EDITION</p></div>'+
+
+'<div class="setup-section"><label class="lbl"><span class="lbl-a">01</span> JOUEURS</label><div class="stepper"><button onclick="CP(-1)">−</button><span class="val">'+S.pc+'</span><button onclick="CP(1)">+</button></div></div>'+
+
+'<div class="setup-section"><label class="lbl"><span class="lbl-a">02</span> NOMS</label><div class="names-grid">'+nh+'</div></div>'+
+
+'<div class="setup-section"><label class="lbl"><span class="lbl-a">03</span> UNDERCOVER</label><input type="range" min="1" max="'+MUC()+'" value="'+uc+'" oninput="S.uc=+this.value;render()"><div class="role-chips"><span class="role-chip uc">🕵️ '+uc+' UC</span><span class="role-chip civ">👤 '+CC()+' civils</span>'+(WW()?'<span class="role-chip mw">🤍 Mr.W</span>':"")+'</div></div>'+
+
+'<div class="setup-section"><label class="lbl"><span class="lbl-a">04</span> OPTIONS</label><div class="opt-group">'+
+
+'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">Mr. White</span><span class="opt-desc">Rôle sans mot — doit deviner le mot civil</span></div><button class="tog '+(S.mw?"on":"")+'" onclick="S.mw=!S.mw;S.uc=Math.min(S.uc,MUC());render()"><span class="dot"></span></button></div>'+
+
+'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">Afficher la catégorie</span><span class="opt-desc">Révèle la thématique du mot pendant le tour</span></div><button class="tog '+(S.cat?"on":"")+'" onclick="S.cat=!S.cat;render()"><span class="dot"></span></button></div>'+
+
+'<div class="opt-row opt-col"><div class="opt-lbl"><span class="opt-title">⏱ Timer de débat</span><span class="opt-desc">Durée maximale de discussion par tour</span></div><div class="timer-grid">'+[0,60,120,180,300].map(function(v){var l=v===0?"Off":Math.floor(v/60)+"min";return'<button class="timer-preset'+(S.timer===v?" active":"")+'" onclick="S.timer='+v+';render()">'+l+'</button>'}).join("")+'</div></div>'+
+
+'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">Vote nul</span><span class="opt-desc">Permet de passer un tour sans élimination</span></div><button class="tog '+(S.skipvote?"on":"")+'" onclick="S.skipvote=!S.skipvote;render()"><span class="dot"></span></button></div>'+
+
+'<div class="opt-row last"><div class="opt-lbl"><span class="opt-title">🌙 Mode nuit</span><span class="opt-desc">Masque les rôles et le compteur pendant le débat</span></div><button class="tog '+(S.night?"on":"")+'" onclick="S.night=!S.night;render()"><span class="dot"></span></button></div>'+
+
+'</div></div>'+
+
 (S.err?'<p class="err-msg">⚠ '+S.err+'</p>':'')+
 '<button class="btn" onclick="startSession()">▶ LANCER LA PARTIE</button>'+
 '<details class="hist-details mt6"><summary class="orb fs10 color-gold ls2">🏆 HALL OF FAME</summary>'+FLB()+(Object.keys(getLB()).length?'<button class="btn ghost" onclick="clearLB();render()">🗑 Effacer le classement</button>':'')+'</details>'+
