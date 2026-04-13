@@ -173,7 +173,7 @@ checkEnd(tg)}
 
 function mwGuess(ok){
 if(ok){var mw=S.players.filter(function(p){return p.role==="mrwhite"})[0];S.sc[mw.id]+=5;S.gr={winner:"mrwhite",msg:N(mw.id)+" (Mr. White) a deviné le mot civil !"};S.phase="game_over";render()}
-else{checkEnd(null)}}
+else{var mwp=S.players.filter(function(p){return p.id===S.vt})[0];checkEnd(mwp)}}
 
 function checkEnd(le){
 var ap=S.players.filter(function(p){return S.alive.indexOf(p.id)!==-1});
