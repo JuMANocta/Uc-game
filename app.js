@@ -172,7 +172,9 @@ eh+
 '<div class="flex gap8 mb10 flex-center">'+(S.night?'<div class="imposteur-box night"><span class="orb fs11 color-dim4 ls2">MODE NUIT</span></div>':'<div class="imposteur-box"><span class="orb fs18 fw900">'+bad+'</span><span class="orb fs10 color-dim5 ls2">IMPOSTEUR'+(bad>1?"S":"")+'<br>RESTANT'+(bad>1?"S":"")+'</span></div>')+(S.timer?'<div id="tdisp" class="timer-disp'+(S.trem<=10&&S.trem>0?" urgent":S.trem===0?" done":"")+'">'+( S.trem===0?"VOTEZ !":TF(S.trem))+'</div>':'')+'</div>'+
 '<button class="btn red glow" onclick="stopTimer();S.phase=\'vote\';S.vt=null;render()">🗳️ VOTER POUR ÉLIMINER</button>'+
 (S.hist.length?'<button class="btn ghost mt4" onclick="S.showHist=!S.showHist;render()">📋 Historique ('+S.hist.length+' tour'+(S.hist.length>1?"s":"")+')</button>'+(S.showHist?'<div class="hist-box mt6">'+HIST()+'</div>':''): '')+
-CSC()+'<div class="fline"></div>';return}
+CSC()+
+'<button class="btn-abandon" onclick="if(confirm(\'Abandonner la partie en cours ?\'))fullReset()">✕ Abandonner</button>'+
+'<div class="fline"></div>';return}
 
 if(p==="vote"){
 var ap2=S.players.filter(function(x){return S.alive.indexOf(x.id)!==-1});
