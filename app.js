@@ -41,10 +41,22 @@ S.tid=setInterval(function(){
 S.trem--;
 var el=document.getElementById("tdisp");
 if(!el){stopTimer();return}
-if(S.trem<=0){stopTimer();el.className="timer-disp done";el.textContent="VOTEZ !"}
+if(S.trem<=0){stopTimer();SND.alarm();VIB([100,60,100,60,100]);el.className="timer-disp done";el.textContent="VOTEZ !"}
 else{var m=Math.floor(S.trem/60),s=S.trem%60;el.textContent=(m?""+m+"m ":"")+(s<10?"0":"")+s+"s";el.className="timer-disp"+(S.trem<=10?" urgent":"")}
 },1000)}
 function TF(sec){var m=Math.floor(sec/60),s=sec%60;return(m?""+m+"m ":"")+(s<10?"0":"")+s+"s"}
+
+var AC=null;
+function getAC(){if(!AC)try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}return AC}
+function tone(freq,type,vol,dur,delay){var ac=getAC();if(!ac)return;var o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type=type;o.frequency.value=freq;var t=ac.currentTime+(delay||0);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+0.02);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur)}
+var SND={
+  ping:function(){tone(880,"sine",0.25,0.25)},
+  click:function(){tone(440,"square",0.12,0.07)},
+  elim:function(){var ac=getAC();if(!ac)return;var o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type="sawtooth";o.frequency.setValueAtTime(280,ac.currentTime);o.frequency.exponentialRampToValueAtTime(80,ac.currentTime+0.4);g.gain.setValueAtTime(0.35,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.4);o.start();o.stop(ac.currentTime+0.4)},
+  alarm:function(){[0,0.18,0.36].forEach(function(d){tone(880,"square",0.25,0.14,d)})},
+  win:function(w){var f=w==="civil"?[523,659,784,1047]:w==="uc"?[400,330,260,180]:[523,784,1047,784];f.forEach(function(freq,i){tone(freq,"sine",0.28,0.28,i*0.16)})}
+};
+function VIB(p){if(navigator.vibrate)navigator.vibrate(p)}
 
 // ══════════════════════════════════════════════════════════════
 function render(){
@@ -80,7 +92,7 @@ app.innerHTML='<div class="hline"></div><div class="pbar"><div class="pbar-fill"
 '<div class="icon-big">🔒</div>'+
 '<h2 class="orb fs22 fw700 color-cyan m8-0">'+N(cp.id)+'</h2>'+
 '<p class="color-dim fs13 mb20">Appuie pour découvrir ton mot</p>'+
-'<button class="btn glow" onclick="S.wv=true;render()">👁️ RÉVÉLER</button><div class="fline"></div>';
+'<button class="btn glow" onclick="SND.ping();VIB(40);S.wv=true;render()">👁️ RÉVÉLER</button><div class="fline"></div>';
 document.getElementById("pf").style.setProperty("--pbar-w",((S.ri+1)/S.tp.length*100)+"%");
 }else{
 var wa;
@@ -192,18 +204,19 @@ S.tp=S.alive.map(function(id){var p=S.players.filter(function(x){return x.id===i
 S.ro=shuffle(S.tp.map(function(_,i){return i}));
 S.ri=0;S.wv=false;S.vt=null;S.turn++;S.phase="handoff";render()}
 
-function confirmSeen(){S.wv=false;if(S.ri<S.tp.length-1){S.ri++;S.phase="handoff"}else{S.phase="playing";render();startTimer();return}render()}
+function confirmSeen(){SND.click();VIB(30);S.wv=false;if(S.ri<S.tp.length-1){S.ri++;S.phase="handoff"}else{S.phase="playing";render();startTimer();return}render()}
 
 function doElim(){
 if(S.vt===null)return;
-if(S.vt===-1){S.skipt=true;S.phase="turn_recap";render();return}
+if(S.vt===-1){SND.click();VIB(50);S.skipt=true;S.phase="turn_recap";render();return}
+SND.elim();VIB([80,40,120]);
 var tid=S.vt;var tg=S.players.filter(function(p){return p.id===tid})[0];
 S.alive=S.alive.filter(function(id){return id!==tid});S.elim.push(tid);
 if(tg.role==="mrwhite"){S.phase="mrwhite_guess";render();return}
 checkEnd(tg)}
 
 function mwGuess(ok){
-if(ok){var mw=S.players.filter(function(p){return p.role==="mrwhite"})[0];S.sc[mw.id]+=5;S.gr={winner:"mrwhite",msg:N(mw.id)+" (Mr. White) a deviné le mot civil !"};S.phase="game_over";render()}
+if(ok){var mw=S.players.filter(function(p){return p.role==="mrwhite"})[0];S.sc[mw.id]+=5;S.gr={winner:"mrwhite",msg:N(mw.id)+" (Mr. White) a deviné le mot civil !"};S.phase="game_over";SND.win("mrwhite");VIB([100,50,100,50,200]);render()}
 else{var mwp=S.players.filter(function(p){return p.id===S.vt})[0];checkEnd(mwp)}}
 
 function checkEnd(le){
@@ -214,6 +227,7 @@ var acv=ap.filter(function(p){return p.role==="civil"}).length;
 if(auc===0&&amw===0){ap.filter(function(p){return p.role==="civil"}).forEach(function(p){S.sc[p.id]+=3});S.gr={winner:"civil",msg:"Tous les imposteurs ont été démasqués !"};S.phase="game_over"}
 else if(auc>=acv+amw){ap.filter(function(p){return p.role==="undercover"}).forEach(function(p){S.sc[p.id]+=4});ap.filter(function(p){return p.role==="mrwhite"}).forEach(function(p){S.sc[p.id]+=2});S.gr={winner:"uc",msg:"Les Undercover ont pris le contrôle !"};S.phase="game_over"}
 else{if(le&&le.role!=="civil"){ap.filter(function(p){return p.role==="civil"}).forEach(function(p){S.sc[p.id]+=1})}S.phase="turn_recap"}
+if(S.phase==="game_over"){SND.win(S.gr.winner);VIB([100,50,100,50,200])}
 render()}
 
 function fullReset(){stopTimer();S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:S.timer,tid:null,trem:0,skipvote:S.skipvote,skipt:false};render()}
