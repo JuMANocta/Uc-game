@@ -20,7 +20,7 @@ var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}
 
-var S={phase:"setup",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:""};
+var S={phase:"setup",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0};
 
 function N(id){return S.nm[id]||("Joueur "+id)}
 function MUC(){return Math.max(1,S.pc-(S.mw?2:1))}
@@ -33,6 +33,19 @@ function CSC(){var s=SS();if(!s.length)return"";return '<div class="score-compac
 function FSC(){var s=SS();var m=["🥇","🥈","🥉"];return '<div class="score-full">'+s.map(function(x,i){var mc=i<3?["color-gold","color-dim7","color-red"][i]:"color-dim";return '<div class="sf-row'+(i===0?" first":"")+'"><div class="flex items-center gap10"><span class="orb fs14 fw900 min-w24 '+mc+'">'+(m[i]||"#"+(i+1))+'</span><span class="fs16 fw700">'+N(x.id)+'</span></div><span class="orb fs16 fw900 color-cyan">'+x.pts+"</span></div>"}).join("")+"</div>"}
 function WR(){return '<div class="words-row"><div class="word-card civ"><span class="wl">MOT CIVIL</span><span class="wv">'+S.pair[0]+'</span></div><div class="word-card uc"><span class="wl">MOT UC</span><span class="wv">'+S.pair[1]+"</span></div></div>"}
 
+function stopTimer(){if(S.tid){clearInterval(S.tid);S.tid=null}}
+function startTimer(){
+stopTimer();if(!S.timer)return;
+S.trem=S.timer;
+S.tid=setInterval(function(){
+S.trem--;
+var el=document.getElementById("tdisp");
+if(!el){stopTimer();return}
+if(S.trem<=0){stopTimer();el.className="timer-disp done";el.textContent="VOTEZ !"}
+else{var m=Math.floor(S.trem/60),s=S.trem%60;el.textContent=(m?""+m+"m ":"")+(s<10?"0":"")+s+"s";el.className="timer-disp"+(S.trem<=10?" urgent":"")}
+},1000)}
+function TF(sec){var m=Math.floor(sec/60),s=sec%60;return(m?""+m+"m ":"")+(s<10?"0":"")+s+"s"}
+
 // ══════════════════════════════════════════════════════════════
 function render(){
 var p=S.phase;
@@ -44,7 +57,7 @@ app.innerHTML='<div class="hline"></div><div class="mb24">'+G("UNDERCOVER","orb 
 '<div class="mb20 tl"><label class="lbl"><span class="lbl-a">01</span> JOUEURS</label><div class="stepper"><button onclick="CP(-1)">−</button><span class="val">'+S.pc+'</span><button onclick="CP(1)">+</button></div></div>'+
 '<div class="mb20 tl"><label class="lbl"><span class="lbl-a">02</span> NOMS</label><div class="names-grid">'+nh+'</div></div>'+
 '<div class="mb20 tl"><label class="lbl"><span class="lbl-a">03</span> UNDERCOVER</label><input type="range" min="1" max="'+MUC()+'" value="'+uc+'" oninput="S.uc=+this.value;render()"><div class="flex items-center flex-center gap6 flex-wrap"><span class="color-cyan fs13 fw600">🕵️ '+uc+' UC</span><span class="color-sep">·</span><span class="color-dim7 fs13">👤 '+CC()+' civils</span>'+(WW()?'<span class="color-sep">·</span><span class="color-red fs13 fw600">🤍 1 Mr.W</span>':"")+'</div></div>'+
-'<div class="mb16 tl"><label class="lbl"><span class="lbl-a">04</span> OPTIONS</label><div class="flex items-center gap14 mb10"><button class="tog '+(S.mw?"on":"")+'" onclick="S.mw=!S.mw;S.uc=Math.min(S.uc,MUC());render()"><span class="dot"></span></button><span class="color-dim8 fs14">Mr. White <span class="color-dim fs12">(pas de mot)</span></span></div><div class="flex items-center gap14"><button class="tog '+(S.cat?"on":"")+'" onclick="S.cat=!S.cat;render()"><span class="dot"></span></button><span class="color-dim8 fs14">Afficher la catégorie</span></div></div>'+
+'<div class="mb16 tl"><label class="lbl"><span class="lbl-a">04</span> OPTIONS</label><div class="flex items-center gap14 mb10"><button class="tog '+(S.mw?"on":"")+'" onclick="S.mw=!S.mw;S.uc=Math.min(S.uc,MUC());render()"><span class="dot"></span></button><span class="color-dim8 fs14">Mr. White <span class="color-dim fs12">(pas de mot)</span></span></div><div class="flex items-center gap14 mb10"><button class="tog '+(S.cat?"on":"")+'" onclick="S.cat=!S.cat;render()"><span class="dot"></span></button><span class="color-dim8 fs14">Afficher la catégorie</span></div><div class="tl"><span class="color-dim8 fs14 mr8">⏱ Timer débat :</span><div class="flex gap4 flex-wrap mt6">'+[0,60,120,180,300].map(function(v){var l=v===0?"Off":Math.floor(v/60)+"min";return'<button class="timer-preset'+(S.timer===v?" active":"")+'" onclick="S.timer='+v+';render()">'+l+'</button>'}).join("")+'</div></div></div>'+
 (S.err?'<p class="err-msg">⚠ '+S.err+'</p>':'')+
 '<button class="btn" onclick="startSession()">▶ LANCER LA PARTIE</button><div class="fline"></div>';return}
 
@@ -89,8 +102,8 @@ app.innerHTML='<div class="hline"></div><div class="flex flex-between mb10"><spa
 '<p class="color-dim4 fs13 lh15 mb6">Décrivez votre mot dans l\'ordre, puis votez !</p>'+
 '<div class="speak-order mb10">'+S.ro.map(function(i,rank){return '<div class="speak-item"><span class="speak-num orb">'+(rank+1)+'</span><span class="speak-name">'+N(S.tp[i].id)+'</span></div>'}).join("")+'</div>'+
 eh+
-'<div class="flex gap8 mb10 flex-center"><div class="imposteur-box"><span class="orb fs18 fw900">'+bad+'</span><span class="orb fs10 color-dim5 ls2">IMPOSTEUR'+(bad>1?"S":"")+'<br>RESTANT'+(bad>1?"S":"")+'</span></div></div>'+
-'<button class="btn red glow" onclick="S.phase=\'vote\';S.vt=null;render()">🗳️ VOTER POUR ÉLIMINER</button>'+
+'<div class="flex gap8 mb10 flex-center"><div class="imposteur-box"><span class="orb fs18 fw900">'+bad+'</span><span class="orb fs10 color-dim5 ls2">IMPOSTEUR'+(bad>1?"S":"")+'<br>RESTANT'+(bad>1?"S":"")+'</span></div>'+(S.timer?'<div id="tdisp" class="timer-disp'+(S.trem<=10&&S.trem>0?" urgent":S.trem===0?" done":"")+'">'+( S.trem===0?"VOTEZ !":TF(S.trem))+'</div>':'')+'</div>'+
+'<button class="btn red glow" onclick="stopTimer();S.phase=\'vote\';S.vt=null;render()">🗳️ VOTER POUR ÉLIMINER</button>'+
 CSC()+'<div class="fline"></div>';return}
 
 if(p==="vote"){
@@ -161,13 +174,14 @@ S.elim=[];S.sc={};S.players.forEach(function(p){S.sc[p.id]=0});
 S.turn=0;S.used=[];S.gr=null;startTurn()}
 
 function startTurn(){
+stopTimer();
 var e=PP();var f=Math.random()>0.5;
 S.pair=[f?e[0]:e[1],f?e[1]:e[0]];S.ct=e[2];
 S.tp=S.alive.map(function(id){var p=S.players.filter(function(x){return x.id===id})[0];return{id:p.id,role:p.role,word:p.role==="civil"?S.pair[0]:p.role==="undercover"?S.pair[1]:null}});
 S.ro=shuffle(S.tp.map(function(_,i){return i}));
 S.ri=0;S.wv=false;S.vt=null;S.turn++;S.phase="handoff";render()}
 
-function confirmSeen(){S.wv=false;if(S.ri<S.tp.length-1){S.ri++;S.phase="handoff"}else{S.phase="playing"}render()}
+function confirmSeen(){S.wv=false;if(S.ri<S.tp.length-1){S.ri++;S.phase="handoff"}else{S.phase="playing";render();startTimer();return}render()}
 
 function doElim(){
 if(!S.vt)return;var tid=S.vt;var tg=S.players.filter(function(p){return p.id===tid})[0];
@@ -189,6 +203,6 @@ else if(auc>=acv+amw){ap.filter(function(p){return p.role==="undercover"}).forEa
 else{if(le&&le.role!=="civil"){ap.filter(function(p){return p.role==="civil"}).forEach(function(p){S.sc[p.id]+=1})}S.phase="turn_recap"}
 render()}
 
-function fullReset(){S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:""};render()}
+function fullReset(){stopTimer();S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:S.timer,tid:null,trem:0};render()}
 
 render();

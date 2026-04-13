@@ -132,6 +132,14 @@ input[type=text]::placeholder { color: rgba(255,255,255,0.2); }
 .chip.dead { background: rgba(255,42,109,0.08); border-color: rgba(255,42,109,0.2); color: #ff2a6d; text-decoration: line-through; }
 .chip.dead.civ { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); }
 
+/* Timer */
+.timer-disp { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 900; color: #05d9e8; padding: 6px 14px; border: 1px solid rgba(5,217,232,0.3); background: rgba(5,217,232,0.06); min-width: 80px; text-align: center; }
+.timer-disp.urgent { color: #ff2a6d; border-color: rgba(255,42,109,0.5); background: rgba(255,42,109,0.08); animation: pulseRed 0.8s infinite; }
+.timer-disp.done { color: #ff2a6d; border-color: rgba(255,42,109,0.6); background: rgba(255,42,109,0.12); animation: pulseRed 0.5s infinite; letter-spacing: 2px; font-size: 13px; }
+.timer-preset { padding: 5px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.5); font-family: 'Orbitron', sans-serif; font-size: 11px; cursor: pointer; }
+.timer-preset.active { background: rgba(5,217,232,0.15); border-color: rgba(5,217,232,0.5); color: #05d9e8; }
+.mr8 { margin-right: 8px; }
+
 /* Error message */
 .err-msg { color: #ff2a6d; font-size: 13px; font-weight: 600; border: 1px solid rgba(255,42,109,0.3); background: rgba(255,42,109,0.08); padding: 10px 14px; margin-bottom: 8px; text-align: left; }
 
