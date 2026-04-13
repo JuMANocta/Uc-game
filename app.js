@@ -20,7 +20,7 @@ var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}
 
-var S={phase:"setup",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false};
+var S={phase:"setup",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:false};
 
 function N(id){return S.nm[id]||("Joueur "+id)}
 function MUC(){return Math.max(1,S.pc-(S.mw?2:1))}
@@ -92,7 +92,8 @@ app.innerHTML='<div class="hline"></div><div class="mb24">'+G("UNDERCOVER","orb 
 '<div class="mb20 tl"><label class="lbl"><span class="lbl-a">02</span> NOMS</label><div class="names-grid">'+nh+'</div></div>'+
 '<div class="mb20 tl"><label class="lbl"><span class="lbl-a">03</span> UNDERCOVER</label><input type="range" min="1" max="'+MUC()+'" value="'+uc+'" oninput="S.uc=+this.value;render()"><div class="flex items-center flex-center gap6 flex-wrap"><span class="color-cyan fs13 fw600">🕵️ '+uc+' UC</span><span class="color-sep">·</span><span class="color-dim7 fs13">👤 '+CC()+' civils</span>'+(WW()?'<span class="color-sep">·</span><span class="color-red fs13 fw600">🤍 1 Mr.W</span>':"")+'</div></div>'+
 '<div class="mb16 tl"><label class="lbl"><span class="lbl-a">04</span> OPTIONS</label><div class="flex items-center gap14 mb10"><button class="tog '+(S.mw?"on":"")+'" onclick="S.mw=!S.mw;S.uc=Math.min(S.uc,MUC());render()"><span class="dot"></span></button><span class="color-dim8 fs14">Mr. White <span class="color-dim fs12">(pas de mot)</span></span></div><div class="flex items-center gap14 mb10"><button class="tog '+(S.cat?"on":"")+'" onclick="S.cat=!S.cat;render()"><span class="dot"></span></button><span class="color-dim8 fs14">Afficher la catégorie</span></div><div class="tl"><span class="color-dim8 fs14 mr8">⏱ Timer débat :</span><div class="flex gap4 flex-wrap mt6">'+[0,60,120,180,300].map(function(v){var l=v===0?"Off":Math.floor(v/60)+"min";return'<button class="timer-preset'+(S.timer===v?" active":"")+'" onclick="S.timer='+v+';render()">'+l+'</button>'}).join("")+'</div></div>'+
-'<div class="flex items-center gap14"><button class="tog '+(S.skipvote?"on":"")+'" onclick="S.skipvote=!S.skipvote;render()"><span class="dot"></span></button><span class="color-dim8 fs14">Vote nul <span class="color-dim fs12">(personne éliminé)</span></span></div></div>'+
+'<div class="flex items-center gap14 mb10"><button class="tog '+(S.skipvote?"on":"")+'" onclick="S.skipvote=!S.skipvote;render()"><span class="dot"></span></button><span class="color-dim8 fs14">Vote nul <span class="color-dim fs12">(personne éliminé)</span></span></div>'+
+'<div class="flex items-center gap14"><button class="tog '+(S.night?"on":"")+'" onclick="S.night=!S.night;render()"><span class="dot"></span></button><span class="color-dim8 fs14">Mode nuit <span class="color-dim fs12">(rôles masqués pendant le débat)</span></span></div></div>'+
 (S.err?'<p class="err-msg">⚠ '+S.err+'</p>':'')+
 '<button class="btn" onclick="startSession()">▶ LANCER LA PARTIE</button>'+
 '<details class="hist-details mt6"><summary class="orb fs10 color-gold ls2">🏆 HALL OF FAME</summary>'+FLB()+(Object.keys(getLB()).length?'<button class="btn ghost" onclick="clearLB();render()">🗑 Effacer le classement</button>':'')+'</details>'+
@@ -133,13 +134,13 @@ if(p==="playing"){
 var ap=S.players.filter(function(x){return S.alive.indexOf(x.id)!==-1});
 var bad=ap.filter(function(x){return x.role!=="civil"}).length;
 var eh="";
-if(S.elim.length){eh='<div class="mb10"><p class="orb fs10 color-dim3 ls2 mb4">ÉLIMINÉS</p><div class="flex gap4 flex-wrap flex-center">'+S.elim.map(function(id){var pl=S.players.filter(function(x){return x.id===id})[0];return '<span class="chip dead'+(pl.role==="civil"?" civ":"")+'">'+N(id)+" "+(pl.role==="undercover"?"🕵️":pl.role==="mrwhite"?"🤍":"👤")+"</span>"}).join("")+"</div></div>"}
+if(S.elim.length){eh='<div class="mb10"><p class="orb fs10 color-dim3 ls2 mb4">ÉLIMINÉS</p><div class="flex gap4 flex-wrap flex-center">'+S.elim.map(function(id){var pl=S.players.filter(function(x){return x.id===id})[0];return '<span class="chip dead'+((!S.night&&pl.role==="civil")?" civ":"")+'">'+N(id)+(S.night?"":" "+(pl.role==="undercover"?"🕵️":pl.role==="mrwhite"?"🤍":"👤"))+"</span>"}).join("")+"</div></div>"}
 app.innerHTML='<div class="hline"></div><div class="flex flex-between mb10"><span class="tag">TOUR '+S.turn+'</span><span class="tag">'+S.alive.length+' EN JEU</span></div>'+
 '<h1 class="orb fs18 fw700 color-cyan mb8">'+G("DÉBAT EN COURS")+'</h1>'+
 '<p class="color-dim4 fs13 lh15 mb6">Décrivez votre mot dans l\'ordre, puis votez !</p>'+
 '<div class="speak-order mb10">'+S.ro.map(function(i,rank){return '<div class="speak-item"><span class="speak-num orb">'+(rank+1)+'</span><span class="speak-name">'+N(S.tp[i].id)+'</span></div>'}).join("")+'</div>'+
 eh+
-'<div class="flex gap8 mb10 flex-center"><div class="imposteur-box"><span class="orb fs18 fw900">'+bad+'</span><span class="orb fs10 color-dim5 ls2">IMPOSTEUR'+(bad>1?"S":"")+'<br>RESTANT'+(bad>1?"S":"")+'</span></div>'+(S.timer?'<div id="tdisp" class="timer-disp'+(S.trem<=10&&S.trem>0?" urgent":S.trem===0?" done":"")+'">'+( S.trem===0?"VOTEZ !":TF(S.trem))+'</div>':'')+'</div>'+
+'<div class="flex gap8 mb10 flex-center">'+(S.night?'<div class="imposteur-box night"><span class="orb fs11 color-dim4 ls2">MODE NUIT</span></div>':'<div class="imposteur-box"><span class="orb fs18 fw900">'+bad+'</span><span class="orb fs10 color-dim5 ls2">IMPOSTEUR'+(bad>1?"S":"")+'<br>RESTANT'+(bad>1?"S":"")+'</span></div>')+(S.timer?'<div id="tdisp" class="timer-disp'+(S.trem<=10&&S.trem>0?" urgent":S.trem===0?" done":"")+'">'+( S.trem===0?"VOTEZ !":TF(S.trem))+'</div>':'')+'</div>'+
 '<button class="btn red glow" onclick="stopTimer();S.phase=\'vote\';S.vt=null;render()">🗳️ VOTER POUR ÉLIMINER</button>'+
 (S.hist.length?'<button class="btn ghost mt4" onclick="S.showHist=!S.showHist;render()">📋 Historique ('+S.hist.length+' tour'+(S.hist.length>1?"s":"")+')</button>'+(S.showHist?'<div class="hist-box mt6">'+HIST()+'</div>':''): '')+
 CSC()+'<div class="fline"></div>';return}
@@ -259,6 +260,6 @@ recordTurn(le);
 if(S.phase==="game_over"){saveLeaderboard();SND.win(S.gr.winner);VIB([100,50,100,50,200])}
 render()}
 
-function fullReset(){stopTimer();S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:S.timer,tid:null,trem:0,skipvote:S.skipvote,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false};render()}
+function fullReset(){stopTimer();S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:S.timer,tid:null,trem:0,skipvote:S.skipvote,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:S.night};render()}
 
 render();

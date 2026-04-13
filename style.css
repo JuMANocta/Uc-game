@@ -196,6 +196,7 @@ input[type=text]::placeholder { color: rgba(255,255,255,0.2); }
 
 /* Special boxes */
 .imposteur-box { padding: 8px 16px; background: rgba(255,42,109,0.06); border: 1px solid rgba(255,42,109,0.2); display: flex; align-items: center; gap: 6px; }
+.imposteur-box.night { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08); padding: 8px 20px; }
 .icon-big { font-size: 56px; margin: 12px 0; filter: drop-shadow(0 0 20px rgba(5,217,232,0.4)); }
 .icon-med { font-size: 48px; margin: 8px 0; }
 .text-shadow-cyan { text-shadow: 0 0 30px rgba(5,217,232,0.5); }
