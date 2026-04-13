@@ -213,6 +213,7 @@ app.innerHTML='<div class="hline"></div><span class="tag">FIN DU TOUR '+S.turn+'
 WR()+
 '<p class="orb fs10 color-dim3 ls2 mb0">'+bl+' IMPOSTEUR'+(bl>1?"S":"")+" RESTANT"+(bl>1?"S":"")+"</p>"+
 CSC()+
+(S.hist.length>1?'<details class="hist-details"><summary class="orb fs10 color-dim3 ls2">TOURS PRÉCÉDENTS</summary>'+HIST(S.hist.length-1)+'</details>':'')+
 '<button class="btn" onclick="startTurn()">▶ TOUR SUIVANT — NOUVEAUX MOTS</button><div class="fline"></div>';return}
 
 if(p==="game_over"){
@@ -230,7 +231,7 @@ WR()+
 '<p class="orb fs10 color-dim ls2 mb0">CLASSEMENT FINAL</p>'+
 FSC()+
 (S.hist.length?'<details class="hist-details"><summary class="orb fs10 color-dim3 ls2">TOUS LES TOURS ('+S.hist.length+')</summary>'+HIST()+'</details>':'')+
-'<details class="hist-details mb8"><summary class="orb fs10 color-gold ls2">🏆 HALL OF FAME</summary>'+FLB()+'<button class="btn ghost" style="" onclick="clearLB();render()">🗑 Effacer le classement</button></details>'+
+'<details class="hist-details mb8"><summary class="orb fs10 color-gold ls2">🏆 HALL OF FAME</summary>'+FLB()+'<button class="btn ghost" onclick="clearLB();render()">🗑 Effacer le classement</button></details>'+
 '<button class="btn gold" onclick="fullReset()">🏆 NOUVELLE PARTIE</button><div class="fline"></div>';return}
 }
 
