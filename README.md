@@ -1,12 +1,12 @@
 # UNDERCOVER — Night City Edition
 
-Jeu de société **Undercover** en version navigateur, thème cyberpunk. Aucune installation, aucune dépendance : ouvrez `index.html` et jouez.
+Jeu de société **Undercover** en version navigateur, thème cyberpunk "Night City". Aucune installation, aucune dépendance : ouvrez `index.html` et jouez.
 
 ## Principe du jeu
 
-Chaque joueur reçoit secrètement un mot. La plupart des joueurs ont le **même mot (civils)**, mais quelques-uns ont un **mot proche mais différent (Undercover)**, et éventuellement un joueur n'a **aucun mot (Mr. White)**.
+Chaque joueur reçoit secrètement un mot. La plupart ont le **même mot (civils)**, mais quelques-uns ont un **mot proche mais différent (Undercover)**, et éventuellement un joueur n'a **aucun mot (Mr. White)**.
 
-À tour de rôle, chaque joueur donne un indice sur son mot sans le révéler. Après la discussion, le groupe vote pour éliminer le suspect numéro un. Les civils gagnent en éliminant tous les imposteurs ; les imposteurs gagnent en survivant assez longtemps.
+À tour de rôle, chaque joueur donne un indice sans révéler son mot. Après la discussion, le groupe vote pour éliminer le suspect numéro un. Les civils gagnent en éliminant tous les imposteurs ; les imposteurs gagnent en survivant assez longtemps.
 
 ### Rôles
 
@@ -16,29 +16,39 @@ Chaque joueur reçoit secrètement un mot. La plupart des joueurs ont le **même
 | Undercover | 🕵️ | Mot undercover (proche du civil) | Survivre jusqu'à être en majorité |
 | Mr. White | 🤍 | Aucun | Survivre ET deviner le mot civil lors de son élimination |
 
+---
+
 ## Lancer le jeu
 
 ```bash
-# Cloner le dépôt
 git clone https://github.com/jumanocta/uc-game.git
 cd uc-game
-
-# Ouvrir dans le navigateur (pas de serveur requis)
 open index.html        # macOS
 xdg-open index.html    # Linux
 start index.html       # Windows
 ```
 
-Ou simplement double-cliquer sur `index.html`.
+Ou double-cliquer sur `index.html`. Aucun serveur requis.
+
+> **PWA** : sur HTTPS, le jeu est installable et fonctionne hors-ligne.
+
+---
 
 ## Configuration d'une partie
 
-1. **Joueurs** : de 3 à 20 (stepper +/-)
-2. **Noms** : saisir un prénom par joueur (optionnel)
-3. **Undercover** : choisir le nombre d'imposteurs via le slider
-4. **Options** :
-   - Activer / désactiver Mr. White
-   - Afficher / masquer la catégorie du mot
+| Option | Détail |
+|---|---|
+| **Joueurs** | 3 à 20 — stepper ou saisie directe |
+| **Noms** | Prénom par joueur (auto-rempli si vide) |
+| **Undercover** | Nombre d'imposteurs via slider |
+| **Mr. White** | Active le rôle sans mot |
+| **Catégorie** | Affiche ou masque la thématique du mot |
+| **Timer débat** | Off · 1min · 2min · 3min · 5min |
+| **Vote nul** | Permet de passer un tour sans élimination |
+| **Mode nuit** | Masque le compteur d'imposteurs et les rôles éliminés pendant le débat |
+| **Mode Enfant 🧒** | Filtre les mots adultes, active les catégories Animaux · Contes · École |
+
+---
 
 ## Système de points
 
@@ -50,42 +60,71 @@ Ou simplement double-cliquer sur `index.html`.
 | Mr. White survit avec les UC | +2 pts |
 | Mr. White devine le mot civil | +5 pts |
 
-## Catégories de mots
+---
 
-Le jeu contient **~500 paires de mots** réparties en 13 catégories :
+## Base de mots
 
-`Cinéma` · `Séries` · `Jeux vidéo` · `Musique` · `Nourriture` · `Sport` · `Culture` · `Tech` · `Personnages` · `Marques` · `Divers`
+**394 paires** réparties en **14 catégories** :
 
-Les paires déjà jouées ne se répètent pas avant épuisement complet du pool.
+`Cinéma` · `Séries` · `Jeux vidéo` · `Musique` · `Nourriture` · `Sport` · `Culture` · `Tech` · `Personnages` · `Marques` · `Divers` · `Animaux` · `Contes` · `École`
+
+Les paires jouées ne se répètent pas avant épuisement complet du pool (ou du pool filtré en Mode Enfant).
+
+---
+
+## Fonctionnalités
+
+- **Ordre de parole** — affiché pendant le débat ; tap sur un nom pour le cocher (a parlé)
+- **Timer** — countdown configurable, alerte sonore + vibration à l'expiration
+- **Sons & vibrations** — Web Audio API (zéro fichier audio), vibrations sur toutes les transitions clés
+- **Historique** — consultable pendant le débat et dans les récapitulatifs
+- **Hall of Fame** — scores cumulés en `localStorage`, top 10 persistant entre les parties
+- **Splash screen** — boot log animé au premier chargement
+- **Bouton Abandonner** — disponible pendant le débat (avec confirmation)
+- **PWA** — installable sur mobile, fonctionne hors-ligne sur HTTPS
+
+---
+
+## Phases de jeu
+
+```
+splash → setup → handoff → reveal → playing → vote → turn_recap → game_over
+                                               ↗ mrwhite_guess ↗
+```
+
+| Phase | Description |
+|---|---|
+| `setup` | Configuration de la partie |
+| `handoff` | Passage du téléphone au joueur suivant |
+| `reveal` | Le joueur découvre son mot en privé |
+| `playing` | Débat + timer + ordre de parole |
+| `vote` | Élimination par vote (ou vote nul) |
+| `mrwhite_guess` | Mr. White tente de deviner le mot civil |
+| `turn_recap` | Révélation du rôle éliminé + scores + historique |
+| `game_over` | Classement final + Hall of Fame |
+
+---
 
 ## Structure du projet
 
 ```
 uc-game/
-├── index.html   # Shell HTML (point d'entrée)
-├── app.js       # Logique de jeu complète (vanilla JS)
-└── style.css    # Thème cyberpunk Night City
+├── index.html       # Shell HTML
+├── app.js           # DB + logique complète (vanilla JS)
+├── style.css        # Thème cyberpunk Night City
+├── manifest.json    # PWA manifest
+├── sw.js            # Service worker (cache-first)
+└── icons/
+    └── icon.svg     # Icône PWA
 ```
 
 **Aucune dépendance** — pas de Node, pas de bundler, pas de framework.
 
-## Phases de jeu
-
-```
-setup → handoff → reveal → playing → vote → turn_recap → game_over
-```
-
-1. **setup** : configuration de la partie
-2. **handoff** : passage du téléphone au joueur suivant
-3. **reveal** : le joueur découvre son mot en privé
-4. **playing** : discussion collective
-5. **vote** : élimination par vote
-6. **turn_recap** : révélation du rôle de l'éliminé + scores
-7. **game_over** : écran de fin avec classement complet
+---
 
 ## Compatibilité
 
-Fonctionne dans tout navigateur moderne (Chrome, Firefox, Safari, Edge). Optimisé mobile (écran unique, tactile).
+Navigateurs modernes (Chrome, Firefox, Safari, Edge). Optimisé mobile (écran unique, tactile, `user-scalable=no`).
 
 ## Licence
 

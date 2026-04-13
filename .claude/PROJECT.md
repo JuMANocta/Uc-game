@@ -33,13 +33,15 @@ Déployable sur Apache HTTP ou tout serveur de fichiers statiques.
 
 ```
 uc-game/
-├── index.html          # Shell HTML (14 lignes)
-├── app.js              # Toute la logique (~300 lignes)
-├── style.css           # Thème cyberpunk (~220 lignes)
+├── index.html          # Shell HTML (~30 lignes)
+├── app.js              # DB + toute la logique (~400 lignes)
+├── style.css           # Thème cyberpunk (~280 lignes)
 ├── manifest.json       # PWA manifest
 ├── sw.js               # Service worker (cache-first)
 ├── icons/icon.svg      # Icône PWA (design UC cyan)
-└── README.md
+├── README.md
+└── .claude/
+    └── PROJECT.md      # Ce fichier — mémoire projet
 ```
 
 ### État global `S`
@@ -57,6 +59,8 @@ S = {
   timer,        // durée timer débat en secondes (0 = off)
   skipvote,     // vote nul activé (bool)
   night,        // mode nuit activé (bool)
+  kids,         // mode enfant activé (bool) — filtre PP()
+  nsfw,         // mode adulte activé (bool) — à implémenter
 
   // Joueurs
   nm,           // {id: nom} — noms des joueurs
@@ -76,6 +80,7 @@ S = {
   wv,           // mot révélé (bool, phase reveal)
   vt,           // vote target id (null = rien, -1 = personne)
   skipt,        // tour sauté (vote nul)
+  spoken,       // [id] — joueurs ayant parlé ce tour (reset startTurn)
 
   // Timer
   tid,          // setInterval id
@@ -108,18 +113,21 @@ splash → setup → handoff → reveal → playing → vote → turn_recap → 
 | `setup` | Configuration : joueurs, noms, rôles, options |
 | `handoff` | Passage du téléphone au joueur suivant |
 | `reveal` | Le joueur découvre son mot en privé |
-| `playing` | Débat + timer + ordre de parole |
+| `playing` | Débat + timer + ordre de parole + cocher les parlants |
 | `vote` | Vote d'élimination (ou vote nul) |
 | `mrwhite_guess` | Mr. White tente de deviner le mot civil |
-| `turn_recap` | Révélation du rôle éliminé + scores |
+| `turn_recap` | Révélation du rôle éliminé + scores + historique |
 | `game_over` | Écran de fin avec classement et Hall of Fame |
 
 ### Base de données de mots (`DB`)
 
-~500 paires `[mot_civil, mot_uc, catégorie]` en 13 catégories :
-`Cinéma · Séries · Jeux vidéo · Musique · Nourriture · Sport · Culture · Tech · Personnages · Marques · Divers`
+**394 paires** `[mot_civil, mot_uc, catégorie, kid_safe]` en **14 catégories** :
+`Cinéma · Séries · Jeux vidéo · Musique · Nourriture · Sport · Culture · Tech · Personnages · Marques · Divers · Animaux · Contes · École`
 
-Anti-répétition : `S.used` trace les indices déjà tirés, reset quand tout a été utilisé.
+- `kid_safe = true` : paire incluse en Mode Enfant (~260 paires)
+- `kid_safe = false` : paire exclue en Mode Enfant (alcool, horreur, violence, sujets adultes)
+
+Anti-répétition : `S.used` trace les **indices originaux DB** déjà tirés. Quand le pool filtré est épuisé, `S.used` est réinitialisé sur ce pool uniquement (pas sur la DB entière).
 
 ### Fonctions clés
 
@@ -127,24 +135,31 @@ Anti-répétition : `S.used` trace les indices déjà tirés, reset quand tout a
 |---|---|
 | `render()` | Rendu complet selon `S.phase` |
 | `startSession()` | Valide les noms, assigne les rôles, lance le 1er tour |
-| `startTurn()` | Tire un mot, shuffle l'ordre, passe en `handoff` |
-| `confirmSeen()` | Avance dans le handoff/reveal, lance le timer |
-| `doElim()` | Élimine un joueur ou traite le vote nul |
-| `checkEnd()` | Vérifie les conditions de victoire |
+| `startTurn()` | Tire un mot via `PP()`, shuffle l'ordre, reset `spoken`, passe en `handoff` |
+| `confirmSeen()` | Avance dans le handoff/reveal, lance le timer au dernier joueur |
+| `doElim()` | Élimine un joueur ou traite le vote nul (`S.vt === -1`) |
+| `checkEnd()` | Vérifie les conditions de victoire et distribue les points |
 | `mwGuess(ok)` | Gère la tentative de devine de Mr. White |
-| `fullReset()` | Remet à zéro en conservant les options |
-| `startTimer()` | Lance le countdown (setInterval) |
+| `fullReset()` | Remet à zéro en conservant toutes les options (pc, uc, mw, cat, nm, timer, skipvote, night, kids) |
+| `PP()` | Pioche une paire non-utilisée, filtrée par `S.kids` |
+| `startTimer()` | Lance le countdown (setInterval, met à jour `#tdisp` directement) |
 | `stopTimer()` | Arrête le countdown proprement |
 | `recordTurn(elim)` | Enregistre le tour dans `S.hist` |
-| `saveLeaderboard()` | Cumule les scores dans `localStorage['uc_lb']` |
-| `SND.ping/click/elim/alarm/win` | Sons via Web Audio API |
+| `saveLeaderboard()` | Cumule les scores dans `localStorage['uc_lb']` (protégé par `S.lbSaved`) |
+| `SND.ping/click/elim/alarm/win` | Sons via Web Audio API (oscillateurs) |
 | `VIB(pattern)` | Vibration via `navigator.vibrate` |
-| `G(text, class)` | Génère l'effet glitch |
+| `G(text, class)` | Génère l'effet glitch CSS |
 | `CSC()` | Scores compacts (handoff/playing) |
 | `FSC()` | Scores complets (game_over) |
 | `HIST(max)` | Historique des tours (HTML) |
 | `FLB()` | Hall of Fame depuis localStorage (HTML) |
 | `WR()` | Affiche la paire de mots (turn_recap/game_over) |
+| `CP(d)` | Incrémente/décrémente `S.pc`, met à jour `S.uc` |
+| `MUC()` | Max undercovers selon `S.pc` et `S.mw` |
+| `WW()` | Mr. White jouable ? (≥4 joueurs, assez de civils) |
+| `CC()` | Nombre de civils calculé |
+| `N(id)` | Nom du joueur (fallback "Joueur N") |
+| `TF(sec)` | Formate les secondes en "Xm Xs" |
 
 ---
 
@@ -182,8 +197,7 @@ Anti-répétition : `S.used` trace les indices déjà tirés, reset quand tout a
 | I | `9b75aa5` | Mode nuit : compteur imposteurs masqué, rôles éliminés masqués pendant débat |
 | K | `f1d06ac` | Splash screen animé : boot log CSS staggeré, icône zoom/glow, bouton fade-in |
 | L | `3fada63` | PWA : `manifest.json`, `sw.js` cache-first offline, metas iOS, icône SVG |
-| Q | `935e1f4` | Mode Enfant : toggle setup, filtre les paires adultes, active Animaux/Contes/École |
-| Q | `935e1f4` | DB étendue : 225 → 394 paires, 11 → 14 catégories, toutes taggées kid-safe |
+| Q | `935e1f4` | Mode Enfant + DB × 1,75 : 225 → 394 paires, 11 → 14 catégories, flag kid_safe |
 
 ---
 
@@ -200,7 +214,8 @@ Anti-répétition : `S.used` trace les indices déjà tirés, reset quand tout a
 
 | Idée | Description |
 |---|---|
-| Niveaux de difficulté | Flag `facile/moyen/difficile` par paire dans la DB (4 éléments → 5), filtre activable en options. Ex : Cappuccino/Latte = difficile, iPhone/Samsung = facile |
+| **Mode 18+ (NSFW)** | Toggle "🔞 Mode Adulte" dans le setup (avec avertissement consentement). Ajoute un pool de paires explicites/grivois dans des catégories dédiées (Séduction, Corps, Soirée, Relations…). Implémentation : 5ème flag `nsfw` par entrée DB, ou tableau `DB_NSFW` séparé inclus dans le pool quand `S.nsfw = true`. Ne s'active pas avec le Mode Enfant. |
+| **Niveaux de difficulté** | Flag `facile/moyen/difficile` par paire (4 éléments → 5), filtre activable en options. Ex : Cappuccino/Latte = difficile, iPhone/Samsung = facile |
 | Animations de transition | Fade/slide entre les phases plutôt que le rendu instantané |
 | Mode multi-appareils | Chaque joueur sur son propre téléphone (nécessite un backend WebSocket) |
 | Thèmes visuels | Alterner entre Night City et d'autres palettes (rétro, nature, etc.) |
@@ -211,16 +226,6 @@ Anti-répétition : `S.used` trace les indices déjà tirés, reset quand tout a
 ---
 
 ## Notes techniques importantes
-
-### Base de données (`DB`)
-Chaque entrée : `[mot_civil, mot_uc, catégorie, kid_safe]`
-- `kid_safe = true` : paire visible en Mode Enfant
-- `kid_safe = false` : paire filtrée en Mode Enfant
-- 394 paires — 14 catégories : Cinéma · Séries · Jeux vidéo · Musique · Nourriture · Sport · Culture · Tech · Personnages · Marques · Divers · Animaux · Contes · École
-
-### État global `S` — nouveaux champs
-- `kids` : Mode Enfant activé (bool) — filtre `PP()` + conservé dans `fullReset()`
-- `spoken` : `[id]` — joueurs ayant parlé ce tour (reset dans `startTurn()`)
 
 ### PWA & HTTPS
 Le service worker ne s'enregistre que sur HTTPS (ou `localhost`).
@@ -243,3 +248,7 @@ Si `AudioContext` non supporté, les sons sont silencieusement ignorés.
 ### Scores
 Les scores de partie (`S.sc`) sont indépendants du Hall of Fame.
 `saveLeaderboard()` est protégé par `S.lbSaved` pour n'écrire qu'une fois par partie.
+
+### Modes exclusifs
+`kids` et `nsfw` (futur) ne doivent pas être activés simultanément.
+Le toggle NSFW devra désactiver `S.kids` si actif, et vice versa.
