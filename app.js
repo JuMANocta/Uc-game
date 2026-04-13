@@ -95,7 +95,7 @@ app.innerHTML='<div class="hline"></div>'+
 '<p class="boot-line l3">&gt; IMPOSTEURS PRÊTS</p>'+
 '<p class="boot-line l4">&gt; QUI EST L\'UNDERCOVER ?</p>'+
 '</div>'+
-'<button class="btn glow splash-btn" onclick="S.phase=\'setup\';render()">▶ DÉMARRER</button>'+
+'<button class="btn splash-btn" onclick="S.phase=\'setup\';render()">▶ DÉMARRER</button>'+
 '<div class="fline"></div>';return}
 
 if(p==="setup"){
