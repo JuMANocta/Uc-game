@@ -1,0 +1,25 @@
+{
+  "name": "UNDERCOVER — Night City Edition",
+  "short_name": "UNDERCOVER",
+  "description": "Jeu de société Undercover multijoueur, thème cyberpunk. Aucune installation requise.",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#05050f",
+  "theme_color": "#05d9e8",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
