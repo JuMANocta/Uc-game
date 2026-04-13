@@ -20,7 +20,7 @@ var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}
 
-var S={phase:"splash",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:false};
+var S={phase:"splash",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:false,spoken:[]};
 
 function N(id){return S.nm[id]||("Joueur "+id)}
 function MUC(){return Math.max(1,S.pc-(S.mw?2:1))}
@@ -167,7 +167,7 @@ if(S.elim.length){eh='<div class="mb10"><p class="orb fs10 color-dim3 ls2 mb4">�
 app.innerHTML='<div class="hline"></div><div class="flex flex-between mb10"><span class="tag">TOUR '+S.turn+'</span><span class="tag">'+S.alive.length+' EN JEU</span></div>'+
 '<h1 class="orb fs18 fw700 color-cyan mb8">'+G("DÉBAT EN COURS")+'</h1>'+
 '<p class="color-dim4 fs13 lh15 mb6">Décrivez votre mot dans l\'ordre, puis votez !</p>'+
-'<div class="speak-order mb10">'+S.ro.map(function(i,rank){return '<div class="speak-item"><span class="speak-num orb">'+(rank+1)+'</span><span class="speak-name">'+N(S.tp[i].id)+'</span></div>'}).join("")+'</div>'+
+'<div class="speak-order mb10">'+S.ro.map(function(i,rank){var sid=S.tp[i].id;var done=S.spoken.indexOf(sid)!==-1;return '<div class="speak-item'+(done?" spoke":"")+'" onclick="var _i=S.spoken.indexOf('+sid+');if(_i===-1)S.spoken.push('+sid+');else S.spoken.splice(_i,1);render()"><span class="speak-num orb">'+(done?"✓":(rank+1))+'</span><span class="speak-name">'+N(sid)+'</span></div>'}).join("")+'</div>'+
 eh+
 '<div class="flex gap8 mb10 flex-center">'+(S.night?'<div class="imposteur-box night"><span class="orb fs11 color-dim4 ls2">MODE NUIT</span></div>':'<div class="imposteur-box"><span class="orb fs18 fw900">'+bad+'</span><span class="orb fs10 color-dim5 ls2">IMPOSTEUR'+(bad>1?"S":"")+'<br>RESTANT'+(bad>1?"S":"")+'</span></div>')+(S.timer?'<div id="tdisp" class="timer-disp'+(S.trem<=10&&S.trem>0?" urgent":S.trem===0?" done":"")+'">'+( S.trem===0?"VOTEZ !":TF(S.trem))+'</div>':'')+'</div>'+
 '<button class="btn red glow" onclick="stopTimer();S.phase=\'vote\';S.vt=null;render()">🗳️ VOTER POUR ÉLIMINER</button>'+
@@ -261,7 +261,7 @@ var e=PP();var f=Math.random()>0.5;
 S.pair=[f?e[0]:e[1],f?e[1]:e[0]];S.ct=e[2];
 S.tp=S.alive.map(function(id){var p=S.players.filter(function(x){return x.id===id})[0];return{id:p.id,role:p.role,word:p.role==="civil"?S.pair[0]:p.role==="undercover"?S.pair[1]:null}});
 S.ro=shuffle(S.tp.map(function(_,i){return i}));
-S.ri=0;S.wv=false;S.vt=null;S.turn++;S.phase="handoff";render()}
+S.ri=0;S.wv=false;S.vt=null;S.spoken=[];S.turn++;S.phase="handoff";render()}
 
 function confirmSeen(){SND.click();VIB(30);S.wv=false;if(S.ri<S.tp.length-1){S.ri++;S.phase="handoff"}else{S.phase="playing";render();startTimer();return}render()}
 
@@ -290,6 +290,6 @@ recordTurn(le);
 if(S.phase==="game_over"){saveLeaderboard();SND.win(S.gr.winner);VIB([100,50,100,50,200])}
 render()}
 
-function fullReset(){stopTimer();S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:S.timer,tid:null,trem:0,skipvote:S.skipvote,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:S.night};render()}
+function fullReset(){stopTimer();S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:S.timer,tid:null,trem:0,skipvote:S.skipvote,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:S.night,spoken:[]};render()}
 
 render();
