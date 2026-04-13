@@ -29,6 +29,7 @@ function N(id){return S.nm[id]||("Joueur "+id)}
 function MUC(){return Math.max(1,S.pc-(S.mw?2:1))}
 function WW(){var u=Math.min(S.uc,MUC());return S.mw&&S.pc>=4&&(S.pc-u)>=2}
 function CC(){return S.pc-Math.min(S.uc,MUC())-(WW()?1:0)}
+function BAL(){return Math.max(1,Math.floor(S.pc/3)-(S.mw?1:0))}
 function PP(){var pool=DB.reduce(function(a,e,i){if(!S.kids||e[3])a.push(i);return a},[]);var av=pool.filter(function(i){return S.used.indexOf(i)===-1});if(!av.length){S.used=[];av=pool}var x=av[Math.floor(Math.random()*av.length)];S.used.push(x);return DB[x]}
 
 function SS(){var s=Object.keys(S.sc).map(function(k){return{id:+k,pts:S.sc[k]}}).sort(function(a,b){return b.pts-a.pts});return s}
@@ -106,7 +107,7 @@ var uc=Math.min(S.uc,MUC());var nh="";
 for(var i=1;i<=S.pc;i++)nh+='<input type="text" id="n'+i+'" placeholder="Joueur '+i+'" value="'+(S.nm[i]||"")+'" oninput="S.nm['+i+']=this.value">';
 app.innerHTML='<div class="hline"></div><div class="mb20">'+G("UNDERCOVER","orb fs28 fw900 ls4 color-cyan text-shadow-cyan")+'<p class="subtitle-red">// NIGHT CITY EDITION</p></div>'+
 
-'<div class="setup-section"><label class="lbl"><span class="lbl-a">01</span> JOUEURS</label><div class="stepper"><button onclick="CP(-1)">−</button><input type="number" class="val-input" min="3" max="20" value="'+S.pc+'" oninput="S.pc=Math.max(3,Math.min(20,+this.value||3));S.uc=Math.min(S.uc,MUC())" onchange="render()"><button onclick="CP(1)">+</button></div></div>'+
+'<div class="setup-section"><label class="lbl"><span class="lbl-a">01</span> JOUEURS</label><div class="stepper"><button onclick="CP(-1)">−</button><input type="number" class="val-input" min="3" max="20" value="'+S.pc+'" oninput="S.pc=Math.max(3,Math.min(20,+this.value||3));S.uc=Math.min(BAL(),MUC())" onchange="render()"><button onclick="CP(1)">+</button></div></div>'+
 
 '<div class="setup-section"><label class="lbl"><span class="lbl-a">02</span> NOMS</label><div class="names-grid">'+nh+'</div></div>'+
 
@@ -114,7 +115,7 @@ app.innerHTML='<div class="hline"></div><div class="mb20">'+G("UNDERCOVER","orb 
 
 '<div class="setup-section"><label class="lbl"><span class="lbl-a">04</span> OPTIONS</label><div class="opt-group">'+
 
-'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">Mr. White</span><span class="opt-desc">Rôle sans mot — doit deviner le mot civil</span></div><button class="tog '+(S.mw?"on":"")+'" onclick="S.mw=!S.mw;S.uc=Math.min(S.uc,MUC());render()"><span class="dot"></span></button></div>'+
+'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">Mr. White</span><span class="opt-desc">Rôle sans mot — doit deviner le mot civil</span></div><button class="tog '+(S.mw?"on":"")+'" onclick="S.mw=!S.mw;S.uc=Math.min(BAL(),MUC());render()"><span class="dot"></span></button></div>'+
 
 '<div class="opt-row"><div class="opt-lbl"><span class="opt-title">Afficher la catégorie</span><span class="opt-desc">Révèle la thématique du mot pendant le tour</span></div><button class="tog '+(S.cat?"on":"")+'" onclick="S.cat=!S.cat;render()"><span class="dot"></span></button></div>'+
 
@@ -244,7 +245,7 @@ FSC()+
 // ══════════════════════════════════════════════════════════════
 // ACTIONS
 // ══════════════════════════════════════════════════════════════
-function CP(d){S.pc=Math.max(3,Math.min(20,S.pc+d));S.uc=Math.min(S.uc,MUC());render()}
+function CP(d){S.pc=Math.max(3,Math.min(20,S.pc+d));S.uc=Math.min(BAL(),MUC());render()}
 
 function startSession(){
 for(var i=1;i<=S.pc;i++){var el=document.getElementById("n"+i);if(el)S.nm[i]=el.value}
