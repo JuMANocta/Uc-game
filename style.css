@@ -132,6 +132,19 @@ input[type=text]::placeholder { color: rgba(255,255,255,0.2); }
 .chip.dead { background: rgba(255,42,109,0.08); border-color: rgba(255,42,109,0.2); color: #ff2a6d; text-decoration: line-through; }
 .chip.dead.civ { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); }
 
+/* Splash */
+.splash-icon { font-size: 72px; margin: 16px 0 12px; filter: drop-shadow(0 0 30px rgba(5,217,232,0.5)); animation: splashIcon 1s ease; }
+@keyframes splashIcon { from { opacity: 0; transform: scale(0.5); filter: drop-shadow(0 0 0px rgba(5,217,232,0)); } to { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 30px rgba(5,217,232,0.5)); } }
+.boot-log { text-align: left; margin: 20px 0 24px; padding: 12px 16px; background: rgba(5,217,232,0.03); border: 1px solid rgba(5,217,232,0.08); }
+.boot-line { font-family: 'Orbitron', sans-serif; font-size: 11px; letter-spacing: 2px; color: rgba(5,217,232,0.6); margin-bottom: 6px; opacity: 0; animation: bootFade 0.4s forwards; }
+.boot-line:last-child { margin-bottom: 0; }
+.boot-line.l1 { animation-delay: 0.4s; }
+.boot-line.l2 { animation-delay: 0.9s; }
+.boot-line.l3 { animation-delay: 1.4s; }
+.boot-line.l4 { animation-delay: 1.9s; color: rgba(255,42,109,0.8); }
+@keyframes bootFade { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+.splash-btn { animation-delay: 2.4s; opacity: 0; animation: bootFade 0.4s 2.4s forwards, pulseCyan 2s 2.8s infinite; }
+
 /* History */
 .hist-box { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); margin-bottom: 6px; }
 .hist-list { display: flex; flex-direction: column; }

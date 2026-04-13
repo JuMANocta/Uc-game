@@ -20,7 +20,7 @@ var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}
 
-var S={phase:"setup",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:false};
+var S={phase:"splash",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:false};
 
 function N(id){return S.nm[id]||("Joueur "+id)}
 function MUC(){return Math.max(1,S.pc-(S.mw?2:1))}
@@ -83,6 +83,20 @@ return'<div class="score-full">'+en.slice(0,10).map(function(e,i){var mc=i<3?["c
 // ══════════════════════════════════════════════════════════════
 function render(){
 var p=S.phase;
+
+if(p==="splash"){
+app.innerHTML='<div class="hline"></div>'+
+'<div class="splash-icon">🕵️</div>'+
+'<div class="mb6">'+G("UNDERCOVER","orb fs44 fw900 ls4 color-cyan text-shadow-cyan")+'</div>'+
+'<p class="subtitle-red mb20">// NIGHT CITY EDITION</p>'+
+'<div class="boot-log">'+
+'<p class="boot-line l1">&gt; SYSTÈME EN LIGNE</p>'+
+'<p class="boot-line l2">&gt; IDENTITÉS MASQUÉES</p>'+
+'<p class="boot-line l3">&gt; IMPOSTEURS PRÊTS</p>'+
+'<p class="boot-line l4">&gt; QUI EST L\'UNDERCOVER ?</p>'+
+'</div>'+
+'<button class="btn glow splash-btn" onclick="S.phase=\'setup\';render()">▶ DÉMARRER</button>'+
+'<div class="fline"></div>';return}
 
 if(p==="setup"){
 var uc=Math.min(S.uc,MUC());var nh="";
