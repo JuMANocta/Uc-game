@@ -124,7 +124,7 @@ input[type=text]::placeholder { color: rgba(255,255,255,0.2); }
 /* ── Components ── */
 .cat-badge { display: inline-block; margin: 12px 0 4px; padding: 4px 16px; background: rgba(255,42,109,0.1); border: 1px solid rgba(255,42,109,0.3); color: #ff2a6d; font-size: 11px; font-weight: 700; font-family: 'Orbitron', sans-serif; letter-spacing: 3px; text-transform: uppercase; }
 .pbar { width: 100%; height: 3px; background: rgba(255,255,255,0.06); margin-bottom: 12px; }
-.pbar-fill { height: 100%; background: linear-gradient(90deg,#05d9e8,#ff2a6d); transition: width 0.4s; }
+.pbar-fill { height: 100%; background: linear-gradient(90deg,#05d9e8,#ff2a6d); width: var(--pbar-w, 0%); transition: width 0.4s; }
 .names-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 
 /* Chips */

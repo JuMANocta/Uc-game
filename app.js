@@ -57,7 +57,7 @@ app.innerHTML='<div class="hline"></div><div class="flex flex-between mb10"><spa
 '<p class="color-dim fs13 mb16">Personne d\'autre ne doit regarder</p>'+
 '<button class="btn glow" onclick="S.phase=\'reveal\';render()">JE SUIS '+N(cp.id).toUpperCase()+'</button>'+
 CSC()+'<div class="fline"></div>';
-document.getElementById("pf").style.width=((S.ri+1)/S.tp.length*100)+"%";return}
+document.getElementById("pf").style.setProperty("--pbar-w",((S.ri+1)/S.tp.length*100)+"%");return}
 
 if(p==="reveal"){
 if(!S.wv){
@@ -66,7 +66,7 @@ app.innerHTML='<div class="hline"></div><div class="pbar"><div class="pbar-fill"
 '<h2 class="orb fs22 fw700 color-cyan m8-0">'+N(cp.id)+'</h2>'+
 '<p class="color-dim fs13 mb20">Appuie pour découvrir ton mot</p>'+
 '<button class="btn glow" onclick="S.wv=true;render()">👁️ RÉVÉLER</button><div class="fline"></div>';
-document.getElementById("pf").style.width=((S.ri+1)/S.tp.length*100)+"%";
+document.getElementById("pf").style.setProperty("--pbar-w",((S.ri+1)/S.tp.length*100)+"%");
 }else{
 var wa;
 if(cp.role==="mrwhite"){wa='<p class="orb color-dim4 fs11 ls3 mb10">TON RÔLE :</p>'+G("MR. WHITE","orb fs24 fw900 color-white text-shadow-white flicker")+'<p class="color-dim4 fs13 mt14 lh15">Pas de mot. Bluff et essaie de deviner le mot civil !</p>'}
@@ -76,7 +76,7 @@ app.innerHTML='<div class="hline"></div><div class="pbar"><div class="pbar-fill"
 '<div class="m20-0">'+wa+'</div>'+
 '<p class="color-dim2 fs12 mb12">Mémorise bien, puis confirme ↓</p>'+
 '<button class="btn green" onclick="confirmSeen()">✓ C\'EST BON</button><div class="fline"></div>';
-document.getElementById("pf").style.width=((S.ri+1)/S.tp.length*100)+"%"}return}
+document.getElementById("pf").style.setProperty("--pbar-w",((S.ri+1)/S.tp.length*100)+"%")}return}
 
 if(p==="playing"){
 var ap=S.players.filter(function(x){return S.alive.indexOf(x.id)!==-1});
