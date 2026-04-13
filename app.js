@@ -20,7 +20,7 @@ var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}
 
-var S={phase:"setup",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null};
+var S={phase:"setup",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:""};
 
 function N(id){return S.nm[id]||("Joueur "+id)}
 function MUC(){return Math.max(1,S.pc-(S.mw?2:1))}
@@ -45,6 +45,7 @@ app.innerHTML='<div class="hline"></div><div class="mb24">'+G("UNDERCOVER","orb 
 '<div class="mb20 tl"><label class="lbl"><span class="lbl-a">02</span> NOMS</label><div class="names-grid">'+nh+'</div></div>'+
 '<div class="mb20 tl"><label class="lbl"><span class="lbl-a">03</span> UNDERCOVER</label><input type="range" min="1" max="'+MUC()+'" value="'+uc+'" oninput="S.uc=+this.value;render()"><div class="flex items-center flex-center gap6 flex-wrap"><span class="color-cyan fs13 fw600">🕵️ '+uc+' UC</span><span class="color-sep">·</span><span class="color-dim7 fs13">👤 '+CC()+' civils</span>'+(WW()?'<span class="color-sep">·</span><span class="color-red fs13 fw600">🤍 1 Mr.W</span>':"")+'</div></div>'+
 '<div class="mb16 tl"><label class="lbl"><span class="lbl-a">04</span> OPTIONS</label><div class="flex items-center gap14 mb10"><button class="tog '+(S.mw?"on":"")+'" onclick="S.mw=!S.mw;S.uc=Math.min(S.uc,MUC());render()"><span class="dot"></span></button><span class="color-dim8 fs14">Mr. White <span class="color-dim fs12">(pas de mot)</span></span></div><div class="flex items-center gap14"><button class="tog '+(S.cat?"on":"")+'" onclick="S.cat=!S.cat;render()"><span class="dot"></span></button><span class="color-dim8 fs14">Afficher la catégorie</span></div></div>'+
+(S.err?'<p class="err-msg">⚠ '+S.err+'</p>':'')+
 '<button class="btn" onclick="startSession()">▶ LANCER LA PARTIE</button><div class="fline"></div>';return}
 
 var cp=S.tp[S.ro[S.ri]];
@@ -146,6 +147,9 @@ function CP(d){S.pc=Math.max(3,Math.min(20,S.pc+d));S.uc=Math.min(S.uc,MUC());re
 
 function startSession(){
 for(var i=1;i<=S.pc;i++){var el=document.getElementById("n"+i);if(el)S.nm[i]=el.value}
+for(var i=1;i<=S.pc;i++){if(!S.nm[i]||!S.nm[i].trim())S.nm[i]="Joueur "+i}
+var seen={};for(var i=1;i<=S.pc;i++){var k=S.nm[i].trim().toLowerCase();if(seen[k]){S.err="\""+S.nm[i]+"\" est utilisé deux fois.";render();return}seen[k]=true}
+S.err="";
 var uc=Math.min(S.uc,MUC());var aw=WW();var r=[];
 for(var j=0;j<uc;j++)r.push("undercover");
 if(aw)r.push("mrwhite");
@@ -185,6 +189,6 @@ else if(auc>=acv+amw){ap.filter(function(p){return p.role==="undercover"}).forEa
 else{if(le&&le.role!=="civil"){ap.filter(function(p){return p.role==="civil"}).forEach(function(p){S.sc[p.id]+=1})}S.phase="turn_recap"}
 render()}
 
-function fullReset(){S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null};render()}
+function fullReset(){S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:""};render()}
 
 render();
