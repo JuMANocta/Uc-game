@@ -20,7 +20,7 @@ var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}
 
-var S={phase:"setup",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0};
+var S={phase:"setup",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false};
 
 function N(id){return S.nm[id]||("Joueur "+id)}
 function MUC(){return Math.max(1,S.pc-(S.mw?2:1))}
@@ -57,7 +57,8 @@ app.innerHTML='<div class="hline"></div><div class="mb24">'+G("UNDERCOVER","orb 
 '<div class="mb20 tl"><label class="lbl"><span class="lbl-a">01</span> JOUEURS</label><div class="stepper"><button onclick="CP(-1)">−</button><span class="val">'+S.pc+'</span><button onclick="CP(1)">+</button></div></div>'+
 '<div class="mb20 tl"><label class="lbl"><span class="lbl-a">02</span> NOMS</label><div class="names-grid">'+nh+'</div></div>'+
 '<div class="mb20 tl"><label class="lbl"><span class="lbl-a">03</span> UNDERCOVER</label><input type="range" min="1" max="'+MUC()+'" value="'+uc+'" oninput="S.uc=+this.value;render()"><div class="flex items-center flex-center gap6 flex-wrap"><span class="color-cyan fs13 fw600">🕵️ '+uc+' UC</span><span class="color-sep">·</span><span class="color-dim7 fs13">👤 '+CC()+' civils</span>'+(WW()?'<span class="color-sep">·</span><span class="color-red fs13 fw600">🤍 1 Mr.W</span>':"")+'</div></div>'+
-'<div class="mb16 tl"><label class="lbl"><span class="lbl-a">04</span> OPTIONS</label><div class="flex items-center gap14 mb10"><button class="tog '+(S.mw?"on":"")+'" onclick="S.mw=!S.mw;S.uc=Math.min(S.uc,MUC());render()"><span class="dot"></span></button><span class="color-dim8 fs14">Mr. White <span class="color-dim fs12">(pas de mot)</span></span></div><div class="flex items-center gap14 mb10"><button class="tog '+(S.cat?"on":"")+'" onclick="S.cat=!S.cat;render()"><span class="dot"></span></button><span class="color-dim8 fs14">Afficher la catégorie</span></div><div class="tl"><span class="color-dim8 fs14 mr8">⏱ Timer débat :</span><div class="flex gap4 flex-wrap mt6">'+[0,60,120,180,300].map(function(v){var l=v===0?"Off":Math.floor(v/60)+"min";return'<button class="timer-preset'+(S.timer===v?" active":"")+'" onclick="S.timer='+v+';render()">'+l+'</button>'}).join("")+'</div></div></div>'+
+'<div class="mb16 tl"><label class="lbl"><span class="lbl-a">04</span> OPTIONS</label><div class="flex items-center gap14 mb10"><button class="tog '+(S.mw?"on":"")+'" onclick="S.mw=!S.mw;S.uc=Math.min(S.uc,MUC());render()"><span class="dot"></span></button><span class="color-dim8 fs14">Mr. White <span class="color-dim fs12">(pas de mot)</span></span></div><div class="flex items-center gap14 mb10"><button class="tog '+(S.cat?"on":"")+'" onclick="S.cat=!S.cat;render()"><span class="dot"></span></button><span class="color-dim8 fs14">Afficher la catégorie</span></div><div class="tl"><span class="color-dim8 fs14 mr8">⏱ Timer débat :</span><div class="flex gap4 flex-wrap mt6">'+[0,60,120,180,300].map(function(v){var l=v===0?"Off":Math.floor(v/60)+"min";return'<button class="timer-preset'+(S.timer===v?" active":"")+'" onclick="S.timer='+v+';render()">'+l+'</button>'}).join("")+'</div></div>'+
+'<div class="flex items-center gap14"><button class="tog '+(S.skipvote?"on":"")+'" onclick="S.skipvote=!S.skipvote;render()"><span class="dot"></span></button><span class="color-dim8 fs14">Vote nul <span class="color-dim fs12">(personne éliminé)</span></span></div></div>'+
 (S.err?'<p class="err-msg">⚠ '+S.err+'</p>':'')+
 '<button class="btn" onclick="startSession()">▶ LANCER LA PARTIE</button><div class="fline"></div>';return}
 
@@ -110,8 +111,8 @@ if(p==="vote"){
 var ap2=S.players.filter(function(x){return S.alive.indexOf(x.id)!==-1});
 app.innerHTML='<div class="hline"></div><h2 class="orb fs18 fw700 color-red mb6">'+G("ÉLIMINATION")+'</h2>'+
 '<p class="color-dim4 fs13 mb16">Qui est éliminé par le vote ?</p>'+
-'<div class="flex flex-col gap6 mb14">'+ap2.map(function(x){return '<button class="vote-btn'+(S.vt===x.id?" sel":"")+'" onclick="S.vt='+x.id+';render()"><span>'+N(x.id)+"</span>"+(S.vt===x.id?'<span class="orb color-red fs12">✕</span>':"")+"</button>"}).join("")+"</div>"+
-'<button class="btn red glow" onclick="doElim()"'+(S.vt?"":" disabled")+'>CONFIRMER</button>'+
+'<div class="flex flex-col gap6 mb14">'+ap2.map(function(x){return '<button class="vote-btn'+(S.vt===x.id?" sel":"")+'" onclick="S.vt='+x.id+';render()"><span>'+N(x.id)+"</span>"+(S.vt===x.id?'<span class="orb color-red fs12">✕</span>':"")+"</button>"}).join("")+(S.skipvote?'<button class="vote-btn skip'+(S.vt===-1?" sel":"")+'" onclick="S.vt=-1;render()"><span>🚫 Personne</span>'+(S.vt===-1?'<span class="orb color-dim5 fs12">○</span>':"")+"</button>":"")+"</div>"+
+'<button class="btn red glow" onclick="doElim()"'+(S.vt!==null?"":" disabled")+'>CONFIRMER</button>'+
 '<button class="btn ghost" onclick="S.vt=null;S.phase=\'playing\';render()">← RETOUR</button><div class="fline"></div>';return}
 
 if(p==="mrwhite_guess"){
@@ -123,8 +124,18 @@ app.innerHTML='<div class="hline"></div><div class="icon-med">🤍</div>'+
 '<div class="flex gap8"><button class="btn green half" onclick="mwGuess(true)">✓ OUI</button><button class="btn red half" onclick="mwGuess(false)">✕ NON</button></div><div class="fline"></div>';return}
 
 if(p==="turn_recap"){
-var li=S.elim[S.elim.length-1];var la=S.players.filter(function(x){return x.id===li})[0];var ok=la.role!=="civil";
 var bl=S.players.filter(function(x){return S.alive.indexOf(x.id)!==-1&&x.role!=="civil"}).length;
+if(S.skipt){
+app.innerHTML='<div class="hline"></div><span class="tag">FIN DU TOUR '+S.turn+'</span>'+
+'<div class="icon-med">🚫</div>'+
+'<h2 class="orb fs18 fw700 color-dim7 m8-0">'+G("VOTE NUL")+'</h2>'+
+'<p class="color-dim6 fs14 mb6">Personne n\'a été éliminé ce tour.</p>'+
+(S.cat?'<div class="cat-badge mt12">'+S.ct+'</div>':"")+
+WR()+
+'<p class="orb fs10 color-dim3 ls2 mb0">'+bl+' IMPOSTEUR'+(bl>1?"S":"")+" RESTANT"+(bl>1?"S":"")+"</p>"+
+CSC()+
+'<button class="btn" onclick="startTurn()">▶ TOUR SUIVANT — NOUVEAUX MOTS</button><div class="fline"></div>';return}
+var li=S.elim[S.elim.length-1];var la=S.players.filter(function(x){return x.id===li})[0];var ok=la.role!=="civil";
 app.innerHTML='<div class="hline"></div><span class="tag">FIN DU TOUR '+S.turn+'</span>'+
 '<div class="icon-med">'+(ok?"🎯":"😬")+'</div>'+
 '<h2 class="orb fs18 fw700 '+(ok?"color-cyan":"color-red")+' m8-0">'+G(ok?"BON CHOIX !":"MAUVAIS CHOIX...")+'</h2>'+
@@ -174,7 +185,7 @@ S.elim=[];S.sc={};S.players.forEach(function(p){S.sc[p.id]=0});
 S.turn=0;S.used=[];S.gr=null;startTurn()}
 
 function startTurn(){
-stopTimer();
+stopTimer();S.skipt=false;
 var e=PP();var f=Math.random()>0.5;
 S.pair=[f?e[0]:e[1],f?e[1]:e[0]];S.ct=e[2];
 S.tp=S.alive.map(function(id){var p=S.players.filter(function(x){return x.id===id})[0];return{id:p.id,role:p.role,word:p.role==="civil"?S.pair[0]:p.role==="undercover"?S.pair[1]:null}});
@@ -184,7 +195,9 @@ S.ri=0;S.wv=false;S.vt=null;S.turn++;S.phase="handoff";render()}
 function confirmSeen(){S.wv=false;if(S.ri<S.tp.length-1){S.ri++;S.phase="handoff"}else{S.phase="playing";render();startTimer();return}render()}
 
 function doElim(){
-if(!S.vt)return;var tid=S.vt;var tg=S.players.filter(function(p){return p.id===tid})[0];
+if(S.vt===null)return;
+if(S.vt===-1){S.skipt=true;S.phase="turn_recap";render();return}
+var tid=S.vt;var tg=S.players.filter(function(p){return p.id===tid})[0];
 S.alive=S.alive.filter(function(id){return id!==tid});S.elim.push(tid);
 if(tg.role==="mrwhite"){S.phase="mrwhite_guess";render();return}
 checkEnd(tg)}
@@ -203,6 +216,6 @@ else if(auc>=acv+amw){ap.filter(function(p){return p.role==="undercover"}).forEa
 else{if(le&&le.role!=="civil"){ap.filter(function(p){return p.role==="civil"}).forEach(function(p){S.sc[p.id]+=1})}S.phase="turn_recap"}
 render()}
 
-function fullReset(){stopTimer();S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:S.timer,tid:null,trem:0};render()}
+function fullReset(){stopTimer();S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:S.timer,tid:null,trem:0,skipvote:S.skipvote,skipt:false};render()}
 
 render();

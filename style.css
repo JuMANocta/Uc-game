@@ -152,6 +152,8 @@ input[type=text]::placeholder { color: rgba(255,255,255,0.2); }
 /* Vote buttons */
 .vote-btn { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; cursor: pointer; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); color: #fff; font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: 600; text-align: left; width: 100%; transition: all 0.15s; }
 .vote-btn.sel { background: rgba(255,42,109,0.15); border-color: rgba(255,42,109,0.5); }
+.vote-btn.skip { border-top: 1px dashed rgba(255,255,255,0.1); color: rgba(255,255,255,0.4); margin-top: 4px; }
+.vote-btn.skip.sel { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.7); }
 
 /* Words reveal */
 .words-row { display: flex; gap: 8px; margin: 12px 0; }
