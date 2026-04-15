@@ -46,7 +46,7 @@ Ou double-cliquer sur `index.html`. Aucun serveur requis.
 | **Timer débat** | Off · 1min · 2min · 3min · 5min |
 | **Vote nul** | Permet de passer un tour sans élimination |
 | **Mode nuit** | Masque le compteur d'imposteurs et les rôles éliminés pendant le débat |
-| **Mode Enfant 🧒** | Filtre les mots adultes, active les catégories Animaux · Contes · École |
+| **Mode Enfant 🧒** | Filtre les mots adultes (~520 paires kid-safe sur 704) |
 
 ---
 
@@ -64,11 +64,19 @@ Ou double-cliquer sur `index.html`. Aucun serveur requis.
 
 ## Base de mots
 
-**394 paires** réparties en **14 catégories** :
+**704 paires** réparties en **40 catégories** :
 
-`Cinéma` · `Séries` · `Jeux vidéo` · `Musique` · `Nourriture` · `Sport` · `Culture` · `Tech` · `Personnages` · `Marques` · `Divers` · `Animaux` · `Contes` · `École`
+| Groupe | Catégories |
+|---|---|
+| Originales | `Cinéma` · `Séries` · `Jeux vidéo` · `Musique` · `Nourriture` · `Sport` · `Culture` · `Tech` · `Personnages` · `Marques` · `Divers` · `Animaux` · `Contes` · `École` |
+| Gastronomie | `Fromages` · `Épices` · `Cocktails` · `Vins` · `Petit-déjeuner` |
+| Fantastique | `Monstres` · `Espace` · `Dinosaures` · `Superpouvoirs` · `Magie` |
+| Quotidien | `Objets` · `Métiers` · `Corps` |
+| Tech & Culture | `Informatique` · `Applis` · `Jeux de société` · `Voitures` · `Emojis` |
+| Arts & Histoire | `Danse` · `Instruments` · `Architecture` · `Époques` |
+| Sensations | `Couleurs` · `Matières` · `Phobies` · `Géographie` |
 
-Les paires jouées ne se répètent pas avant épuisement complet du pool (ou du pool filtré en Mode Enfant).
+Les paires jouées ne se répètent pas avant épuisement complet du pool (ou du pool filtré en Mode Enfant, ~520 paires).
 
 ---
 

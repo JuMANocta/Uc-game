@@ -121,10 +121,19 @@ splash → setup → handoff → reveal → playing → vote → turn_recap → 
 
 ### Base de données de mots (`DB`)
 
-**394 paires** `[mot_civil, mot_uc, catégorie, kid_safe]` en **14 catégories** :
-`Cinéma · Séries · Jeux vidéo · Musique · Nourriture · Sport · Culture · Tech · Personnages · Marques · Divers · Animaux · Contes · École`
+**704 paires** `[mot_civil, mot_uc, catégorie, kid_safe]` en **40 catégories** :
 
-- `kid_safe = true` : paire incluse en Mode Enfant (~260 paires)
+| Groupe | Catégories |
+|---|---|
+| Originales (14) | Cinéma · Séries · Jeux vidéo · Musique · Nourriture · Sport · Culture · Tech · Personnages · Marques · Divers · Animaux · Contes · École |
+| Gastronomie (5) | Fromages · Épices · Cocktails · Vins · Petit-déjeuner |
+| Fantastique & Univers (5) | Monstres · Espace · Dinosaures · Superpouvoirs · Magie |
+| Quotidien (3) | Objets · Métiers · Corps |
+| Tech & Culture moderne (5) | Informatique · Applis · Jeux de société · Voitures · Emojis |
+| Arts & Histoire (4) | Danse · Instruments · Architecture · Époques |
+| Sensations & Insolite (4) | Couleurs · Matières · Phobies · Géographie |
+
+- `kid_safe = true` : paire incluse en Mode Enfant (~520 paires)
 - `kid_safe = false` : paire exclue en Mode Enfant (alcool, horreur, violence, sujets adultes)
 
 Anti-répétition : `S.used` trace les **indices originaux DB** déjà tirés. Quand le pool filtré est épuisé, `S.used` est réinitialisé sur ce pool uniquement (pas sur la DB entière).
@@ -155,6 +164,7 @@ Anti-répétition : `S.used` trace les **indices originaux DB** déjà tirés. Q
 | `FLB()` | Hall of Fame depuis localStorage (HTML) |
 | `WR()` | Affiche la paire de mots (turn_recap/game_over) |
 | `CP(d)` | Incrémente/décrémente `S.pc`, met à jour `S.uc` |
+| `BAL()` | UC recommandés = `floor(pc/3) - (1 si MW actif)`, plancher 1 — appliqué à chaque changement de `pc` |
 | `MUC()` | Max undercovers selon `S.pc` et `S.mw` |
 | `WW()` | Mr. White jouable ? (≥4 joueurs, assez de civils) |
 | `CC()` | Nombre de civils calculé |
@@ -198,6 +208,14 @@ Anti-répétition : `S.used` trace les **indices originaux DB** déjà tirés. Q
 | K | `f1d06ac` | Splash screen animé : boot log CSS staggeré, icône zoom/glow, bouton fade-in |
 | L | `3fada63` | PWA : `manifest.json`, `sw.js` cache-first offline, metas iOS, icône SVG |
 | Q | `935e1f4` | Mode Enfant + DB × 1,75 : 225 → 394 paires, 11 → 14 catégories, flag kid_safe |
+| R | `bad9e04` | `BAL()` : auto-équilibrage UC à 1/3 des joueurs (MW compris dans le tiers) |
+| S | `b56c5ec` | VIB+SND sur bouton handoff — couverture haptique complète de tous les écrans |
+| T | `7d35713` | Bloc 1 Gastronomie : +58 paires (Fromages · Épices · Cocktails · Vins · Petit-déjeuner) |
+| U | `d32474e` | Bloc 2 Fantastique : +60 paires (Monstres · Espace · Dinosaures · Superpouvoirs · Magie) |
+| V | `a24a41c` | Bloc 3 Quotidien : +36 paires (Objets · Métiers · Corps) |
+| W | `90ca18b` | Bloc 4 Tech & Culture : +60 paires (Informatique · Applis · Jeux de société · Voitures · Emojis) |
+| X | `134baa3` | Bloc 5 Arts & Histoire : +48 paires (Danse · Instruments · Architecture · Époques) |
+| Y | `e38715e` | Bloc 6 Sensations : +48 paires (Couleurs · Matières · Phobies · Géographie) |
 
 ---
 
