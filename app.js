@@ -141,7 +141,7 @@ app.innerHTML='<div class="hline"></div><div class="flex flex-between mb10"><spa
 '<div class="icon-big">📱</div>'+
 '<h2 class="orb fs17 fw700 lh15 color-white m8-0">PASSE LE TÉLÉPHONE À<br><span class="color-cyan">'+N(cp.id)+'</span></h2>'+
 '<p class="color-dim fs13 mb16">Personne d\'autre ne doit regarder</p>'+
-'<button class="btn glow" onclick="S.phase=\'reveal\';render()">JE SUIS '+N(cp.id).toUpperCase()+'</button>'+
+'<button class="btn glow" onclick="SND.click();VIB(20);S.phase=\'reveal\';render()">JE SUIS '+N(cp.id).toUpperCase()+'</button>'+
 CSC()+'<div class="fline"></div>';
 document.getElementById("pf").style.setProperty("--pbar-w",((S.ri+1)/S.tp.length*100)+"%");return}
 
