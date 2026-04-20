@@ -192,6 +192,13 @@ input[type=text]::placeholder { color: rgba(255,255,255,0.2); }
 .timer-preset.active { background: rgba(5,217,232,0.15); border-color: rgba(5,217,232,0.5); color: #05d9e8; }
 .mr8 { margin-right: 8px; }
 
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px; animation: fadeModal 0.15s ease; }
+@keyframes fadeModal { from { opacity: 0; } to { opacity: 1; } }
+.modal-box { background: linear-gradient(170deg,rgba(10,10,30,0.98),rgba(5,5,18,0.99)); border: 1px solid rgba(255,42,109,0.4); padding: 24px; max-width: 360px; width: 100%; box-shadow: 0 0 40px rgba(255,42,109,0.15); animation: modalIn 0.2s ease; }
+@keyframes modalIn { from { opacity: 0; transform: scale(0.92) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.modal-msg { font-size: 16px; font-weight: 600; color: rgba(255,255,255,0.85); margin-bottom: 20px; line-height: 1.5; }
+
 /* Error message */
 .err-msg { color: #ff2a6d; font-size: 13px; font-weight: 600; border: 1px solid rgba(255,42,109,0.3); background: rgba(255,42,109,0.08); padding: 10px 14px; margin-bottom: 8px; text-align: left; }
 

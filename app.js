@@ -113,6 +113,13 @@ if(!en.length)return'<p class="color-dim3 fs12 tc mb8">Aucune partie enregistré
 var md=["🥇","🥈","🥉"];
 return'<div class="score-full">'+en.slice(0,10).map(function(e,i){var mc=i<3?["color-gold","color-dim7","color-red"][i]:"color-dim";return'<div class="sf-row'+(i===0?" first":"")+'"><div class="flex items-center gap10"><span class="orb fs14 fw900 min-w24 '+mc+'">'+(md[i]||"#"+(i+1))+'</span><span class="fs16 fw700">'+e.name+'</span><span class="color-dim3 fs11 ml4">'+e.games+' partie'+(e.games>1?"s":"")+'</span></div><span class="orb fs16 fw900 color-cyan">'+e.pts+'</span></div>'}).join("")+'</div>'}
 
+var _modalCb=null;
+function showConfirm(msg,cb){
+_modalCb=cb;
+var ov=document.createElement('div');ov.id='modal-ov';ov.className='modal-overlay';
+ov.innerHTML='<div class="modal-box"><p class="modal-msg">'+msg+'</p><div class="flex gap8"><button class="btn red half" onclick="var c=_modalCb;_modalCb=null;document.getElementById(\'modal-ov\').remove();if(c)c()">CONFIRMER</button><button class="btn ghost half" onclick="_modalCb=null;document.getElementById(\'modal-ov\').remove()">ANNULER</button></div></div>';
+document.body.appendChild(ov)}
+
 // ══════════════════════════════════════════════════════════════
 function render(){
 var p=S.phase;
@@ -159,7 +166,7 @@ app.innerHTML='<div class="hline"></div><div class="mb20">'+G("UNDERCOVER","orb 
 
 (S.err?'<p class="err-msg">⚠ '+S.err+'</p>':'')+
 '<button class="btn" onclick="startSession()">▶ LANCER LA PARTIE</button>'+
-'<details class="hist-details mt6"><summary class="orb fs10 color-gold ls2">🏆 HALL OF FAME</summary>'+FLB()+(Object.keys(getLB()).length?'<button class="btn ghost" onclick="if(confirm(\'Effacer tout le Hall of Fame ?\'))clearLB();render()">🗑 Effacer le classement</button>':'')+'</details>'+
+'<details class="hist-details mt6"><summary class="orb fs10 color-gold ls2">🏆 HALL OF FAME</summary>'+FLB()+(Object.keys(getLB()).length?'<button class="btn ghost" onclick="showConfirm(\'Effacer tout le Hall of Fame ?\',function(){clearLB();render()})">🗑 Effacer le classement</button>':'')+'</details>'+
 '<div class="fline"></div>';return}
 
 var cp=S.tp[S.ro[S.ri]];
@@ -208,7 +215,7 @@ eh+
 '<button class="btn red glow" onclick="stopTimer();S.phase=\'vote\';S.vt=null;render()">🗳️ VOTER POUR ÉLIMINER</button>'+
 (S.hist.length?'<button class="btn ghost mt4" onclick="S.showHist=!S.showHist;render()">📋 Historique ('+S.hist.length+' tour'+(S.hist.length>1?"s":"")+')</button>'+(S.showHist?'<div class="hist-box mt6">'+HIST()+'</div>':''): '')+
 CSC()+
-'<button class="btn-abandon" onclick="if(confirm(\'Abandonner la partie en cours ?\'))fullReset()">✕ Abandonner</button>'+
+'<button class="btn-abandon" onclick="showConfirm(\'Abandonner la partie en cours ?\',fullReset)">✕ Abandonner</button>'+
 '<div class="fline"></div>';return}
 
 if(p==="vote"){
@@ -268,7 +275,7 @@ WR()+
 '<p class="orb fs10 color-dim ls2 mb0">CLASSEMENT FINAL</p>'+
 FSC()+
 (S.hist.length?'<details class="hist-details"><summary class="orb fs10 color-dim3 ls2">TOUS LES TOURS ('+S.hist.length+')</summary>'+HIST()+'</details>':'')+
-'<details class="hist-details mb8"><summary class="orb fs10 color-gold ls2">🏆 HALL OF FAME</summary>'+FLB()+'<button class="btn ghost" onclick="if(confirm(\'Effacer tout le Hall of Fame ?\'))clearLB();render()">🗑 Effacer le classement</button></details>'+
+'<details class="hist-details mb8"><summary class="orb fs10 color-gold ls2">🏆 HALL OF FAME</summary>'+FLB()+'<button class="btn ghost" onclick="showConfirm(\'Effacer tout le Hall of Fame ?\',function(){clearLB();render()})">🗑 Effacer le classement</button></details>'+
 '<button class="btn gold" onclick="fullReset()">🏆 NOUVELLE PARTIE</button><div class="fline"></div>';return}
 }
 
