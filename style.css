@@ -160,6 +160,14 @@ input[type=text]::placeholder { color: rgba(255,255,255,0.2); }
 .hist-details { margin: 8px 0; }
 .hist-details summary { cursor: pointer; padding: 6px 0; list-style: none; }
 .hist-details summary::-webkit-details-marker { display: none; }
+.cats-details summary { list-style: none; cursor: pointer; }
+.cats-details summary::-webkit-details-marker { display: none; }
+.cats-sum { display: flex; align-items: center; }
+.cats-count { font-size: 10px; color: rgba(5,217,232,0.6); margin-left: 8px; }
+.cats-grid { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.cat-tog { font-family: 'Orbitron', sans-serif; font-size: 9px; padding: 4px 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; letter-spacing: 1px; }
+.cat-tog.on { background: rgba(5,217,232,0.12); border-color: rgba(5,217,232,0.4); color: #05d9e8; }
+.btn.mini { padding: 5px 12px; font-size: 10px; }
 .mt4 { margin-top: 4px; }
 .mt6 { margin-top: 6px; }
 .ml4 { margin-left: 4px; }

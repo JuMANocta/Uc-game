@@ -52,14 +52,16 @@ var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}
 
-var S={phase:"splash",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:false,kids:false,spoken:[]};
+var S={phase:"splash",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:false,kids:false,cats:null,spoken:[]};
 
 function N(id){return S.nm[id]||("Joueur "+id)}
 function MUC(){return Math.max(1,S.pc-(S.mw?2:1))}
 function WW(){var u=Math.min(S.uc,MUC());return S.mw&&S.pc>=4&&(S.pc-u)>=2}
 function CC(){return S.pc-Math.min(S.uc,MUC())-(WW()?1:0)}
 function BAL(){return Math.max(1,Math.floor(S.pc/3)-(S.mw?1:0))}
-function PP(){var pool=DB.reduce(function(a,e,i){if(!S.kids||e[3])a.push(i);return a},[]);var av=pool.filter(function(i){return S.used.indexOf(i)===-1});if(!av.length){S.used=[];av=pool}var x=av[Math.floor(Math.random()*av.length)];S.used.push(x);return DB[x]}
+function PP(){var pool=DB.reduce(function(a,e,i){if(S.kids&&!e[3])return a;if(S.cats&&S.cats.indexOf(e[2])===-1)return a;a.push(i);return a},[]);if(!pool.length)pool=DB.map(function(_,i){return i});var av=pool.filter(function(i){return S.used.indexOf(i)===-1});if(!av.length){S.used=[];av=pool}var x=av[Math.floor(Math.random()*av.length)];S.used.push(x);return DB[x]}
+function allCats(){var a=[];DB.forEach(function(e){if(a.indexOf(e[2])===-1)a.push(e[2])});return a.sort()}
+function TCat(c){var all=allCats();if(!S.cats){S.cats=all.filter(function(x){return x!==c})}else{var idx=S.cats.indexOf(c);if(idx!==-1){if(S.cats.length<=1)return;S.cats=S.cats.filter(function(x){return x!==c})}else{S.cats=S.cats.concat([c]);if(S.cats.length===all.length)S.cats=null}}render()}
 
 function SS(){var s=Object.keys(S.sc).map(function(k){return{id:+k,pts:S.sc[k]}}).sort(function(a,b){return b.pts-a.pts});return s}
 function CSC(){var s=SS();if(!s.length)return"";return '<div class="score-compact">'+s.map(function(x,i){return '<span class="sc-item'+(i===0?" first":"")+'">'+N(x.id)+" "+x.pts+"pts</span>"}).join("")+"</div>"}
@@ -177,6 +179,10 @@ app.innerHTML='<div class="hline"></div><div class="mb20">'+G("UNDERCOVER","orb 
 '<div class="opt-row last"><div class="opt-lbl"><span class="opt-title">🧒 Mode Enfant</span><span class="opt-desc">~520 paires adaptées sur 40 catégories — exclut alcool, horreur, contenu adulte</span></div><button class="tog '+(S.kids?"on":"")+'" onclick="S.kids=!S.kids;render()"><span class="dot"></span></button></div>'+
 
 '</div></div>'+
+
+'<div class="setup-section"><details class="cats-details"><summary class="lbl cats-sum"><span class="lbl-a">05</span> CATÉGORIES <span class="cats-count">'+(S.cats?S.cats.length:allCats().length)+'/'+allCats().length+'</span></summary>'+
+(S.cats?'<button class="btn ghost mini mb6" onclick="S.cats=null;render()">Tout activer</button>':'')+
+'<div class="cats-grid">'+allCats().map(function(c){var on=!S.cats||S.cats.indexOf(c)!==-1;return'<button class="cat-tog'+(on?" on":"")+'" onclick="TCat(\''+c+'\')">'+ c+'</button>'}).join("")+'</div></details></div>'+
 
 (S.err?'<p class="err-msg">⚠ '+S.err+'</p>':'')+
 '<button class="btn" onclick="startSession()">▶ LANCER LA PARTIE</button>'+
@@ -349,6 +355,6 @@ recordTurn(le);
 if(S.phase==="game_over"){saveLeaderboard();SND.win(S.gr.winner);VIB([100,50,100,50,200])}
 render()}
 
-function fullReset(){stopTimer();S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:S.timer,tid:null,trem:0,skipvote:S.skipvote,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:S.night,kids:S.kids,spoken:[]};render()}
+function fullReset(){stopTimer();S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:S.timer,tid:null,trem:0,skipvote:S.skipvote,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:S.night,kids:S.kids,cats:S.cats,spoken:[]};render()}
 
 render();
