@@ -137,7 +137,7 @@ app.innerHTML='<div class="hline"></div><div class="mb20">'+G("UNDERCOVER","orb 
 
 '<div class="setup-section"><label class="lbl"><span class="lbl-a">02</span> NOMS</label><div class="names-grid">'+nh+'</div></div>'+
 
-'<div class="setup-section"><label class="lbl"><span class="lbl-a">03</span> UNDERCOVER</label><input type="range" min="1" max="'+MUC()+'" value="'+uc+'" oninput="S.uc=+this.value;render()"><div class="role-chips"><span class="role-chip uc">🕵️ '+uc+' UC</span><span class="role-chip civ">👤 '+CC()+' civils</span>'+(WW()?'<span class="role-chip mw">🤍 Mr.W</span>':"")+'</div></div>'+
+'<div class="setup-section"><label class="lbl"><span class="lbl-a">03</span> UNDERCOVER</label><input type="range" min="1" max="'+MUC()+'" value="'+uc+'" oninput="S.uc=+this.value;render()"><div class="role-chips"><span class="role-chip uc">🕵️ '+uc+' UC</span><span class="role-chip civ">👤 '+CC()+' civils</span>'+(WW()?'<span class="role-chip mw">🤍 Mr.W</span>':"")+'</div><p class="orb fs10 color-dim3 ls2 mt6 tc">RECOMMANDÉ : '+BAL()+' UC (1/3 des joueurs)</p></div>'+
 
 '<div class="setup-section"><label class="lbl"><span class="lbl-a">04</span> OPTIONS</label><div class="opt-group">'+
 
@@ -150,7 +150,7 @@ app.innerHTML='<div class="hline"></div><div class="mb20">'+G("UNDERCOVER","orb 
 '<div class="opt-row"><div class="opt-lbl"><span class="opt-title">Vote nul</span><span class="opt-desc">Permet de passer un tour sans élimination</span></div><button class="tog '+(S.skipvote?"on":"")+'" onclick="S.skipvote=!S.skipvote;render()"><span class="dot"></span></button></div>'+
 
 '<div class="opt-row"><div class="opt-lbl"><span class="opt-title">🌙 Mode nuit</span><span class="opt-desc">Masque les rôles et le compteur pendant le débat</span></div><button class="tog '+(S.night?"on":"")+'" onclick="S.night=!S.night;render()"><span class="dot"></span></button></div>'+
-'<div class="opt-row last"><div class="opt-lbl"><span class="opt-title">🧒 Mode Enfant</span><span class="opt-desc">Mots adaptés + catégories Animaux, Contes, École</span></div><button class="tog '+(S.kids?"on":"")+'" onclick="S.kids=!S.kids;render()"><span class="dot"></span></button></div>'+
+'<div class="opt-row last"><div class="opt-lbl"><span class="opt-title">🧒 Mode Enfant</span><span class="opt-desc">~520 paires adaptées sur 40 catégories — exclut alcool, horreur, contenu adulte</span></div><button class="tog '+(S.kids?"on":"")+'" onclick="S.kids=!S.kids;render()"><span class="dot"></span></button></div>'+
 
 '</div></div>'+
 
