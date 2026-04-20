@@ -40,13 +40,14 @@ Ou double-cliquer sur `index.html`. Aucun serveur requis.
 |---|---|
 | **Joueurs** | 3 à 20 — stepper ou saisie directe |
 | **Noms** | Prénom par joueur (auto-rempli si vide) |
-| **Undercover** | Nombre d'imposteurs via slider |
+| **Undercover** | Nombre d'imposteurs via slider (auto-équilibré à 1/3 des joueurs) |
 | **Mr. White** | Active le rôle sans mot |
 | **Catégorie** | Affiche ou masque la thématique du mot |
 | **Timer débat** | Off · 1min · 2min · 3min · 5min |
 | **Vote nul** | Permet de passer un tour sans élimination |
 | **Mode nuit** | Masque le compteur d'imposteurs et les rôles éliminés pendant le débat |
-| **Mode Enfant 🧒** | Filtre les mots adultes (~520 paires kid-safe sur 704) |
+| **Mode Enfant 🧒** | Filtre les mots adultes (~520 paires kid-safe sur 42 catégories) |
+| **Filtre catégories** | Active/désactive individuellement chacune des 42 catégories |
 
 ---
 
@@ -64,7 +65,7 @@ Ou double-cliquer sur `index.html`. Aucun serveur requis.
 
 ## Base de mots
 
-**704 paires** réparties en **40 catégories** :
+**744 paires** réparties en **42 catégories** :
 
 | Groupe | Catégories |
 |---|---|
@@ -75,20 +76,23 @@ Ou double-cliquer sur `index.html`. Aucun serveur requis.
 | Tech & Culture | `Informatique` · `Applis` · `Jeux de société` · `Voitures` · `Emojis` |
 | Arts & Histoire | `Danse` · `Instruments` · `Architecture` · `Époques` |
 | Sensations | `Couleurs` · `Matières` · `Phobies` · `Géographie` |
+| Lifestyle | `Mode` · `Nature` |
 
-Les paires jouées ne se répètent pas avant épuisement complet du pool (ou du pool filtré en Mode Enfant, ~520 paires).
+Les paires jouées ne se répètent pas avant épuisement complet du pool (ou du pool filtré en Mode Enfant / filtre catégories).
 
 ---
 
 ## Fonctionnalités
 
-- **Ordre de parole** — affiché pendant le débat ; tap sur un nom pour le cocher (a parlé)
-- **Timer** — countdown configurable, alerte sonore + vibration à l'expiration
+- **Filtre de catégories** — active/désactive chacune des 42 catégories avant la partie
+- **Ordre de parole** — affiché pendant le débat ; tap sur un nom pour le cocher (a parlé) ; bouton pour tout décocher
+- **Timer** — countdown configurable, bouton de relance si expiré, alerte sonore + vibration à l'expiration ; animation urgente sous 30s
 - **Sons & vibrations** — Web Audio API (zéro fichier audio), vibrations sur toutes les transitions clés
 - **Historique** — consultable pendant le débat et dans les récapitulatifs
-- **Hall of Fame** — scores cumulés en `localStorage`, top 10 persistant entre les parties
+- **Hall of Fame** — scores cumulés en `localStorage`, top 10 persistant, détail des victoires par rôle (👤 🕵️ 🤍)
+- **Partage** — bouton pour copier le récapitulatif de fin de partie dans le presse-papiers
 - **Splash screen** — boot log animé au premier chargement
-- **Bouton Abandonner** — disponible pendant le débat (avec confirmation)
+- **Bouton Abandonner** — disponible pendant le débat (avec confirmation modale)
 - **PWA** — installable sur mobile, fonctionne hors-ligne sur HTTPS
 
 ---
@@ -109,7 +113,7 @@ splash → setup → handoff → reveal → playing → vote → turn_recap → 
 | `vote` | Élimination par vote (ou vote nul) |
 | `mrwhite_guess` | Mr. White tente de deviner le mot civil |
 | `turn_recap` | Révélation du rôle éliminé + scores + historique |
-| `game_over` | Classement final + Hall of Fame |
+| `game_over` | Classement final + Hall of Fame + partage |
 
 ---
 

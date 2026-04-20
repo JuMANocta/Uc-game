@@ -34,8 +34,8 @@ Déployable sur Apache HTTP ou tout serveur de fichiers statiques.
 ```
 uc-game/
 ├── index.html          # Shell HTML (~30 lignes)
-├── app.js              # DB + toute la logique (~400 lignes)
-├── style.css           # Thème cyberpunk (~280 lignes)
+├── app.js              # DB + toute la logique (~430 lignes)
+├── style.css           # Thème cyberpunk (~300 lignes)
 ├── manifest.json       # PWA manifest
 ├── sw.js               # Service worker (cache-first)
 ├── icons/icon.svg      # Icône PWA (design UC cyan)
@@ -60,7 +60,7 @@ S = {
   skipvote,     // vote nul activé (bool)
   night,        // mode nuit activé (bool)
   kids,         // mode enfant activé (bool) — filtre PP()
-  nsfw,         // mode adulte activé (bool) — à implémenter
+  cats,         // null = toutes catégories ; sinon [string] = catégories actives
 
   // Joueurs
   nm,           // {id: nom} — noms des joueurs
@@ -110,18 +110,18 @@ splash → setup → handoff → reveal → playing → vote → turn_recap → 
 | Phase | Description |
 |---|---|
 | `splash` | Écran d'intro animé (chargement initial uniquement) |
-| `setup` | Configuration : joueurs, noms, rôles, options |
+| `setup` | Configuration : joueurs, noms, rôles, options, catégories |
 | `handoff` | Passage du téléphone au joueur suivant |
 | `reveal` | Le joueur découvre son mot en privé |
 | `playing` | Débat + timer + ordre de parole + cocher les parlants |
 | `vote` | Vote d'élimination (ou vote nul) |
 | `mrwhite_guess` | Mr. White tente de deviner le mot civil |
 | `turn_recap` | Révélation du rôle éliminé + scores + historique |
-| `game_over` | Écran de fin avec classement et Hall of Fame |
+| `game_over` | Écran de fin avec classement, Hall of Fame et partage |
 
 ### Base de données de mots (`DB`)
 
-**704 paires** `[mot_civil, mot_uc, catégorie, kid_safe]` en **40 catégories** :
+**744 paires** `[mot_civil, mot_uc, catégorie, kid_safe]` en **42 catégories** :
 
 | Groupe | Catégories |
 |---|---|
@@ -132,11 +132,12 @@ splash → setup → handoff → reveal → playing → vote → turn_recap → 
 | Tech & Culture moderne (5) | Informatique · Applis · Jeux de société · Voitures · Emojis |
 | Arts & Histoire (4) | Danse · Instruments · Architecture · Époques |
 | Sensations & Insolite (4) | Couleurs · Matières · Phobies · Géographie |
+| Lifestyle (2) | Mode · Nature |
 
 - `kid_safe = true` : paire incluse en Mode Enfant (~520 paires)
 - `kid_safe = false` : paire exclue en Mode Enfant (alcool, horreur, violence, sujets adultes)
 
-Anti-répétition : `S.used` trace les **indices originaux DB** déjà tirés. Quand le pool filtré est épuisé, `S.used` est réinitialisé sur ce pool uniquement (pas sur la DB entière).
+Anti-répétition : `S.used` trace les **indices originaux DB** déjà tirés. Quand le pool filtré est épuisé, `S.used` est réinitialisé sur ce pool uniquement.
 
 ### Fonctions clés
 
@@ -149,22 +150,26 @@ Anti-répétition : `S.used` trace les **indices originaux DB** déjà tirés. Q
 | `doElim()` | Élimine un joueur ou traite le vote nul (`S.vt === -1`) |
 | `checkEnd()` | Vérifie les conditions de victoire et distribue les points |
 | `mwGuess(ok)` | Gère la tentative de devine de Mr. White |
-| `fullReset()` | Remet à zéro en conservant toutes les options (pc, uc, mw, cat, nm, timer, skipvote, night, kids) |
-| `PP()` | Pioche une paire non-utilisée, filtrée par `S.kids` |
+| `fullReset()` | Remet à zéro en conservant toutes les options (pc, uc, mw, cat, nm, timer, skipvote, night, kids, cats) |
+| `PP()` | Pioche une paire non-utilisée, filtrée par `S.kids` et `S.cats` |
+| `allCats()` | Retourne le tableau trié de toutes les catégories présentes dans DB |
+| `TCat(c)` | Toggle une catégorie dans `S.cats` (null = toutes actives) |
 | `startTimer()` | Lance le countdown (setInterval, met à jour `#tdisp` directement) |
 | `stopTimer()` | Arrête le countdown proprement |
 | `recordTurn(elim)` | Enregistre le tour dans `S.hist` |
-| `saveLeaderboard()` | Cumule les scores dans `localStorage['uc_lb']` (protégé par `S.lbSaved`) |
+| `saveLeaderboard()` | Cumule les scores + victoires par rôle dans `localStorage['uc_lb']` |
+| `showConfirm(msg, cb)` | Modal de confirmation personnalisé (remplace `confirm()` natif) |
+| `shareResult()` | Génère le récap texte de fin de partie et le copie dans le presse-papiers |
 | `SND.ping/click/elim/alarm/win` | Sons via Web Audio API (oscillateurs) |
 | `VIB(pattern)` | Vibration via `navigator.vibrate` |
 | `G(text, class)` | Génère l'effet glitch CSS |
 | `CSC()` | Scores compacts (handoff/playing) |
 | `FSC()` | Scores complets (game_over) |
 | `HIST(max)` | Historique des tours (HTML) |
-| `FLB()` | Hall of Fame depuis localStorage (HTML) |
+| `FLB()` | Hall of Fame depuis localStorage (HTML) — inclut badges victoires par rôle |
 | `WR()` | Affiche la paire de mots (turn_recap/game_over) |
 | `CP(d)` | Incrémente/décrémente `S.pc`, met à jour `S.uc` |
-| `BAL()` | UC recommandés = `floor(pc/3) - (1 si MW actif)`, plancher 1 — appliqué à chaque changement de `pc` |
+| `BAL()` | UC recommandés = `floor(pc/3) - (1 si MW actif)`, plancher 1 |
 | `MUC()` | Max undercovers selon `S.pc` et `S.mw` |
 | `WW()` | Mr. White jouable ? (≥4 joueurs, assez de civils) |
 | `CC()` | Nombre de civils calculé |
@@ -183,6 +188,11 @@ Anti-répétition : `S.used` trace les **indices originaux DB** déjà tirés. Q
 | 2 | `6354c6c` | "Animal Crossing" × 2 dans Jeux vidéo, "Vampire" × 2 dans Divers |
 | 3 | `d1ded0e` | `element.style.width` remplacé par CSS custom property `--pbar-w` |
 | 4 | `8613ee9` | `style=""` vide sur bouton Hall of Fame (game_over) + historique manquant dans turn_recap normal |
+| D1 | — | Phobies reformulées : termes techniques → "Peur de X / Peur de Y" (9/12 paires) |
+| D2 | — | "Berlinette" remplacé par "Cabriolet sport" (terme inconnu du grand public) |
+| D3 | — | "Bit/Octet" remplacé par "Mot de passe/Code PIN" |
+| D4 | — | Flags `kid_safe` corrigés pour Applis (YouTube, Spotify, Netflix, Google Maps → `true`) |
+| D5 | — | Vins obscurs (Sancerre/Pouilly-Fumé, Chablis/Meursault) remplacés par des paires accessibles |
 
 ### Améliorations UX
 
@@ -195,9 +205,17 @@ Anti-répétition : `S.used` trace les **indices originaux DB** déjà tirés. Q
 | E | `1f4ac5c` | Sons Web Audio API + vibrations sur toutes les transitions clés |
 | F | `f2d9515` | Historique des tours : toggle en phase playing, `<details>` en récap/game_over |
 | M | `764887e` | Tap sur l'ordre de parole pour cocher un joueur (spoke state, reset chaque tour) |
-| N | `501d912` | Bouton "Abandonner" discret en phase playing (confirm natif avant fullReset) |
+| N | `501d912` | Bouton "Abandonner" discret en phase playing (modal personnalisé avant fullReset) |
 | O | `7b820ba` | Confirmation avant d'effacer le Hall of Fame (setup + game_over) |
 | P | `d8e3749` | Saisie directe du nombre de joueurs (input number dans le stepper) |
+| I1 | — | Description Mode Enfant clarifiée dans le setup |
+| I2 | — | Hint "RECOMMANDÉ : N UC (1/3 des joueurs)" sous le slider UC |
+| I3 | — | Handoff : "C'EST TON TOUR" pour le 1er joueur au lieu de "PASSE LE TÉLÉPHONE" |
+| I4 | — | Bouton "↺ Tout décocher" dans l'ordre de parole |
+| I5 | — | Bouton "↺ Relancer" quand le timer est expiré |
+| I6 | — | `showConfirm()` — modal personnalisée remplaçant `confirm()` natif (PWA compatible) |
+| I11 | — | Timer : animation pulsante `.timer-disp.urgent` sous 30s restantes |
+| I13 | — | Animations CSS entrée : `.hline` slide-in, `.icon-big/.icon-med` pop |
 
 ### Nouvelles fonctionnalités
 
@@ -216,6 +234,10 @@ Anti-répétition : `S.used` trace les **indices originaux DB** déjà tirés. Q
 | W | `90ca18b` | Bloc 4 Tech & Culture : +60 paires (Informatique · Applis · Jeux de société · Voitures · Emojis) |
 | X | `134baa3` | Bloc 5 Arts & Histoire : +48 paires (Danse · Instruments · Architecture · Époques) |
 | Y | `e38715e` | Bloc 6 Sensations : +48 paires (Couleurs · Matières · Phobies · Géographie) |
+| Z | — | Bloc 7 Lifestyle : +24 paires (Mode · Nature) — DB totale : 744 paires, 42 catégories |
+| I9 | `92a04b3` | Filtre catégories : chips cliquables pour activer/désactiver les 42 catégories individuellement |
+| I10 | — | Bouton "Partager" en game_over : copie le récap dans le presse-papiers |
+| I12 | — | Hall of Fame enrichi : victoires par rôle (👤 civils · 🕵️ UC · 🤍 Mr.White) |
 
 ---
 
@@ -232,13 +254,13 @@ Anti-répétition : `S.used` trace les **indices originaux DB** déjà tirés. Q
 
 | Idée | Description |
 |---|---|
-| **Mode 18+ (NSFW)** | Toggle "🔞 Mode Adulte" dans le setup (avec avertissement consentement). Ajoute un pool de paires explicites/grivois dans des catégories dédiées (Séduction, Corps, Soirée, Relations…). Implémentation : 5ème flag `nsfw` par entrée DB, ou tableau `DB_NSFW` séparé inclus dans le pool quand `S.nsfw = true`. Ne s'active pas avec le Mode Enfant. |
-| **Niveaux de difficulté** | Flag `facile/moyen/difficile` par paire (4 éléments → 5), filtre activable en options. Ex : Cappuccino/Latte = difficile, iPhone/Samsung = facile |
+| **Mode 18+ (NSFW)** | Toggle "🔞 Mode Adulte" dans le setup (avec avertissement consentement). Pool séparé `DB_NSFW`, incompatible avec Mode Enfant. Flag `nsfw` par entrée ou tableau distinct. |
+| **Niveaux de difficulté** | Flag `facile/moyen/difficile` par paire (5ème élément), filtre activable en options |
 | Animations de transition | Fade/slide entre les phases plutôt que le rendu instantané |
 | Mode multi-appareils | Chaque joueur sur son propre téléphone (nécessite un backend WebSocket) |
 | Thèmes visuels | Alterner entre Night City et d'autres palettes (rétro, nature, etc.) |
 | Export de partie | Partager le résumé d'une partie (screenshot ou texte) |
-| Statistiques joueur | Dans le Hall of Fame, détailler les victoires par rôle |
+| Statistiques joueur | Dans le Hall of Fame, détailler les victoires par rôle (déjà implémenté en I12) |
 | Raccourci clavier | Navigation au clavier pour les grandes tablettes |
 
 ---
@@ -256,7 +278,7 @@ Les inline `onclick=""` existent (nécessitent `script-src 'unsafe-inline'`).
 La largeur de la progress bar passe par `element.style.setProperty('--pbar-w', ...)`.
 
 ### localStorage
-- `uc_lb` : Hall of Fame `{nom: {name, pts, games}}`
+- `uc_lb` : Hall of Fame `{nom: {name, pts, games, wins:{civil, uc, mrwhite}}}`
 - Clé prévue : `uc_custom` pour les mots personnalisés (Feature G)
 
 ### Audio
@@ -270,3 +292,10 @@ Les scores de partie (`S.sc`) sont indépendants du Hall of Fame.
 ### Modes exclusifs
 `kids` et `nsfw` (futur) ne doivent pas être activés simultanément.
 Le toggle NSFW devra désactiver `S.kids` si actif, et vice versa.
+
+### Filtre de catégories (`S.cats`)
+`S.cats = null` signifie toutes les catégories actives (état par défaut).
+`S.cats = [string]` = tableau des catégories incluses dans `PP()`.
+`TCat(c)` gère le toggle : si toutes actives → retire `c` ; si `c` présente → retire ; si absente → ajoute.
+Minimum 1 catégorie active imposé dans `TCat()`.
+`fullReset()` conserve `S.cats` entre les parties.
