@@ -234,6 +234,10 @@ input[type=text]::placeholder { color: rgba(255,255,255,0.2); }
 .score-full { margin: 14px 0; }
 .sf-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; margin-bottom: 4px; border: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); }
 .sf-row.first { background: rgba(255,215,0,0.08); border-color: rgba(255,215,0,0.25); }
+.lb-win { font-size: 10px; font-family: 'Orbitron', sans-serif; padding: 1px 5px; border-radius: 2px; }
+.lb-win.civ { background: rgba(5,217,232,0.1); color: #05d9e8; }
+.lb-win.uc { background: rgba(255,42,109,0.1); color: #ff2a6d; }
+.lb-win.mw { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); }
 
 /* Role grid */
 .role-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(90px,1fr)); gap: 4px; margin-bottom: 10px; }

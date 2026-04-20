@@ -103,7 +103,8 @@ return'<div class="hist-row"><span class="orb fs9 color-dim3 min-w24">T'+e.turn+
 function saveLeaderboard(){
 if(S.lbSaved)return;S.lbSaved=true;
 try{var lb=JSON.parse(localStorage.getItem("uc_lb")||"{}");
-Object.keys(S.sc).forEach(function(id){var nm=(S.nm[id]||"Joueur "+id).trim();if(!lb[nm])lb[nm]={name:nm,pts:0,games:0};lb[nm].pts+=S.sc[id];lb[nm].games+=1});
+var winner=S.gr?S.gr.winner:null;
+Object.keys(S.sc).forEach(function(id){var nm=(S.nm[id]||"Joueur "+id).trim();if(!lb[nm])lb[nm]={name:nm,pts:0,games:0,wins:{civil:0,uc:0,mrwhite:0}};if(!lb[nm].wins)lb[nm].wins={civil:0,uc:0,mrwhite:0};lb[nm].pts+=S.sc[id];lb[nm].games+=1;var pl=S.players.filter(function(p){return p.id===+id})[0];if(pl&&winner){var isWinner=(pl.role==="civil"&&winner==="civil")||(pl.role==="undercover"&&winner==="uc")||(pl.role==="mrwhite"&&winner==="mrwhite");if(isWinner)lb[nm].wins[winner]=(lb[nm].wins[winner]||0)+1}});
 localStorage.setItem("uc_lb",JSON.stringify(lb))}catch(e){}}
 function getLB(){try{return JSON.parse(localStorage.getItem("uc_lb")||"{}")}catch(e){return{}}}
 function clearLB(){try{localStorage.removeItem("uc_lb")}catch(e){}}
@@ -111,7 +112,7 @@ function FLB(){
 var lb=getLB();var en=Object.values(lb).sort(function(a,b){return b.pts-a.pts});
 if(!en.length)return'<p class="color-dim3 fs12 tc mb8">Aucune partie enregistrée.</p>';
 var md=["🥇","🥈","🥉"];
-return'<div class="score-full">'+en.slice(0,10).map(function(e,i){var mc=i<3?["color-gold","color-dim7","color-red"][i]:"color-dim";return'<div class="sf-row'+(i===0?" first":"")+'"><div class="flex items-center gap10"><span class="orb fs14 fw900 min-w24 '+mc+'">'+(md[i]||"#"+(i+1))+'</span><span class="fs16 fw700">'+e.name+'</span><span class="color-dim3 fs11 ml4">'+e.games+' partie'+(e.games>1?"s":"")+'</span></div><span class="orb fs16 fw900 color-cyan">'+e.pts+'</span></div>'}).join("")+'</div>'}
+return'<div class="score-full">'+en.slice(0,10).map(function(e,i){var mc=i<3?["color-gold","color-dim7","color-red"][i]:"color-dim";var w=e.wins||{};var wtags='';if(w.civil)wtags+='<span class="lb-win civ">👤×'+w.civil+'</span>';if(w.uc)wtags+='<span class="lb-win uc">🕵️×'+w.uc+'</span>';if(w.mrwhite)wtags+='<span class="lb-win mw">🤍×'+w.mrwhite+'</span>';return'<div class="sf-row'+(i===0?" first":"")+'"><div class="flex items-center gap10"><span class="orb fs14 fw900 min-w24 '+mc+'">'+(md[i]||"#"+(i+1))+'</span><div class="tl"><span class="fs16 fw700">'+e.name+'</span><div class="flex gap4 mt4">'+wtags+'<span class="color-dim3 fs11">'+e.games+' partie'+(e.games>1?"s":"")+'</span></div></div></div><span class="orb fs16 fw900 color-cyan">'+e.pts+'</span></div>'}).join("")+'</div>'}
 
 function shareResult(){
 var ic=S.gr.winner==="civil"?"👤":S.gr.winner==="uc"?"🕵️":"🤍";
