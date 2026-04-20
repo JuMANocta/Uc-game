@@ -26,7 +26,8 @@ body::after {
 .bg { position: fixed; inset: 0; z-index: 0; background: radial-gradient(ellipse at 30% 20%,rgba(5,217,232,0.07) 0%,transparent 50%), radial-gradient(ellipse at 70% 80%,rgba(255,42,109,0.05) 0%,transparent 50%), linear-gradient(180deg,#08081a,#0a0a18); }
 .page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px 0; position: relative; z-index: 1; }
 .card { background: linear-gradient(170deg,rgba(10,10,30,0.95),rgba(5,5,18,0.98)); border: 1px solid rgba(5,217,232,0.2); border-radius: 4px; padding: 0 24px 24px; max-width: 440px; width: 92%; text-align: center; box-shadow: 0 0 40px rgba(5,217,232,0.08); animation: slideUp 0.4s ease, borderPulse 4s infinite; }
-.hline { height: 3px; margin: 0 -24px 18px; background: linear-gradient(90deg,#ff2a6d,#05d9e8,#ff2a6d); opacity: 0.8; }
+.hline { height: 3px; margin: 0 -24px 18px; background: linear-gradient(90deg,#ff2a6d,#05d9e8,#ff2a6d); opacity: 0.8; animation: hlineIn 0.35s ease; }
+@keyframes hlineIn { from { transform: scaleX(0); transform-origin: left; } to { transform: scaleX(1); } }
 .fline { height: 2px; margin: 18px -24px 0; background: linear-gradient(90deg,transparent,rgba(5,217,232,0.3),transparent); }
 
 /* ── Typography ── */
@@ -237,8 +238,9 @@ input[type=text]::placeholder { color: rgba(255,255,255,0.2); }
 /* Special boxes */
 .imposteur-box { padding: 8px 16px; background: rgba(255,42,109,0.06); border: 1px solid rgba(255,42,109,0.2); display: flex; align-items: center; gap: 6px; }
 .imposteur-box.night { background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.08); padding: 8px 20px; }
-.icon-big { font-size: 56px; margin: 12px 0; filter: drop-shadow(0 0 20px rgba(5,217,232,0.4)); }
-.icon-med { font-size: 48px; margin: 8px 0; }
+.icon-big { font-size: 56px; margin: 12px 0; filter: drop-shadow(0 0 20px rgba(5,217,232,0.4)); animation: iconPop 0.4s ease; }
+@keyframes iconPop { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
+.icon-med { font-size: 48px; margin: 8px 0; animation: iconPop 0.4s ease; }
 .text-shadow-cyan { text-shadow: 0 0 30px rgba(5,217,232,0.5); }
 .text-shadow-gold { text-shadow: 0 0 30px rgba(255,215,0,0.4); }
 .text-shadow-red { text-shadow: 0 0 30px rgba(255,42,109,0.4); }
