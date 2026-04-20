@@ -164,8 +164,8 @@ var cp=S.tp[S.ro[S.ri]];
 if(p==="handoff"){
 app.innerHTML='<div class="hline"></div><div class="flex flex-between mb10"><span class="tag">TOUR '+S.turn+'</span><span class="tag">'+(S.ri+1)+'/'+S.tp.length+'</span></div>'+
 '<div class="pbar"><div class="pbar-fill" id="pf"></div></div>'+
-'<div class="icon-big">📱</div>'+
-'<h2 class="orb fs17 fw700 lh15 color-white m8-0">PASSE LE TÉLÉPHONE À<br><span class="color-cyan">'+N(cp.id)+'</span></h2>'+
+'<div class="icon-big">'+(S.ri===0?'👤':'📱')+'</div>'+
+'<h2 class="orb fs17 fw700 lh15 color-white m8-0">'+(S.ri===0?'C\'EST TON TOUR,<br>':'PASSE LE TÉLÉPHONE À<br>')+'<span class="color-cyan">'+N(cp.id)+'</span></h2>'+
 '<p class="color-dim fs13 mb16">Personne d\'autre ne doit regarder</p>'+
 '<button class="btn glow" onclick="SND.click();VIB(20);S.phase=\'reveal\';render()">JE SUIS '+N(cp.id).toUpperCase()+'</button>'+
 CSC()+'<div class="fline"></div>';
