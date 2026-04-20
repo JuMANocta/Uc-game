@@ -130,7 +130,7 @@ app.innerHTML='<div class="hline"></div>'+
 
 if(p==="setup"){
 var uc=Math.min(S.uc,MUC());var nh="";
-for(var i=1;i<=S.pc;i++)nh+='<input type="text" id="n'+i+'" placeholder="Joueur '+i+'" value="'+(S.nm[i]||"")+'" oninput="S.nm['+i+']=this.value">';
+for(var i=1;i<=S.pc;i++)nh+='<input type="text" id="n'+i+'" placeholder="Joueur '+i+'" value="'+(S.nm[i]||"")+'" maxlength="20" oninput="S.nm['+i+']=this.value.slice(0,20)">';
 app.innerHTML='<div class="hline"></div><div class="mb20">'+G("UNDERCOVER","orb fs28 fw900 ls4 color-cyan text-shadow-cyan")+'<p class="subtitle-red">// NIGHT CITY EDITION</p></div>'+
 
 '<div class="setup-section"><label class="lbl"><span class="lbl-a">01</span> JOUEURS</label><div class="stepper"><button onclick="CP(-1)">−</button><input type="number" class="val-input" min="3" max="20" value="'+S.pc+'" oninput="S.pc=Math.max(3,Math.min(20,+this.value||3));S.uc=Math.min(BAL(),MUC())" onchange="render()"><button onclick="CP(1)">+</button></div></div>'+
