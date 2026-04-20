@@ -113,6 +113,19 @@ if(!en.length)return'<p class="color-dim3 fs12 tc mb8">Aucune partie enregistré
 var md=["🥇","🥈","🥉"];
 return'<div class="score-full">'+en.slice(0,10).map(function(e,i){var mc=i<3?["color-gold","color-dim7","color-red"][i]:"color-dim";return'<div class="sf-row'+(i===0?" first":"")+'"><div class="flex items-center gap10"><span class="orb fs14 fw900 min-w24 '+mc+'">'+(md[i]||"#"+(i+1))+'</span><span class="fs16 fw700">'+e.name+'</span><span class="color-dim3 fs11 ml4">'+e.games+' partie'+(e.games>1?"s":"")+'</span></div><span class="orb fs16 fw900 color-cyan">'+e.pts+'</span></div>'}).join("")+'</div>'}
 
+function shareResult(){
+var ic=S.gr.winner==="civil"?"👤":S.gr.winner==="uc"?"🕵️":"🤍";
+var lines=[ic+" "+S.gr.msg,"Mots : "+S.pair[0]+" / "+S.pair[1]+(S.cat?" ("+S.ct+")":""),S.turn+" tours — scores :"];
+SS().forEach(function(x){lines.push("  "+N(x.id)+" : "+x.pts+" pt"+(x.pts>1?"s":""))});
+var txt=lines.join("\n");
+if(navigator.clipboard&&navigator.clipboard.writeText){
+  navigator.clipboard.writeText(txt).then(function(){
+    var btn=document.getElementById("share-btn");
+    if(btn){btn.textContent="✓ Copié !";setTimeout(function(){if(btn)btn.textContent="📋 Copier le résumé"},2000)}
+  }).catch(function(){})
+}else{var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);
+  var btn=document.getElementById("share-btn");if(btn){btn.textContent="✓ Copié !";setTimeout(function(){if(btn)btn.textContent="📋 Copier le résumé"},2000)}}}
+
 var _modalCb=null;
 function showConfirm(msg,cb){
 _modalCb=cb;
@@ -276,6 +289,7 @@ WR()+
 FSC()+
 (S.hist.length?'<details class="hist-details"><summary class="orb fs10 color-dim3 ls2">TOUS LES TOURS ('+S.hist.length+')</summary>'+HIST()+'</details>':'')+
 '<details class="hist-details mb8"><summary class="orb fs10 color-gold ls2">🏆 HALL OF FAME</summary>'+FLB()+'<button class="btn ghost" onclick="showConfirm(\'Effacer tout le Hall of Fame ?\',function(){clearLB();render()})">🗑 Effacer le classement</button></details>'+
+'<button id="share-btn" class="btn ghost mb6" onclick="shareResult()">📋 Copier le résumé</button>'+
 '<button class="btn gold" onclick="fullReset()">🏆 NOUVELLE PARTIE</button><div class="fline"></div>';return}
 }
 
