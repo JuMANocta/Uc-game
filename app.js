@@ -52,7 +52,9 @@ var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}
 
-var S={phase:"splash",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:false,kids:false,cats:null,spoken:[]};
+var S={phase:"splash",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:false,kids:false,cats:null,spoken:[],
+// Multi-appareils — "solo" = un seul téléphone (défaut), "host" = cet appareil arbitre, "client" = joueur distant
+mode:"solo",net:null,votes:{},round:0,tiebreak:"revote",hostPlays:true,revealVoters:false};
 
 function N(id){return S.nm[id]||("Joueur "+id)}
 function MUC(){return Math.max(1,S.pc-(S.mw?2:1))}
@@ -125,7 +127,13 @@ function getLB(){try{return JSON.parse(localStorage.getItem("uc_lb")||"{}")}catc
 function clearLB(){try{localStorage.removeItem("uc_lb")}catch(e){}}
 
 // Persistance des options entre les sessions (uc_opts)
-function saveOpts(){try{localStorage.setItem("uc_opts",JSON.stringify({pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,timer:S.timer,skipvote:S.skipvote,night:S.night,kids:S.kids,cats:S.cats,nm:S.nm}))}catch(e){}}
+// pc et nm ne sont persistés qu'en mode solo : en mode hôte ils sont dictés par
+// le lobby réseau et écraseraient les noms de la partie mono-téléphone.
+function saveOpts(){try{
+var o={uc:S.uc,mw:S.mw,cat:S.cat,timer:S.timer,skipvote:S.skipvote,night:S.night,kids:S.kids,cats:S.cats,tiebreak:S.tiebreak};
+if(S.mode==="solo"){o.pc=S.pc;o.nm=S.nm}
+else{var prev=JSON.parse(localStorage.getItem("uc_opts")||"{}");if(prev.pc!==undefined)o.pc=prev.pc;if(prev.nm!==undefined)o.nm=prev.nm}
+localStorage.setItem("uc_opts",JSON.stringify(o))}catch(e){}}
 function loadOpts(){
 try{var o=JSON.parse(localStorage.getItem("uc_opts")||"null");if(!o||typeof o!=="object")return;
 if(typeof o.pc==="number")S.pc=Math.max(3,Math.min(20,o.pc|0));
@@ -136,6 +144,7 @@ if([0,60,120,180,300].indexOf(o.timer)!==-1)S.timer=o.timer;
 if(typeof o.skipvote==="boolean")S.skipvote=o.skipvote;
 if(typeof o.night==="boolean")S.night=o.night;
 if(typeof o.kids==="boolean")S.kids=o.kids;
+if(["revote","none","random"].indexOf(o.tiebreak)!==-1)S.tiebreak=o.tiebreak;
 if(Array.isArray(o.cats)){var valid=o.cats.filter(function(c){return allCats().indexOf(c)!==-1});S.cats=(!valid.length||valid.length===allCats().length)?null:valid}
 if(o.nm&&typeof o.nm==="object"&&!Array.isArray(o.nm))S.nm=o.nm;
 S.uc=Math.min(S.uc,MUC())}catch(e){}}
@@ -342,8 +351,14 @@ FSC()+
 // ══════════════════════════════════════════════════════════════
 function CP(d){S.pc=Math.max(3,Math.min(20,S.pc+d));S.uc=Math.min(BAL(),MUC());render()}
 
+// Lit les champs de saisie des noms. En mode hôte les noms viennent du
+// réseau (pseudos du lobby), il n'y a pas d'inputs à lire.
+function readNameInputs(){
+if(S.mode!=="solo")return;
+for(var i=1;i<=S.pc;i++){var el=document.getElementById("n"+i);if(el)S.nm[i]=el.value}}
+
 function startSession(){
-for(var i=1;i<=S.pc;i++){var el=document.getElementById("n"+i);if(el)S.nm[i]=el.value}
+readNameInputs();
 for(var i=1;i<=S.pc;i++){if(!S.nm[i]||!S.nm[i].trim())S.nm[i]="Joueur "+i}
 var seen={};for(var i=1;i<=S.pc;i++){var k=S.nm[i].trim().toLowerCase();if(seen[k]){S.err="\""+S.nm[i]+"\" est utilisé deux fois.";render();return}seen[k]=true}
 S.err="";saveOpts();
@@ -363,7 +378,12 @@ var e=PP();var f=Math.random()>0.5;
 S.pair=[f?e[0]:e[1],f?e[1]:e[0]];S.ct=e[2];
 S.tp=S.alive.map(function(id){var p=S.players.filter(function(x){return x.id===id})[0];return{id:p.id,role:p.role,word:p.role==="civil"?S.pair[0]:p.role==="undercover"?S.pair[1]:null}});
 S.ro=shuffle(S.tp.map(function(_,i){return i}));
-S.ri=0;S.wv=false;S.vt=null;S.spoken=[];S.turn++;S.phase="handoff";render()}
+// En multi-appareils, chacun reçoit son mot sur son propre écran :
+// les phases handoff/reveal (passage du téléphone) n'ont plus lieu d'être.
+S.ri=0;S.wv=false;S.vt=null;S.spoken=[];S.votes={};S.round=0;S.turn++;
+S.phase=(S.mode==="host")?"playing":"handoff";
+render();
+if(S.mode==="host")startTimer()}
 
 function confirmSeen(){SND.click();VIB(30);S.wv=false;if(S.ri<S.tp.length-1){S.ri++;S.phase="handoff"}else{S.phase="playing";render();startTimer();return}render()}
 
@@ -392,9 +412,18 @@ recordTurn(le);
 if(S.phase==="game_over"){saveLeaderboard();SND.win(S.gr.winner);VIB([100,50,100,50,200])}
 render()}
 
-function fullReset(){stopTimer();S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:S.timer,tid:null,trem:0,skipvote:S.skipvote,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:S.night,kids:S.kids,cats:S.cats,spoken:[]};render()}
+// ATTENTION : ces deux fonctions réassignent S en entier. Tout nouveau champ
+// devant survivre à une nouvelle partie doit être reporté ici explicitement —
+// en particulier mode/net, sinon "nouvelle partie" déconnecterait tout le monde.
+function fullReset(){stopTimer();S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:S.timer,tid:null,trem:0,skipvote:S.skipvote,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:S.night,kids:S.kids,cats:S.cats,spoken:[],
+mode:S.mode,net:S.net,votes:{},round:0,tiebreak:S.tiebreak,hostPlays:S.hostPlays,revealVoters:S.revealVoters};
+if(S.mode==="host")S.phase="lobby";
+render()}
 
-function resetOpts(){clearOpts();stopTimer();S={phase:"setup",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:false,kids:false,cats:null,spoken:[]};render()}
+function resetOpts(){clearOpts();stopTimer();S={phase:"setup",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:false,kids:false,cats:null,spoken:[],
+mode:S.mode,net:S.net,votes:{},round:0,tiebreak:"revote",hostPlays:true,revealVoters:false};
+if(S.mode==="host")S.phase="lobby";
+render()}
 
 loadOpts();
 render();
