@@ -11,7 +11,7 @@ Le choix se fait à l'ouverture de l'application.
 | 📱 **Un seul téléphone** | Le jeu original : on se passe l'appareil, chacun découvre son mot en privé, le vote se fait à voix haute. Fonctionne hors-ligne. |
 | 📡 **Chacun son téléphone** | L'hôte affiche un **QR code**, les autres le scannent, saisissent leur pseudo et rejoignent la salle. Chacun reçoit **son mot sur son propre écran** et **vote en secret**. Plus de passage de téléphone. |
 
-> Le mode multi-appareils exige **HTTPS** (contrainte WebRTC) et une connexion Internet pour établir la liaison. Le bouton est désactivé avec explication si l'application est servie en HTTP simple.
+> **Le mode multi-appareils exige HTTPS et une connexion Internet.** Les téléphones se parlent ensuite en direct, mais un serveur d'annuaire est nécessaire pour les mettre en relation — même côte à côte sur le même WiFi. Sans HTTPS ou sans réseau, la carte est désactivée avec sa raison ; le mode « un seul téléphone » reste disponible et fonctionne entièrement hors ligne.
 
 ## Principe du jeu
 
@@ -57,8 +57,8 @@ Ou double-cliquer sur `index.html`. Aucun serveur requis.
 | **Timer débat** | Off · 1min · 2min · 3min · 5min |
 | **Vote nul** | Permet de passer un tour sans élimination |
 | **Mode nuit** | Masque le compteur d'imposteurs et les rôles éliminés pendant le débat |
-| **Mode Enfant 🧒** | Filtre les mots adultes (614 paires kid-safe sur 39 catégories) |
-| **Filtre catégories** | Active/désactive individuellement chacune des 42 catégories, avec compteur de paires |
+| **Mode Enfant 🧒** | Filtre les mots adultes (691 paires kid-safe sur 45 catégories) |
+| **Filtre catégories** | Active/désactive individuellement chacune des 48 catégories, avec compteur de paires |
 
 > Toutes les options et les noms des joueurs sont **conservés d'une session à l'autre** (`localStorage`). Un bouton « Réinitialiser les options » remet les valeurs par défaut.
 
@@ -78,7 +78,7 @@ Ou double-cliquer sur `index.html`. Aucun serveur requis.
 
 ## Base de mots
 
-**744 paires** réparties en **42 catégories** :
+**816 paires** réparties en **48 catégories** :
 
 | Groupe | Catégories |
 |---|---|
@@ -90,28 +90,36 @@ Ou double-cliquer sur `index.html`. Aucun serveur requis.
 | Arts & Histoire | `Danse` · `Instruments` · `Architecture` · `Époques` |
 | Sensations | `Couleurs` · `Matières` · `Phobies` · `Géographie` |
 | Lifestyle | `Mode` · `Nature` |
+| Quotidien élargi | `Transports` · `Outils` · `Météo` |
+| Plaisirs & imaginaire | `Desserts` · `Fêtes` · `Mythologie` |
 
 Les paires jouées ne se répètent pas avant épuisement complet du pool (ou du pool filtré en Mode Enfant / filtre catégories).
 
-**614 paires** sont marquées *kid-safe*. Trois catégories (`Cocktails`, `Vins`, `Phobies`) n'en contiennent aucune : elles apparaissent barrées et non sélectionnables lorsque le Mode Enfant est actif. Le Mode Enfant n'est jamais contourné, même si le filtre de catégories vide le pool.
+**691 paires** sont marquées *kid-safe*. Trois catégories (`Cocktails`, `Vins`, `Phobies`) n'en contiennent aucune : elles apparaissent barrées et non sélectionnables lorsque le Mode Enfant est actif. Le Mode Enfant n'est jamais contourné, même si le filtre de catégories vide le pool.
 
 ---
 
 ## Fonctionnalités
 
 - **Multi-appareils** — QR code, code de salle à 6 caractères, lobby live, reconnexion automatique après verrouillage du téléphone, reprise de la salle après rechargement de l'hôte
+- **Indices écrits** *(multi-appareils)* — chacun tape son indice sur son téléphone : la partie garde une trace de ce qui a été dit, et **prononcer son propre mot élimine sur-le-champ**. Option désactivable ; sans écran individuel, taper son indice le montrerait à tout le monde
 - **Vote secret** — chacun vote sur son écran, dépouillement animé, revote en cas d'égalité, option « vote à découvert » montrant qui a voté pour qui
 - **Options persistantes** — nombre de joueurs, noms, timer, modes et filtres restaurés au rechargement
-- **Filtre de catégories** — active/désactive chacune des 42 catégories, avec le nombre de paires par catégorie et la taille du pool résultant
+- **Filtre de catégories** — active/désactive chacune des 48 catégories, avec le nombre de paires par catégorie et la taille du pool résultant
 - **Ordre de parole** — affiché pendant le débat ; tap sur un nom pour le cocher (a parlé) ; bouton pour tout décocher
 - **Timer** — countdown configurable, bouton de relance si expiré, alerte sonore + vibration à l'expiration ; animation urgente sous 10s
 - **Sons & vibrations** — Web Audio API (zéro fichier audio), vibrations sur toutes les transitions clés
 - **Historique** — consultable pendant le débat et dans les récapitulatifs
 - **Hall of Fame** — scores cumulés en `localStorage`, top 10 persistant, détail des victoires par rôle (👤 🕵️ 🤍)
 - **Partage** — partage natif du récapitulatif (`navigator.share`), presse-papiers en secours
+- **Règles en jeu** — bouton « ? » flottant sur tous les écrans, hôte comme joueurs : rappel du principe, du déroulé et surtout du fait que **les rôles ne changent jamais alors que les mots changent à chaque tour**
 - **Splash screen** — boot log animé au premier chargement
 - **Bouton Abandonner** — disponible pendant le débat (avec confirmation modale)
-- **PWA** — installable sur mobile, fonctionne hors-ligne sur HTTPS
+- **PWA** — installable sur mobile via un bouton dédié, **bannière de mise à jour** quand une nouvelle version est prête, détection du hors-ligne
+  | Mode | Hors ligne |
+  |---|---|
+  | Un seul téléphone | ✅ complet, les 816 paires sont embarquées |
+  | Chacun son téléphone | ❌ Internet requis pour l'annuaire |
 
 ---
 

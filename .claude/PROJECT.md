@@ -121,7 +121,7 @@ splash → setup → handoff → reveal → playing → vote → turn_recap → 
 
 ### Base de données de mots (`DB`)
 
-**744 paires** `[mot_civil, mot_uc, catégorie, kid_safe]` en **42 catégories** :
+**816 paires** `[mot_civil, mot_uc, catégorie, kid_safe]` en **48 catégories** :
 
 | Groupe | Catégories |
 |---|---|
@@ -133,9 +133,11 @@ splash → setup → handoff → reveal → playing → vote → turn_recap → 
 | Arts & Histoire (4) | Danse · Instruments · Architecture · Époques |
 | Sensations & Insolite (4) | Couleurs · Matières · Phobies · Géographie |
 | Lifestyle (2) | Mode · Nature |
+| Quotidien élargi (3) | Transports · Outils · Météo |
+| Plaisirs & imaginaire (3) | Desserts · Fêtes · Mythologie |
 
-- `kid_safe = true` : paire incluse en Mode Enfant — **614 paires sur 39 catégories**
-- `kid_safe = false` : paire exclue en Mode Enfant (alcool, horreur, violence, sujets adultes) — 130 paires
+- `kid_safe = true` : paire incluse en Mode Enfant — **691 paires sur 45 catégories**
+- `kid_safe = false` : paire exclue en Mode Enfant (alcool, horreur, violence, sujets adultes) — 125 paires
 
 `Cocktails` (0/12), `Vins` (0/10) et `Phobies` (0/12) n'ont **aucune** paire kid-safe : ces catégories sont affichées barrées et non sélectionnables quand le Mode Enfant est actif.
 
@@ -144,7 +146,7 @@ Anti-répétition : `S.used` trace les **indices originaux DB** déjà tirés. Q
 **Cascade de repli de `PP()`** (le Mode Enfant n'est jamais contourné) :
 1. pool = `kids` ∩ `cats`
 2. si vide → pool = `kids` seul (le filtre catégories saute, pas le filtre enfant)
-3. si vide → DB entière (inatteignable : 614 paires kid-safe)
+3. si vide → DB entière (inatteignable : 691 paires kid-safe)
 
 ### Fonctions clés
 
@@ -309,10 +311,31 @@ Enveloppe `{v:1, t:<type>, …}`.
 | `sendSecretTo(pid)` / `sendSecrets()` | Envoi ciblé des mots |
 | `startVote()` / `closeVote()` / `computeTally()` | Vote secret et dépouillement |
 | `applyVote(t)` | Pose `S.vt` et appelle `doElim()` — seul point de sortie vers le moteur |
+| `submitClue(pid,txt)` | Enregistre un indice, ou déclenche la faute |
+| `saysWord(indice,mot)` | Détection du mot entier, tolérante aux accents et pluriels |
+| `clueFault(pid,...)` | Élimination immédiate → `checkEnd()` |
 | `doRevote()` / `tieRandom()` / `canRevote()` | Départage des égalités |
 | `hostSweep()` | Marque déconnecté un siège silencieux > 20 s |
 | `scheduleReconnect()` / `clientWakeUp()` | Backoff avec gigue, reprise immédiate au retour à l'écran |
 | `requestWake()` / `releaseWake()` | Wake Lock — mitigation principale sur iOS |
+
+### Indices écrits (option `S.writeClues`, multi-appareils)
+
+Chacun tape son indice ; `S.clues = {playerId: texte}` est remis à zéro chaque tour et diffusé à tous — c'est tout l'intérêt, garder une trace de ce qui a été dit.
+
+`saysWord(indice, mot)` normalise casse, accents et ponctuation, puis exige le mot **entier** : « chat » ne se déclenche ni sur « château », ni sur « achat », ni sur « chatons », mais bien sur « des chats ». Pluriel toléré dans les deux sens.
+
+Seul **son propre** mot est fautif : un civil qui prononce le mot Undercover fait une déduction légitime, pas une faute. Mr. White n'ayant pas de mot ne peut jamais être sanctionné.
+
+**Aucun avertissement local avant l'envoi** — prévenir « ton indice contient ton mot » rendrait la règle décorative, plus personne ne se ferait prendre. C'est délibéré, et c'est pourquoi l'option est désactivable.
+
+`clueFault()` emprunte exactement le chemin d'une élimination par vote : `checkEnd()` distribue les points et décide de la fin de partie. Seul l'écran de récap diffère, via `S.fault`.
+
+### Règles en jeu (`showRules()`)
+
+Fenêtre flottante accessible partout via un bouton « ? » installé **hors de `#app`** : il survit donc à tous les rendus, et un joueur qui lit les règles pendant le débat ne les perd pas quand l'état est rediffusé.
+
+Le contenu insiste sur les deux points qui perdent les nouveaux joueurs : **on ignore son propre rôle** (on ne voit qu'un mot), et surtout **les rôles ne changent jamais de la partie alors que les mots changent à chaque tour**. La règle des indices écrits n'apparaît que si l'option est active.
 
 ### Règles de vote
 
@@ -333,6 +356,15 @@ Une CSP restrictive bloque `wss://0.peerjs.com` **sans que le jeu puisse s'en ap
 Directives requises : `connect-src https://0.peerjs.com wss://0.peerjs.com stun: turn:`, plus `style-src-elem https://fonts.googleapis.com` et `font-src https://fonts.gstatic.com` pour les polices. Voir le README pour l'exemple nginx complet.
 
 `diag.html` écoute `securitypolicyviolation` et nomme la directive fautive — c'est le seul moyen de diagnostiquer ce cas depuis le navigateur du joueur.
+
+### PWA (`pwa.js`)
+
+Fichier dédié : ni logique de jeu, ni transport, uniquement le dialogue avec le navigateur.
+
+- `isOnline()` — `navigator.onLine` ne prouve pas qu'Internet est joignable, mais quand il répond `false` on est certainement hors ligne. Suffisant pour barrer le multi-appareils **avant** une tentative vouée à l'échec, plutôt que d'attendre les 12 s du chien de garde.
+- `canInstall()` / `doInstall()` — l'événement `beforeinstallprompt` est capturé et neutralisé pour garder la main sur le moment de l'invite.
+- Bannière de mise à jour — le SW appelle `skipWaiting()`, donc la nouvelle version prend la main tout de suite, mais la **page** continue de faire tourner l'ancien code jusqu'au rechargement. D'où une bannière plutôt qu'un rechargement d'autorité, qui couperait une partie en cours.
+- L'enregistrement du service worker a quitté `index.html` : plus aucun script inline, donc plus besoin de `script-src 'unsafe-inline'` pour lui.
 
 ### Limites assumées
 

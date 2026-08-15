@@ -123,6 +123,7 @@ function clientJoin(code, name) {
   C.err = null;
   C._retries = 0;
 
+  if (!isOnline()) { C.screen = "rejected"; C.err = "offline"; C.link = "dead"; render(); return; }
   if (!NET.use("peerjs")) { C.screen = "error"; C.err = "lib"; render(); return; }
   requestWake();
   NET.join(C.code, clientHandlers());
@@ -192,6 +193,28 @@ function clientTimerStart(rem) {
     el.textContent = TF(C.timer.rem);
     el.className = "timer-disp" + (C.timer.rem <= 10 ? " urgent" : "");
   }, 1000);
+}
+
+// Aucun avertissement local avant l'envoi : prévenir « ton indice contient ton
+// mot » rendrait la règle décorative, plus personne ne se ferait prendre.
+function clientClue() {
+  var el = document.getElementById("clue");
+  if (!el || !el.value.trim()) return;
+  NET.toHost({ v: PROTO_V, t: "clue", text: el.value.trim(), turn: C.snap.turn });
+  el.value = "";
+  SND.click(); VIB(20);
+}
+
+// Indices déjà donnés, dans l'ordre de parole.
+function cluesBoard() {
+  if (!C.snap || !C.snap.writeClues) return "";
+  var cl = C.snap.clues || {};
+  var ids = (C.snap.speakOrder || []).filter(function (id) { return cl[id]; });
+  if (!ids.length) return '<p class="color-dim3 fs12 mb6">Aucun indice donné pour l\'instant.</p>';
+  return '<div class="clue-list mb6">' + ids.map(function (id) {
+    return '<div class="clue-row"><span class="clue-nm">' + (S.nm[id] || "?") + "</span>" +
+           '<span class="clue-tx">' + cl[id] + "</span></div>";
+  }).join("") + "</div>";
 }
 
 function clientSpoke() {
@@ -561,7 +584,13 @@ function renderClientWord() {
     '<div class="m12-0">' + card + "</div>" +
     (C.timer && C.timer.rem ? '<div id="ctdisp" class="timer-disp' + (C.timer.rem <= 10 ? " urgent" : "") + '">' + TF(C.timer.rem) + "</div>" : "") +
     speakBoard() +
-    '<button class="btn' + (mine ? " ghost" : "") + '" onclick="clientSpoke()">' + (mine ? "↺ J'ai encore à dire" : "✓ J'AI PARLÉ") + "</button>" +
+    (C.snap.writeClues
+      ? cluesBoard() +
+        (mine
+          ? '<p class="color-dim3 fs12 mb6">Ton indice est enregistré.</p>'
+          : '<input type="text" id="clue" maxlength="60" placeholder="Ton indice…" autocomplete="off">' +
+            '<button class="btn glow mt6" onclick="clientClue()">▶ DONNER MON INDICE</button>')
+      : '<button class="btn' + (mine ? " ghost" : "") + '" onclick="clientSpoke()">' + (mine ? "↺ J'ai encore à dire" : "✓ J'AI PARLÉ") + "</button>") +
     '<button class="btn-abandon" onclick="showConfirm(\'Quitter la partie ?\',clientLeave)">✕ Quitter</button>' +
     '<div class="fline"></div>';
 }

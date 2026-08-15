@@ -6,11 +6,11 @@ var DB=[
 ["Titanic","Poséidon","Cinéma",false],["Star Wars","Star Trek","Cinéma",true],["Le Parrain","Scarface","Cinéma",false],["Matrix","Inception","Cinéma",false],["Jurassic Park","King Kong","Cinéma",true],["Avengers","Justice League","Cinéma",true],["Shrek","Monstres et Cie","Cinéma",true],["Rocky","Creed","Cinéma",false],["Alien","Predator","Cinéma",false],["Gladiator","Braveheart","Cinéma",false],["Avatar","Dune","Cinéma",true],["Retour vers le futur","Interstellar","Cinéma",true],["Ratatouille","L'Âge de glace","Cinéma",true],["Saw","Destination finale","Cinéma",false],["Ocean's Eleven","Braquage à l'italienne","Cinéma",false],["Conjuring","Insidious","Cinéma",false],["Le Roi Lion","Bambi","Cinéma",true],["Cendrillon","La Belle au bois dormant","Cinéma",true],["Hunger Games","Divergente","Cinéma",false],["Indiana Jones","Lara Croft","Cinéma",true],["Toy Story","Rebelle","Cinéma",true],["Coco","Soul","Cinéma",true],["Le Livre de la Jungle","Tarzan","Cinéma",true],["Harry Potter","Les Animaux Fantastiques","Cinéma",true],["Encanto","Luca","Cinéma",true],["Captain Marvel","Wonder Woman","Cinéma",true],["Pulp Fiction","Reservoir Dogs","Cinéma",false],["Fast & Furious","Mission Impossible","Cinéma",false],["Le Hobbit","Le Seigneur des Anneaux","Cinéma",false],["Parasite","Portrait de la jeune fille en feu","Cinéma",false],
 ["Breaking Bad","Narcos","Séries",false],["Friends","How I Met Your Mother","Séries",false],["The Office","Parks and Recreation","Séries",false],["Stranger Things","Dark","Séries",false],["La Casa de Papel","Lupin","Séries",false],["Walking Dead","The Last of Us","Séries",false],["Peaky Blinders","Boardwalk Empire","Séries",false],["Black Mirror","Twilight Zone","Séries",false],["Better Call Saul","Suits","Séries",false],["Grey's Anatomy","Dr House","Séries",false],["Vikings","The Last Kingdom","Séries",false],["Squid Game","Alice in Borderland","Séries",false],["Dexter","You","Séries",false],["Lost","Manifest","Séries",false],["Seinfeld","Curb Your Enthusiasm","Séries",false],["Naruto","Dragon Ball","Séries",true],["One Piece","Fairy Tail","Séries",true],["South Park","Les Simpson","Séries",true],["Rick et Morty","Futurama","Séries",false],["Downton Abbey","The Crown","Séries",false],["Game of Thrones","House of the Dragon","Séries",false],["Wednesday","Sabrina","Séries",true],["Miraculous","Totally Spies","Séries",true],["Bluey","Peppa Pig","Séries",true],["Cobra Kai","Power Rangers","Séries",true],["The Boys","Invincible","Séries",false],["Emily in Paris","Gossip Girl","Séries",false],["Koh-Lanta","The Voice","Séries",false],
 ["Minecraft","Terraria","Jeux vidéo",true],["Mario","Sonic","Jeux vidéo",true],["PlayStation","Xbox","Jeux vidéo",true],["Fortnite","PUBG","Jeux vidéo",true],["GTA","Saints Row","Jeux vidéo",false],["FIFA","PES","Jeux vidéo",true],["Zelda","Genshin Impact","Jeux vidéo",true],["Call of Duty","Battlefield","Jeux vidéo",false],["League of Legends","Dota 2","Jeux vidéo",true],["Dark Souls","Elden Ring","Jeux vidéo",false],["Resident Evil","Silent Hill","Jeux vidéo",false],["Tetris","Candy Crush","Jeux vidéo",true],["Cyberpunk 2077","Deus Ex","Jeux vidéo",false],["Animal Crossing","Stardew Valley","Jeux vidéo",true],["Among Us","Werewolf Online","Jeux vidéo",true],["Mario Kart","Crash Team Racing","Jeux vidéo",true],["Pokémon","Digimon","Jeux vidéo",true],["God of War","Devil May Cry","Jeux vidéo",false],["Les Sims","Second Life","Jeux vidéo",true],["Overwatch","Valorant","Jeux vidéo",true],["Crash Bandicoot","Spyro","Jeux vidéo",true],["Roblox","Scratch","Jeux vidéo",true],["Kirby","Yoshi","Jeux vidéo",true],["Clash of Clans","Clash Royale","Jeux vidéo",true],["NBA 2K","Rocket League","Jeux vidéo",true],["Fall Guys","Stumble Guys","Jeux vidéo",true],["Street Fighter","Mortal Kombat","Jeux vidéo",false],["Assassin's Creed","Prince of Persia","Jeux vidéo",false],["Tomb Raider","Uncharted","Jeux vidéo",false],["World of Warcraft","Final Fantasy","Jeux vidéo",false],
-["Beyoncé","Rihanna","Musique",true],["Eminem","Kanye West","Musique",false],["Beatles","Rolling Stones","Musique",true],["Daft Punk","Justice","Musique",true],["Spotify","Deezer","Musique",true],["Guitare","Ukulélé","Musique",true],["Jul","PNL","Musique",false],["Mozart","Beethoven","Musique",true],["AC/DC","Metallica","Musique",false],["Piano","Synthétiseur","Musique",true],["Rap","Slam","Musique",false],["Jazz","Blues","Musique",true],["Violon","Violoncelle","Musique",true],["Drake","The Weeknd","Musique",false],["Oasis","Blur","Musique",false],["Woodstock","Coachella","Musique",false],["Vinyle","CD","Musique",true],["Karaoké","Lip sync","Musique",true],["DJ","Beatmaker","Musique",true],["Taylor Swift","Ariana Grande","Musique",true],["Stromae","Angèle","Musique",true],["Tambour","Batterie","Musique",true],["Flûte","Trompette","Musique",true],["Festival","Concert","Musique",true],["Microphone","Haut-parleur","Musique",true],["Chorale","Gospel","Musique",true],["Michael Jackson","Prince","Musique",false],["Coldplay","Radiohead","Musique",false],
-["Pizza","Focaccia","Nourriture",true],["Croissant","Pain au chocolat","Nourriture",true],["Sushi","Sashimi","Nourriture",true],["Crème brûlée","Tiramisu","Nourriture",true],["Nutella","Beurre de cacahuète","Nourriture",true],["Ketchup","Mayonnaise","Nourriture",true],["Baguette","Ciabatta","Nourriture",true],["Kebab","Shawarma","Nourriture",true],["Coca-Cola","Pepsi","Nourriture",true],["Red Bull","Monster","Nourriture",false],["Champagne","Prosecco","Nourriture",false],["Camembert","Brie","Nourriture",true],["Raclette","Fondue","Nourriture",true],["Thé","Café","Nourriture",true],["Cappuccino","Latte","Nourriture",true],["Macaron","Meringue","Nourriture",true],["Steak","Entrecôte","Nourriture",true],["Pancake","Gaufre","Nourriture",true],["Sorbet","Glace","Nourriture",true],["Burger","Hot-dog","Nourriture",true],["Frites","Potatoes","Nourriture",true],["Guacamole","Houmous","Nourriture",true],["Naan","Pita","Nourriture",true],["Cookie","Brownie","Nourriture",true],["Tabasco","Sriracha","Nourriture",true],["Mozzarella","Burrata","Nourriture",true],["Whisky","Bourbon","Nourriture",false],["Rhum","Tequila","Nourriture",false],["Pâtes","Riz","Nourriture",true],["Chocolat","Bonbon","Nourriture",true],["Fraise","Framboise","Nourriture",true],["Crêpe","Galette","Nourriture",true],["Ananas","Mangue","Nourriture",true],["Tomate","Poivron","Nourriture",true],["Miel","Confiture","Nourriture",true],["Yaourt","Fromage blanc","Nourriture",true],["Tarte","Quiche","Nourriture",true],["Soupe","Potage","Nourriture",true],["Jus d'orange","Limonade","Nourriture",true],["Chips","Popcorn","Nourriture",true],
+["Beyoncé","Rihanna","Musique",true],["Eminem","Kanye West","Musique",false],["Beatles","Rolling Stones","Musique",true],["Daft Punk","Justice","Musique",true],["Reggae","Ska","Musique",true],["Guitare","Ukulélé","Musique",true],["Jul","PNL","Musique",false],["Mozart","Beethoven","Musique",true],["AC/DC","Metallica","Musique",false],["Piano","Synthétiseur","Musique",true],["Rap","Slam","Musique",false],["Jazz","Blues","Musique",true],["Violon","Violoncelle","Musique",true],["Drake","The Weeknd","Musique",false],["Oasis","Blur","Musique",false],["Woodstock","Coachella","Musique",false],["Vinyle","CD","Musique",true],["Karaoké","Lip sync","Musique",true],["DJ","Beatmaker","Musique",true],["Taylor Swift","Ariana Grande","Musique",true],["Stromae","Angèle","Musique",true],["Tambour","Batterie","Musique",true],["Flûte","Trompette","Musique",true],["Festival","Concert","Musique",true],["Microphone","Haut-parleur","Musique",true],["Chorale","Gospel","Musique",true],["Michael Jackson","Prince","Musique",false],["Coldplay","Radiohead","Musique",false],
+["Pizza","Focaccia","Nourriture",true],["Couscous","Tajine","Nourriture",true],["Sushi","Sashimi","Nourriture",true],["Crème brûlée","Tiramisu","Nourriture",true],["Nutella","Beurre de cacahuète","Nourriture",true],["Ketchup","Mayonnaise","Nourriture",true],["Baguette","Ciabatta","Nourriture",true],["Kebab","Shawarma","Nourriture",true],["Coca-Cola","Pepsi","Nourriture",true],["Red Bull","Monster","Nourriture",false],["Champagne","Prosecco","Nourriture",false],["Camembert","Brie","Nourriture",true],["Raclette","Fondue","Nourriture",true],["Thé","Café","Nourriture",true],["Cappuccino","Latte","Nourriture",true],["Macaron","Meringue","Nourriture",true],["Steak","Entrecôte","Nourriture",true],["Pancake","Gaufre","Nourriture",true],["Sorbet","Glace","Nourriture",true],["Burger","Hot-dog","Nourriture",true],["Frites","Potatoes","Nourriture",true],["Guacamole","Houmous","Nourriture",true],["Naan","Pita","Nourriture",true],["Cookie","Brownie","Nourriture",true],["Tabasco","Sriracha","Nourriture",true],["Lasagnes","Cannellonis","Nourriture",true],["Whisky","Bourbon","Nourriture",false],["Rhum","Tequila","Nourriture",false],["Pâtes","Riz","Nourriture",true],["Chocolat","Bonbon","Nourriture",true],["Fraise","Framboise","Nourriture",true],["Crêpe","Galette","Nourriture",true],["Ananas","Mangue","Nourriture",true],["Tomate","Poivron","Nourriture",true],["Miel","Confiture","Nourriture",true],["Ramen","Pho","Nourriture",true],["Tarte","Quiche","Nourriture",true],["Soupe","Potage","Nourriture",true],["Jus d'orange","Limonade","Nourriture",true],["Chips","Popcorn","Nourriture",true],
 ["Ronaldo","Messi","Sport",true],["Roland-Garros","Wimbledon","Sport",true],["Tour de France","Giro d'Italia","Sport",true],["PSG","Real Madrid","Sport",true],["Boxe","MMA","Sport",true],["Ski","Snowboard","Sport",true],["Formule 1","MotoGP","Sport",true],["Zidane","Platini","Sport",true],["Judo","Karaté","Sport",true],["Surf","Bodyboard","Sport",true],["Marathon","Semi-marathon","Sport",true],["Basket","Handball","Sport",true],["Yoga","Pilates","Sport",true],["Rugby","Football américain","Sport",true],["Tennis","Badminton","Sport",true],["Ping-pong","Squash","Sport",true],["CrossFit","Musculation","Sport",true],["Escalade","Alpinisme","Sport",true],["Patinage","Roller","Sport",true],["Natation","Plongée","Sport",true],["Volleyball","Beach volley","Sport",true],["Équitation","Polo","Sport",true],["Tir à l'arc","Fléchettes","Sport",true],["Pétanque","Bowling","Sport",true],["Catch","Sumo","Sport",true],["Hockey","Curling","Sport",true],["Golf","Minigolf","Sport",true],["Olympiques","Paralympiques","Sport",true],
-["Tour Eiffel","Big Ben","Culture",true],["Mona Lisa","La Jeune Fille à la perle","Culture",true],["Colisée","Parthénon","Culture",true],["Cléopâtre","Néfertiti","Culture",true],["Napoléon","César","Culture",true],["Versailles","Buckingham","Culture",true],["Pyramides","Sphinx","Culture",true],["Statue de la Liberté","Christ Rédempteur","Culture",true],["Everest","K2","Culture",true],["Amazone","Nil","Culture",true],["Louvre","British Museum","Culture",true],["Sahara","Gobi","Culture",true],["Machu Picchu","Chichen Itza","Culture",true],["Venise","Amsterdam","Culture",true],["Renaissance","Baroque","Culture",true],["Samurai","Gladiateur","Culture",true],["Mythologie grecque","Mythologie nordique","Culture",true],["Hiéroglyphes","Cunéiforme","Culture",true],["Pompéi","Herculanum","Culture",true],["Stonehenge","Carnac","Culture",true],["Antarctique","Arctique","Culture",true],["Moyen Âge","Antiquité","Culture",true],["Château fort","Cathédrale","Culture",true],["Chevalier","Écuyer","Culture",true],["Fossile","Dinosaure","Culture",true],["Continent","Océan","Culture",true],
-["iPhone","Samsung Galaxy","Tech",true],["Google","Bing","Tech",true],["Instagram","TikTok","Tech",true],["WhatsApp","Telegram","Tech",true],["Netflix","Disney+","Tech",true],["Windows","macOS","Tech",true],["Tesla","BYD","Tech",true],["ChatGPT","Claude","Tech",false],["Bitcoin","Ethereum","Tech",false],["Airbus","Boeing","Tech",true],["NASA","SpaceX","Tech",true],["Uber","Bolt","Tech",true],["Amazon","AliExpress","Tech",true],["WiFi","Bluetooth","Tech",true],["USB-C","Lightning","Tech",false],["VPN","Proxy","Tech",false],["Linux","Windows","Tech",false],["Photoshop","GIMP","Tech",true],["Siri","Alexa","Tech",true],["Drone","Satellite","Tech",true],["Android","iOS","Tech",true],["YouTube","Twitch","Tech",true],["Snapchat","BeReal","Tech",true],["iPad","Surface","Tech",true],["Reddit","Twitter","Tech",false],["3D","Réalité virtuelle","Tech",true],["QR Code","Code-barres","Tech",true],["Câble","Sans fil","Tech",true],
+["Tour Eiffel","Big Ben","Culture",true],["Mona Lisa","La Jeune Fille à la perle","Culture",true],["Colisée","Parthénon","Culture",true],["Cléopâtre","Néfertiti","Culture",true],["Napoléon","César","Culture",true],["Versailles","Buckingham","Culture",true],["Pyramides","Sphinx","Culture",true],["Statue de la Liberté","Christ Rédempteur","Culture",true],["Everest","K2","Culture",true],["Vitrail","Rosace","Culture",true],["Louvre","British Museum","Culture",true],["Hiéroglyphe","Idéogramme","Culture",true],["Machu Picchu","Chichen Itza","Culture",true],["Catacombes","Crypte","Culture",true],["Calligraphie","Typographie","Culture",true],["Samurai","Gladiateur","Culture",true],["Mythologie grecque","Mythologie nordique","Culture",true],["Hiéroglyphes","Cunéiforme","Culture",true],["Pompéi","Herculanum","Culture",true],["Stonehenge","Carnac","Culture",true],["Papyrus","Tablette d'argile","Culture",true],["Fresque","Mosaïque","Culture",true],["Château fort","Cathédrale","Culture",true],["Chevalier","Écuyer","Culture",true],["Fossile","Dinosaure","Culture",true],["Continent","Océan","Culture",true],
+["iPhone","Samsung Galaxy","Tech",true],["Google","Bing","Tech",true],["Empreinte digitale","Reconnaissance faciale","Tech",true],["Voiture autonome","Régulateur de vitesse","Tech",true],["Panneau solaire","Éolienne","Tech",true],["Windows","macOS","Tech",true],["Tesla","BYD","Tech",true],["ChatGPT","Claude","Tech",false],["Bitcoin","Ethereum","Tech",false],["Airbus","Boeing","Tech",true],["NASA","SpaceX","Tech",true],["Uber","Bolt","Tech",true],["Amazon","AliExpress","Tech",true],["WiFi","Bluetooth","Tech",true],["USB-C","Lightning","Tech",false],["VPN","Proxy","Tech",false],["Fibre optique","ADSL","Tech",true],["Photoshop","GIMP","Tech",true],["Siri","Alexa","Tech",true],["Drone","Satellite","Tech",true],["Android","iOS","Tech",true],["Casque VR","Lunettes connectées","Tech",true],["Imprimante 3D","Scanner 3D","Tech",true],["iPad","Surface","Tech",true],["Forum","Blog","Tech",true],["3D","Réalité virtuelle","Tech",true],["QR Code","Code-barres","Tech",true],["Câble","Sans fil","Tech",true],
 ["Batman","Spider-Man","Personnages",true],["Darth Vader","Voldemort","Personnages",true],["James Bond","Jason Bourne","Personnages",false],["Harry Potter","Percy Jackson","Personnages",true],["Astérix","Tintin","Personnages",true],["Sherlock Holmes","Hercule Poirot","Personnages",true],["Gandalf","Dumbledore","Personnages",true],["Naruto","Goku","Personnages",true],["Joker","Thanos","Personnages",true],["Elsa","Raiponce","Personnages",true],["Superman","Captain America","Personnages",true],["Wolverine","Deadpool","Personnages",true],["Dracula","Frankenstein","Personnages",false],["Robin des Bois","Zorro","Personnages",true],["Peter Pan","Pinocchio","Personnages",true],["Shrek","Fiona","Personnages",true],["Mario","Luigi","Personnages",true],["Tom","Jerry","Personnages",true],["Buzz l'Éclair","Woody","Personnages",true],["Sangoku","Vegeta","Personnages",true],["Mickey","Minnie","Personnages",true],["Simba","Mufasa","Personnages",true],["Winnie","Tigrou","Personnages",true],["Scooby-Doo","Shaggy","Personnages",true],["Wonder Woman","Black Widow","Personnages",true],["Loki","Thor","Personnages",true],["Obélix","Idéfix","Personnages",true],["Capitaine Crochet","Long John Silver","Personnages",true],
 ["Nike","Adidas","Marques",true],["Zara","H&M","Marques",true],["IKEA","Leroy Merlin","Marques",true],["Ferrari","Lamborghini","Marques",true],["Rolex","Omega","Marques",false],["Rolls-Royce","Bentley","Marques",false],["Lego","Playmobil","Marques",true],["Louis Vuitton","Gucci","Marques",false],["McDonald's","Burger King","Marques",true],["Chanel","Dior","Marques",false],["Porsche","Aston Martin","Marques",true],["Ray-Ban","Oakley","Marques",false],["Converse","Vans","Marques",true],["Lacoste","Ralph Lauren","Marques",false],["Apple","Samsung","Marques",true],["Audi","BMW","Marques",true],["Canon","Nikon","Marques",false],["Puma","Reebok","Marques",true],["Hermès","Prada","Marques",false],["Dyson","Rowenta","Marques",false],["KFC","Subway","Marques",true],["Nintendo","Sega","Marques",true],["Barbie","Bratz","Marques",true],["Chupa Chups","Carambar","Marques",true],["Kinder","Milka","Marques",true],["GoPro","Polaroid","Marques",false],["Nespresso","Senseo","Marques",false],["Harley-Davidson","Indian","Marques",false],
 ["Chat","Chien","Divers",true],["Dentiste","Médecin","Divers",true],["Métro","Tramway","Divers",true],["Avion","Hélicoptère","Divers",true],["Pirate","Viking","Divers",true],["Zombie","Vampire","Divers",false],["Lune","Soleil","Divers",true],["Licorne","Dragon","Divers",true],["Escape Game","Laser Game","Divers",true],["Piscine","Plage","Divers",true],["Samouraï","Ninja","Divers",true],["Ange","Démon","Divers",true],["Astronaute","Pilote","Divers",true],["Parapluie","Imperméable","Divers",true],["Château","Manoir","Divers",true],["Père Noël","Saint-Nicolas","Divers",true],["Sirène","Méduse","Divers",true],["Igloo","Tipi","Divers",true],["Hamac","Transat","Divers",true],["Tatouage","Piercing","Divers",false],["Journal","Magazine","Divers",true],["Bain","Douche","Divers",true],["Valise","Sac à dos","Divers",true],["Bougie","Encens","Divers",true],["Cheminée","Radiateur","Divers",true],["Jumelles","Télescope","Divers",true],["Parachute","Deltaplane","Divers",true],["Bibliothèque","Librairie","Divers",true],["Crayon","Stylo","Divers",true],["Horoscope","Tarot","Divers",false],["Emoji","Émoticône","Divers",true],["Selfie","Portrait","Divers",true],["Podcast","Radio","Divers",true],["Camping","Glamping","Divers",true],["Sorcier","Magicien","Divers",true],["Fantôme","Esprit","Divers",true],["Loup-garou","Goule","Divers",false],["Sphinx","Minotaure","Divers",true],["Cigale","Fourmi","Divers",true],["Tortue","Escargot","Divers",true],["Arc-en-ciel","Aurore boréale","Divers",true],["Feu d'artifice","Pétard","Divers",true],["Carnaval","Mardi gras","Divers",true],["Boussole","GPS","Divers",true],["Montre","Réveil","Divers",true],["Drapeau","Banderole","Divers",true],["Carte","Plan","Divers",true],["Clé","Cadenas","Divers",true],["Fusée","Montgolfière","Divers",true],["Robot","Androïde","Divers",true],
@@ -31,10 +31,10 @@ var DB=[
 ["Pompier","Sauveteur","Métiers",true],["Boulanger","Pâtissier","Métiers",true],["Avocat","Juge","Métiers",true],["Photographe","Caméraman","Métiers",true],["Charpentier","Menuisier","Métiers",true],["Plombier","Électricien","Métiers",true],["Infirmier","Aide-soignant","Métiers",true],["Journaliste","Reporter","Métiers",true],["Vétérinaire","Zoologiste","Métiers",true],["Coiffeur","Barbier","Métiers",true],["Gendarme","Policier","Métiers",true],["Cuisinier","Chef","Métiers",true],
 ["Pouce","Index","Corps",true],["Mollet","Tibia","Corps",true],["Tempe","Front","Corps",true],["Coude","Genou","Corps",true],["Poignet","Cheville","Corps",true],["Pupille","Iris","Corps",true],["Sourcil","Cil","Corps",true],["Narine","Sinus","Corps",true],["Talon","Plante du pied","Corps",true],["Estomac","Intestin","Corps",true],["Nuque","Cou","Corps",true],["Cuisse","Hanche","Corps",true],
 ["Python","Java","Informatique",true],["Bug","Glitch","Informatique",true],["RAM","ROM","Informatique",true],["CPU","GPU","Informatique",true],["Cloud","Serveur","Informatique",true],["HTML","CSS","Informatique",true],["Linux","Windows","Informatique",true],["Wi-Fi","Bluetooth","Informatique",true],["Virus","Malware","Informatique",false],["Algorithme","Programme","Informatique",true],["Mot de passe","Code PIN","Informatique",true],["Pixel","Résolution","Informatique",true],
-["Instagram","TikTok","Applis",false],["YouTube","Twitch","Applis",true],["Twitter","Mastodon","Applis",false],["Facebook","LinkedIn","Applis",false],["Reddit","Discord","Applis",false],["Snapchat","BeReal","Applis",false],["WhatsApp","Telegram","Applis",false],["Spotify","Deezer","Applis",true],["Netflix","Disney+","Applis",true],["Google Maps","Waze","Applis",true],["Pinterest","Tumblr","Applis",false],["PayPal","Lydia","Applis",false],
+["Instagram","TikTok","Applis",false],["YouTube","Twitch","Applis",true],["X","Bluesky","Applis",true],["Facebook","LinkedIn","Applis",false],["Reddit","Discord","Applis",false],["Snapchat","Messenger","Applis",true],["WhatsApp","Telegram","Applis",false],["Spotify","Deezer","Applis",true],["Netflix","Disney+","Applis",true],["Google Maps","Waze","Applis",true],["Pinterest","Tumblr","Applis",false],["PayPal","Revolut","Applis",true],
 ["Échecs","Dames","Jeux de société",true],["Scrabble","Boggle","Jeux de société",true],["Risk","Stratego","Jeux de société",true],["Cluedo","Scotland Yard","Jeux de société",true],["Pictionary","Telestrations","Jeux de société",true],["Puissance 4","Morpion","Jeux de société",true],["Jungle Speed","Dobble","Jeux de société",true],["Loups-garous","Mafia","Jeux de société",true],["Catan","Les Aventuriers du Rail","Jeux de société",true],["Uno","Jeu de 7 familles","Jeux de société",true],["Trivial Pursuit","Time's Up","Jeux de société",true],["Monopoly","Bonne Paye","Jeux de société",true],
 ["Berline","Break","Voitures",true],["Cabriolet","Roadster","Voitures",true],["SUV","Crossover","Voitures",true],["Coupé","Cabriolet sport","Voitures",true],["Citadine","Compacte","Voitures",true],["Hybride","Électrique","Voitures",true],["Diesel","Essence","Voitures",true],["Renault","Peugeot","Voitures",true],["Toyota","Honda","Voitures",true],["Mustang","Camaro","Voitures",true],["Jeep","Land Rover","Voitures",false],["Formule 1","IndyCar","Voitures",true],
-["😀","😏","Emojis",true],["❤️","💜","Emojis",true],["🌙","🌟","Emojis",true],["🍕","🌮","Emojis",true],["🌹","🌻","Emojis",true],["🔥","💥","Emojis",true],["🎵","🎸","Emojis",true],["🦁","🐻","Emojis",true],["😭","😤","Emojis",true],["👑","💎","Emojis",true],["🚀","✈️","Emojis",true],["🎂","🍰","Emojis",true],
+["😀","😏","Emojis",true],["❤️","💜","Emojis",true],["🌙","🌟","Emojis",true],["🍕","🌮","Emojis",true],["🌹","🌻","Emojis",true],["🔥","💥","Emojis",true],["🎵","🎸","Emojis",true],["🦁","🐻","Emojis",true],["😭","😤","Emojis",true],["👑","💎","Emojis",true],["🚀","✈️","Emojis",true],["🎂","🍰","Emojis",true],["🥵","🥶","Emojis",true],["🐱","🐶","Emojis",true],["🌍","🌎","Emojis",true],["🎄","🎋","Emojis",true],["🦊","🐺","Emojis",true],["🍩","🍪","Emojis",true],["⚽","🏀","Emojis",true],["🌊","🏔️","Emojis",true],
 ["Salsa","Rumba","Danse",true],["Breakdance","Hip-hop","Danse",true],["Valse","Tango","Danse",true],["Ballet","Danse contemporaine","Danse",true],["Flamenco","Sévillane","Danse",true],["Samba","Bossa Nova","Danse",true],["Lindy Hop","Charleston","Danse",true],["Popping","Locking","Danse",true],["Zumba","Aérobic","Danse",true],["Claquettes","Gigue","Danse",true],["Disco","Funk","Danse",true],["Mazurka","Polka","Danse",true],
 ["Violon","Alto","Instruments",true],["Trompette","Bugle","Instruments",true],["Ukulélé","Guitare","Instruments",true],["Flûte traversière","Flûte à bec","Instruments",true],["Clarinette","Hautbois","Instruments",true],["Accordéon","Bandonéon","Instruments",true],["Xylophone","Marimba","Instruments",true],["Basse","Guitare électrique","Instruments",true],["Djembé","Conga","Instruments",true],["Cor","Trombone","Instruments",true],["Harpe","Luth","Instruments",true],["Orgue","Clavecin","Instruments",true],
 ["Cathédrale","Basilique","Architecture",true],["Mosquée","Temple","Architecture",true],["Pagode","Stupa","Architecture",true],["Pyramide","Ziggourat","Architecture",true],["Amphithéâtre","Arène","Architecture",true],["Gratte-ciel","Tour","Architecture",true],["Pont suspendu","Viaduc","Architecture",true],["Villa","Bastide","Architecture",true],["Phare","Tour de guet","Architecture",true],["Forteresse","Citadelle","Architecture",true],["Arc de triomphe","Obélisque","Architecture",true],["Monastère","Abbaye","Architecture",true],
@@ -43,21 +43,26 @@ var DB=[
 ["Soie","Satin","Matières",true],["Velours","Daim","Matières",true],["Lin","Coton","Matières",true],["Laine","Cachemire","Matières",true],["Denim","Toile","Matières",true],["Dentelle","Broderie","Matières",true],["Cuir","Suède","Matières",true],["Néoprène","Lycra","Matières",true],["Tweed","Flanelle","Matières",true],["Bambou","Chanvre","Matières",true],["Marbre","Granit","Matières",true],["Céramique","Porcelaine","Matières",true],
 ["Arachnophobie","Entomophobie","Phobies",false],["Claustrophobie","Agoraphobie","Phobies",false],["Acrophobie","Vertige","Phobies",false],["Peur du noir","Peur du vide","Phobies",false],["Peur du feu","Peur de l'eau","Phobies",false],["Peur des araignées","Peur des serpents","Phobies",false],["Peur du sang","Peur des aiguilles","Phobies",false],["Peur des fantômes","Peur des clowns","Phobies",false],["Peur de l'avion","Peur des tunnels","Phobies",false],["Peur des microbes","Peur de la saleté","Phobies",false],["Peur des chiens","Peur des chats","Phobies",false],["Peur de la mort","Peur du vieillissement","Phobies",false],
 ["Tokyo","Séoul","Géographie",true],["Paris","Londres","Géographie",true],["Atlantique","Pacifique","Géographie",true],["Himalaya","Andes","Géographie",true],["Sahara","Gobi","Géographie",true],["Amazone","Nil","Géographie",true],["Australie","Nouvelle-Zélande","Géographie",true],["Barcelone","Madrid","Géographie",true],["New York","Chicago","Géographie",true],["Méditerranée","Mer Rouge","Géographie",true],["Îles Canaries","Îles Baléares","Géographie",true],["Antarctique","Arctique","Géographie",true],["Rio de Janeiro","Buenos Aires","Géographie",true],["Lagos","Le Caire","Géographie",true],["Vancouver","Sydney","Géographie",true],["Fjord","Canyon","Géographie",true],["Steppe","Savane","Géographie",true],["Détroit de Gibraltar","Canal de Suez","Géographie",true],["Cap Horn","Cap Bonne-Espérance","Géographie",true],["Venise","Amsterdam","Géographie",true],
-["😀","😃","Emojis",true],["🐱","🐶","Emojis",true],["🌍","🌎","Emojis",true],["🎄","🎋","Emojis",true],["🦊","🐺","Emojis",true],["🍩","🍪","Emojis",true],["⚽","🏀","Emojis",true],["🌊","🏔️","Emojis",true],
 ["Jean","Chino","Mode",true],["Trench","Imperméable","Mode",true],["Sneakers","Mocassins","Mode",true],["Blazer","Veste","Mode",true],["Robe longue","Robe courte","Mode",true],["Chapeau","Casquette","Mode",true],["Écharpe","Foulard","Mode",true],["Sac à dos","Tote bag","Mode",true],["Boots","Bottines","Mode",true],["Lunettes de soleil","Lunettes de vue","Mode",true],["Montre connectée","Montre classique","Mode",true],["Bermuda","Short","Mode",true],
-["Chêne","Châtaignier","Nature",true],["Rivière","Ruisseau","Nature",true],["Falaise","Colline","Nature",true],["Rose","Pivoine","Nature",true],["Tulipe","Narcisse","Nature",true],["Champignon","Truffe","Nature",true],["Mousse","Lichen","Nature",true],["Séquoia","Baobab","Nature",true],["Lavande","Romarin","Nature",true],["Grotte","Caverne","Nature",true],["Marais","Tourbière","Nature",true],["Dune","Berme","Nature",true]
+["Chêne","Châtaignier","Nature",true],["Rivière","Ruisseau","Nature",true],["Falaise","Colline","Nature",true],["Rose","Pivoine","Nature",true],["Tulipe","Narcisse","Nature",true],["Champignon","Truffe","Nature",true],["Mousse","Lichen","Nature",true],["Séquoia","Baobab","Nature",true],["Lavande","Romarin","Nature",true],["Grotte","Caverne","Nature",true],["Marais","Tourbière","Nature",true],["Dune","Berme","Nature",true],
+["Train","Métro","Transports",true],["Hélicoptère","Planeur","Transports",true],["Vélo","Trottinette","Transports",true],["Bus","Tramway","Transports",true],["Bateau","Ferry","Transports",true],["Moto","Scooter","Transports",true],["Taxi","VTC","Transports",true],["Camion","Camionnette","Transports",true],["Téléphérique","Funiculaire","Transports",true],["Montgolfière","Dirigeable","Transports",true],["Ambulance","Camion de pompiers","Transports",true],["Péniche","Voilier","Transports",true],
+["Éclair au chocolat","Religieuse","Desserts",true],["Tourte","Chausson","Desserts",true],["Mousse au chocolat","Crème dessert","Desserts",true],["Glace","Sorbet","Desserts",true],["Meringue","Guimauve","Desserts",true],["Tiramisu","Panna cotta","Desserts",true],["Gaufre","Pancake","Desserts",true],["Cheesecake","Flan","Desserts",true],["Brownie","Fondant","Desserts",true],["Beignet","Donut","Desserts",true],["Bûche","Galette des rois","Desserts",true],["Profiterole","Chou à la crème","Desserts",true],
+["Noël","Nouvel An","Fêtes",true],["Halloween","Carnaval","Fêtes",true],["Anniversaire","Mariage","Fêtes",true],["Pâques","Chandeleur","Fêtes",true],["Saint-Valentin","Fête des mères","Fêtes",true],["Feu de camp","Barbecue","Fêtes",true],["Mardi Gras","Poisson d'avril","Fêtes",true],["Kermesse","Braderie","Fêtes",true],["Défilé","Parade","Fêtes",true],["Réveillon","Banquet","Fêtes",true],["Fête foraine","Cirque","Fêtes",true],["Nouvel An chinois","Thanksgiving","Fêtes",true],
+["Orage","Tempête","Météo",true],["Brouillard","Brume","Météo",true],["Neige","Grêle","Météo",true],["Pluie","Averse","Météo",true],["Canicule","Sécheresse","Météo",true],["Ouragan","Tornade","Météo",true],["Rosée","Givre","Météo",true],["Tonnerre","Foudre","Météo",true],["Vent","Brise","Météo",true],["Verglas","Gel","Météo",true],["Nuage","Cumulus","Météo",true],["Vague de chaleur","Vague de froid","Météo",true],
+["Marteau","Maillet","Outils",true],["Tournevis","Clé plate","Outils",true],["Scie","Cutter","Outils",true],["Perceuse","Visseuse","Outils",true],["Pince","Tenaille","Outils",true],["Niveau","Équerre","Outils",true],["Mètre ruban","Règle","Outils",true],["Ponceuse","Lime","Outils",true],["Échelle","Escabeau","Outils",true],["Clou","Vis","Outils",true],["Pinceau","Rouleau","Outils",true],["Truelle","Spatule","Outils",true],
+["Zeus","Odin","Mythologie",true],["Naïade","Nymphe","Mythologie",true],["Centaure","Satyre","Mythologie",true],["Titan","Géant","Mythologie",true],["Hercule","Achille","Mythologie",true],["Harpie","Gorgone","Mythologie",true],["Poséidon","Neptune","Mythologie",true],["Thor","Arès","Mythologie",true],["Olympe","Valhalla","Mythologie",true],["Oracle","Devin","Mythologie",true],["Ambroisie","Nectar","Mythologie",true],["Icare","Prométhée","Mythologie",true]
 ];
 
 // Estampille affichée sur l'accueil : permet de vérifier d'un coup d'oeil
 // quelle version le navigateur sert réellement (cache du service worker).
-var BUILD="v5-2026.08.15";
+var BUILD="v7-2026.08.15";
 var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}
 
 var S={phase:"splash",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:false,kids:false,cats:null,spoken:[],
 // Multi-appareils — "solo" = un seul téléphone (défaut), "host" = cet appareil arbitre, "client" = joueur distant
-mode:"solo",net:null,votes:{},round:0,tiebreak:"revote",hostPlays:true,revealVoters:false};
+mode:"solo",net:null,votes:{},round:0,tiebreak:"revote",hostPlays:true,revealVoters:false,writeClues:false,clues:{},fault:null};
 
 function N(id){return S.nm[id]||("Joueur "+id)}
 function MUC(){return Math.max(1,S.pc-(S.mw?2:1))}
@@ -173,6 +178,79 @@ if(navigator.clipboard&&navigator.clipboard.writeText){
 }else{var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);
   var btn=document.getElementById("share-btn");if(btn){btn.textContent="✓ Copié !";setTimeout(function(){if(btn)btn.textContent="📋 Copier le résumé"},2000)}}}
 
+// ══════════════════════════════════════════════════════════════
+// RÈGLES DU JEU — fenêtre flottante, disponible sur tous les écrans
+// ══════════════════════════════════════════════════════════════
+// Le bouton vit hors de #app : il survit donc à tous les rendus, et un joueur
+// qui lit les règles pendant le débat ne les perd pas quand l'état est rediffusé.
+function installRulesButton(){
+if(document.getElementById("rules-fab"))return;
+var b=document.createElement("button");
+b.id="rules-fab";b.className="rules-fab";b.type="button";
+b.setAttribute("aria-label","Règles du jeu");
+b.textContent="?";
+b.onclick=showRules;
+document.body.appendChild(b)}
+
+function closeRules(){var o=document.getElementById("rules-ov");if(o)o.remove()}
+
+function showRules(){
+if(document.getElementById("rules-ov"))return closeRules();
+// L'option indices écrits n'existe qu'en multi : on n'affiche sa règle que
+// si elle est réellement active, côté hôte comme côté joueur.
+var wc=S.writeClues||(typeof C!=="undefined"&&C.snap&&C.snap.writeClues);
+var ov=document.createElement("div");
+ov.id="rules-ov";ov.className="rules-overlay";
+ov.innerHTML='<div class="rules-box">'+
+'<div class="rules-head"><span class="orb fs14 fw900 ls2 color-cyan">RÈGLES DU JEU</span>'+
+'<button class="rules-x" type="button" aria-label="Fermer" onclick="closeRules()">✕</button></div>'+
+'<div class="rules-body">'+
+
+'<h3 class="rules-h">Le principe</h3>'+
+'<p>Chacun reçoit un <b>mot secret</b>. La plupart des joueurs ont le <b>même mot</b> : ce sont les <span class="color-cyan">Civils</span>. Un ou deux ont un mot <b>voisin mais différent</b> : les <span class="color-red">Undercover</span>. Parfois, un joueur n\'a <b>aucun mot</b> : <span class="color-white">Mr. White</span>.</p>'+
+'<p class="rules-key">⚠️ Tu ne sais pas quel rôle tu as. Tu vois seulement ton mot — et rien ne te dit s\'il est celui de la majorité. <b>C\'est peut-être toi l\'intrus sans le savoir.</b></p>'+
+
+'<h3 class="rules-h">Un tour de jeu</h3>'+
+'<ol class="rules-ol">'+
+'<li>Chacun donne <b>un indice</b> sur son mot, dans l\'ordre affiché'+(wc?' (tapé sur ton téléphone)':' (à voix haute)')+'</li>'+
+'<li>On débat librement</li>'+
+'<li>On vote pour éliminer un suspect</li>'+
+'<li>Le rôle de l\'éliminé est révélé</li>'+
+'</ol>'+
+
+'<h3 class="rules-h rules-hot">D\'un tour à l\'autre</h3>'+
+'<p class="rules-key">🔒 <b>Les rôles ne changent JAMAIS de toute la partie.</b> Undercover au premier tour = Undercover jusqu\'à la fin.</p>'+
+'<p class="rules-key">🔄 <b>Les mots, eux, changent à chaque tour.</b> Nouvelle paire, nouvelle catégorie. Ton mot précédent ne sert plus — mais tout ce que tu as appris sur les autres reste valable.</p>'+
+'<p class="rules-dim">C\'est le cœur du jeu : les soupçons s\'accumulent d\'un tour sur l\'autre, alors que le vocabulaire repart de zéro.</p>'+
+
+'<p class="rules-dim">Le mode « chacun son téléphone » a besoin d\'Internet pour relier les appareils, même côte à côte. Le mode « un seul téléphone » fonctionne hors ligne.</p>'+
+'<h3 class="rules-h">Bien donner son indice</h3>'+
+'<ul class="rules-ul">'+
+'<li><b>Trop précis</b> → l\'Undercover comprend le mot des civils et te copie</li>'+
+'<li><b>Trop vague</b> → on te prend pour l\'intrus et tu sautes</li>'+
+'<li>Ne prononce <b>jamais</b> ton propre mot'+(wc?' — tu serais <b class="color-red">éliminé sur-le-champ</b>':'')+'</li>'+
+'<li>Dire le mot que tu <i>soupçonnes</i> chez les autres est autorisé : c\'est même un bon coup</li>'+
+'</ul>'+
+
+'<h3 class="rules-h">Gagner</h3>'+
+'<div class="rules-win"><span>👤 Civils</span><span>Éliminer tous les imposteurs</span></div>'+
+'<div class="rules-win"><span>🕵️ Undercover</span><span>Survivre jusqu\'à être aussi nombreux que les autres</span></div>'+
+'<div class="rules-win"><span>🤍 Mr. White</span><span>Survivre avec les Undercover, ou deviner le mot des civils quand il est éliminé</span></div>'+
+
+'<h3 class="rules-h">Mr. White</h3>'+
+'<p>Il n\'a <b>aucun mot</b>. Il doit deviner de quoi on parle rien qu\'en écoutant, puis inventer un indice crédible. Quand il est démasqué, il a droit à <b>une tentative</b> : s\'il trouve le mot des civils, <b>il remporte la partie à lui seul</b>.</p>'+
+
+'<h3 class="rules-h">Points</h3>'+
+'<div class="rules-pt"><span>Éliminer un imposteur</span><span>+1 / civil</span></div>'+
+'<div class="rules-pt"><span>Éliminer le dernier imposteur</span><span>+3 / civil</span></div>'+
+'<div class="rules-pt"><span>Victoire Undercover</span><span>+4 / UC</span></div>'+
+'<div class="rules-pt"><span>Mr. White survit avec les UC</span><span>+2</span></div>'+
+'<div class="rules-pt"><span>Mr. White devine le mot</span><span>+5</span></div>'+
+
+'</div><button class="btn ghost" type="button" onclick="closeRules()">Fermer</button></div>';
+document.body.appendChild(ov);
+ov.onclick=function(e){if(e.target===ov)closeRules()}}
+
 var _modalCb=null;
 function showConfirm(msg,cb){
 _modalCb=cb;
@@ -210,14 +288,22 @@ return''})()+
 '<button class="mode-card sb sb2" onclick="S.mode=\'solo\';S.phase=\'setup\';render()">'+
  '<span class="mode-ttl">📱 UN SEUL TÉLÉPHONE</span>'+
  '<span class="mode-sub">On se passe l\'appareil — fonctionne hors-ligne</span></button>'+
-(window.isSecureContext
- ?'<button class="mode-card sb sb3" onclick="hostStart()">'+
-   '<span class="mode-ttl">📡 CHACUN SON TÉLÉPHONE</span>'+
-   '<span class="mode-sub">Chacun voit son mot et vote sur son écran</span></button>'+
-  '<button class="btn ghost sb sb4" onclick="S.mode=\'client\';C.screen=\'join\';render()">🔗 J\'ai un code, je rejoins</button>'
- :'<button class="mode-card sb sb3" disabled>'+
-   '<span class="mode-ttl">📡 CHACUN SON TÉLÉPHONE</span>'+
-   '<span class="mode-sub">⚠ Exige HTTPS — indisponible sur cette adresse</span></button>')+
+// Le multi-appareils a deux prérequis non négociables : HTTPS (WebRTC) et
+// Internet (l'annuaire qui met les téléphones en relation). On les annonce
+// AVANT le clic, plutôt que de laisser l'utilisateur buter sur un échec.
+(function(){
+if(!window.isSecureContext)
+ return '<button class="mode-card sb sb3" disabled><span class="mode-ttl">📡 CHACUN SON TÉLÉPHONE</span>'+
+        '<span class="mode-sub">⚠ Exige HTTPS — indisponible sur cette adresse</span></button>';
+if(!isOnline())
+ return '<button class="mode-card sb sb3" disabled><span class="mode-ttl">📡 CHACUN SON TÉLÉPHONE</span>'+
+        '<span class="mode-sub">⚠ Hors ligne — ce mode a besoin d\'Internet pour relier les téléphones</span></button>'+
+        '<p class="mode-hint">Le mode « un seul téléphone » fonctionne, lui, sans réseau.</p>';
+return '<button class="mode-card sb sb3" onclick="hostStart()">'+
+       '<span class="mode-ttl">📡 CHACUN SON TÉLÉPHONE</span>'+
+       '<span class="mode-sub">Chacun voit son mot et vote sur son écran — Internet requis</span></button>'+
+       '<button class="btn ghost sb sb4" onclick="S.mode=\'client\';C.screen=\'join\';render()">🔗 J\'ai un code, je rejoins</button>'})()+
+(canInstall()?'<button class="btn ghost sb sb4" onclick="doInstall()">⬇ Installer l\'application</button>':'')+
 '<p class="build-stamp">build '+BUILD+'</p>'+
 '<div class="fline"></div>';return}
 
@@ -281,12 +367,19 @@ app.innerHTML='<div class="hline"></div><div class="mb20">'+G("UNDERCOVER","orb 
 '<div class="opt-row"><div class="opt-lbl"><span class="opt-title">Vote nul</span><span class="opt-desc">Permet de passer un tour sans élimination</span></div><button class="tog '+(S.skipvote?"on":"")+'" aria-label="Vote nul" aria-pressed="'+(S.skipvote?"true":"false")+'" onclick="S.skipvote=!S.skipvote;render()"><span class="dot"></span></button></div>'+
 
 '<div class="opt-row"><div class="opt-lbl"><span class="opt-title">🌙 Mode nuit</span><span class="opt-desc">Masque les rôles et le compteur pendant le débat</span></div><button class="tog '+(S.night?"on":"")+'" aria-label="Mode nuit" aria-pressed="'+(S.night?"true":"false")+'" onclick="S.night=!S.night;render()"><span class="dot"></span></button></div>'+
+(S.mode==="host"?'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">✍️ Indices écrits</span><span class="opt-desc">Chacun tape son indice — prononcer son propre mot élimine sur-le-champ</span></div><button class="tog '+(S.writeClues?"on":"")+'" aria-label="Indices écrits" aria-pressed="'+(S.writeClues?"true":"false")+'" onclick="S.writeClues=!S.writeClues;render()"><span class="dot"></span></button></div>':'')+
 (S.mode==="host"?'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">👁 Vote à découvert</span><span class="opt-desc">Au dépouillement, montre qui a voté pour qui</span></div><button class="tog '+(S.revealVoters?"on":"")+'" aria-label="Vote à découvert" aria-pressed="'+(S.revealVoters?"true":"false")+'" onclick="S.revealVoters=!S.revealVoters;render()"><span class="dot"></span></button></div>':'')+
-'<div class="opt-row last"><div class="opt-lbl"><span class="opt-title">🧒 Mode Enfant</span><span class="opt-desc">614 paires adaptées sur 39 catégories — exclut alcool, horreur, contenu adulte</span></div><button class="tog '+(S.kids?"on":"")+'" aria-label="Mode Enfant" aria-pressed="'+(S.kids?"true":"false")+'" onclick="S.kids=!S.kids;render()"><span class="dot"></span></button></div>'+
+'<div class="opt-row last"><div class="opt-lbl"><span class="opt-title">🧒 Mode Enfant</span><span class="opt-desc">691 paires adaptées sur 45 catégories — exclut alcool, horreur, contenu adulte</span></div><button class="tog '+(S.kids?"on":"")+'" aria-label="Mode Enfant" aria-pressed="'+(S.kids?"true":"false")+'" onclick="S.kids=!S.kids;render()"><span class="dot"></span></button></div>'+
 
 '</div></div>'+
 
-'<div class="setup-section"><details class="cats-details"><summary class="lbl cats-sum"><span class="lbl-a">05</span> CATÉGORIES <span class="cats-count">'+poolSize()+' paires</span></summary>'+
+// Le dénominateur ne compte que les catégories SÉLECTIONNABLES : en Mode
+// Enfant, celles sans aucune paire adaptée sont grisées, les inclure
+// afficherait un total qu'on ne peut jamais atteindre.
+(function(){
+var sel=allCats().filter(function(c){return catCount(c)>0});
+var on=sel.filter(function(c){return !S.cats||S.cats.indexOf(c)!==-1}).length;
+return '<div class="setup-section"><details class="cats-details"><summary class="lbl cats-sum"><span class="lbl-a">05</span> CATÉGORIES <span class="cats-count">'+on+'/'+sel.length+' · '+poolSize()+' paires</span></summary>'})()+
 (S.cats?'<button class="btn ghost mini mb6" onclick="S.cats=null;render()">↺ Tout activer</button>':'')+
 '<div class="cats-grid">'+allCats().map(function(c){var n=catCount(c);var on=n>0&&(!S.cats||S.cats.indexOf(c)!==-1);
 return'<button class="cat-tog'+(on?" on":"")+(n?"":" na")+'" aria-pressed="'+(on?"true":"false")+'" onclick="TCat(\''+c+'\')">'+c+'<span class="cat-n">'+n+'</span></button>'}).join("")+'</div>'+
@@ -359,6 +452,11 @@ app.innerHTML='<div class="hline"></div><div class="flex flex-between mb10"><spa
 hw+cs+
 '<div class="speak-order mb4">'+S.ro.map(function(i,rank){var sid=S.tp[i].id;var done=S.spoken.indexOf(sid)!==-1;return '<div class="speak-item'+(done?" spoke":"")+'" onclick="var _i=S.spoken.indexOf('+sid+');if(_i===-1)S.spoken.push('+sid+');else S.spoken.splice(_i,1);render()"><span class="speak-num orb">'+(done?"✓":(rank+1))+'</span><span class="speak-name">'+N(sid)+'</span></div>'}).join("")+'</div>'+(S.spoken.length?'<button class="btn ghost mb6" onclick="S.spoken=[];render()">↺ Tout décocher</button>':'')+
 eh+
+(S.mode==="host"&&S.writeClues?(function(){
+var ids=S.ro.map(function(i){return S.tp[i].id}).filter(function(id){return S.clues[id]});
+if(!ids.length)return '<p class="color-dim3 fs12 mb6">En attente des indices…</p>';
+return '<div class="clue-list mb6">'+ids.map(function(id){
+return '<div class="clue-row"><span class="clue-nm">'+N(id)+'</span><span class="clue-tx">'+S.clues[id]+'</span></div>'}).join("")+'</div>'})():'')+
 '<div class="flex gap8 mb10 flex-center">'+(S.night?'<div class="imposteur-box night"><span class="orb fs11 color-dim4 ls2">MODE NUIT</span></div>':'<div class="imposteur-box"><span class="orb fs18 fw900">'+bad+'</span><span class="orb fs10 color-dim5 ls2">IMPOSTEUR'+(bad>1?"S":"")+'<br>RESTANT'+(bad>1?"S":"")+'</span></div>')+(S.timer?'<div id="tdisp" class="timer-disp'+(S.trem<=10&&S.trem>0?" urgent":S.trem===0?" done":"")+'">'+( S.trem===0?"VOTEZ !":TF(S.trem))+'</div>':'')+'</div>'+
 (S.timer&&S.trem===0?'<button class="btn ghost mb6" onclick="startTimer();render()">↺ Relancer ('+TF(S.timer)+')</button>':'')+
 '<button class="btn red glow" onclick="goVote()">🗳️ VOTER POUR ÉLIMINER</button>'+
@@ -448,6 +546,16 @@ WR()+
 CSC()+
 (S.hist.length>1?'<details class="hist-details"><summary class="orb fs10 color-dim3 ls2">TOURS PRÉCÉDENTS</summary>'+HIST(S.hist.length-1)+'</details>':'')+
 '<button class="btn" onclick="startTurn()">▶ TOUR SUIVANT — NOUVEAUX MOTS</button><div class="fline"></div>';return}
+if(S.fault){var fp=S.players.filter(function(x){return x.id===S.fault.id})[0];
+app.innerHTML='<div class="hline"></div><span class="tag">FIN DU TOUR '+S.turn+'</span>'+
+'<div class="icon-med">🤐</div>'+
+'<h2 class="orb fs18 fw700 color-red m8-0">'+G("MOT PRONONCÉ !")+'</h2>'+
+'<p class="color-dim6 fs14 lh15 mb6"><strong class="color-white">'+N(S.fault.id)+'</strong> a écrit «&nbsp;'+S.fault.clue+'&nbsp;»<br>et a lâché son propre mot.</p>'+
+'<p class="color-dim6 fs14 mb6">Il était '+(fp.role==="civil"?"👤 Civil":fp.role==="undercover"?"🕵️ Undercover":"🤍 Mr. White")+' — éliminé sur-le-champ.</p>'+
+(S.cat?'<div class="cat-badge mt12">'+S.ct+'</div>':"")+WR()+
+'<p class="orb fs10 color-dim3 ls2 mb0">'+bl+' IMPOSTEUR'+(bl>1?"S":"")+" RESTANT"+(bl>1?"S":"")+"</p>"+CSC()+
+(S.hist.length>1?'<details class="hist-details"><summary class="orb fs10 color-dim3 ls2">TOURS PRÉCÉDENTS</summary>'+HIST(S.hist.length-1)+'</details>':'')+
+'<button class="btn" onclick="startTurn()">▶ TOUR SUIVANT — NOUVEAUX MOTS</button><div class="fline"></div>';return}
 var li=S.elim[S.elim.length-1];var la=S.players.filter(function(x){return x.id===li})[0];var ok=la.role!=="civil";
 app.innerHTML='<div class="hline"></div><span class="tag">FIN DU TOUR '+S.turn+'</span>'+
 '<div class="icon-med">'+(ok?"🎯":"😬")+'</div>'+
@@ -515,7 +623,7 @@ S.tp=S.alive.map(function(id){var p=S.players.filter(function(x){return x.id===i
 S.ro=shuffle(S.tp.map(function(_,i){return i}));
 // En multi-appareils, chacun reçoit son mot sur son propre écran :
 // les phases handoff/reveal (passage du téléphone) n'ont plus lieu d'être.
-S.ri=0;S.wv=false;S.vt=null;S.spoken=[];S.votes={};S.round=0;S.turn++;
+S.ri=0;S.wv=false;S.vt=null;S.spoken=[];S.clues={};S.fault=null;S.votes={};S.round=0;S.turn++;
 S.phase=(S.mode==="host")?"playing":"handoff";
 // Les secrets partent AVANT le render : le snapshot diffusé annonce déjà
 // la phase playing, chacun doit avoir son mot en arrivant dessus.
@@ -532,6 +640,54 @@ function confirmSeen(){SND.click();VIB(30);S.wv=false;if(S.ri<S.tp.length-1){S.r
 // appeler doElim(). Tout l'aval (mrwhite_guess, checkEnd, scores, historique)
 // reste rigoureusement inchangé — le vote distribué n'est qu'un périphérique
 // de saisie sophistiqué pour une variable qui existait déjà.
+
+// ══════════════════════════════════════════════════════════════
+// INDICES ÉCRITS ET FAUTE (mode hôte)
+// ══════════════════════════════════════════════════════════════
+// Chacun tape son indice sur son téléphone : la partie garde une trace de ce
+// qui a été dit, et prononcer son propre mot élimine immédiatement.
+
+// Comparaison tolérante : casse, accents, ponctuation et pluriels ne doivent
+// pas permettre de contourner la règle — ni provoquer de faux positifs.
+function normWord(s){
+return String(s||"").toLowerCase()
+ .normalize("NFD").replace(/[̀-ͯ]/g,"")
+ .replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim()}
+
+// Le mot doit apparaître ENTIER : "chat" ne doit pas déclencher sur "château".
+function saysWord(clue,word){
+var w=normWord(word),c=normWord(clue);
+if(!w||!c)return false;
+var esc=w.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+// singulier et pluriel dans les deux sens
+var base=esc.replace(/s$/,"");
+return new RegExp("(^| )"+base+"s?( |$)").test(c)}
+
+function submitClue(pid,text){
+if(S.phase!=="playing"||!S.writeClues)return;
+if(S.alive.indexOf(pid)===-1)return;
+var t=String(text||"").replace(/[<>&"]/g,"").slice(0,60).trim();
+if(!t)return;
+var tp=S.tp.filter(function(x){return x.id===pid})[0];
+// Mr. White n'a pas de mot : il ne peut pas commettre la faute.
+if(tp&&tp.word&&saysWord(t,tp.word)){clueFault(pid,tp.word,t);return}
+S.clues[pid]=t;
+if(S.spoken.indexOf(pid)===-1)S.spoken.push(pid);
+SND.click();
+render()}
+
+// La faute suit exactement le même chemin qu'une élimination par vote :
+// checkEnd() distribue les points et décide de la fin de partie.
+function clueFault(pid,word,text){
+var pl=S.players.filter(function(p){return p.id===pid})[0];
+if(!pl)return;
+stopTimer();
+S.alive=S.alive.filter(function(x){return x!==pid});
+S.elim.push(pid);
+S.fault={id:pid,word:word,clue:text};
+S.clues[pid]=text;
+SND.elim();VIB([120,60,120,60,200]);
+checkEnd(pl)}
 
 function goVote(){
 if(S.mode==="host"){startVote();return}
@@ -640,12 +796,12 @@ render()}
 // devant survivre à une nouvelle partie doit être reporté ici explicitement —
 // en particulier mode/net, sinon "nouvelle partie" déconnecterait tout le monde.
 function fullReset(){stopTimer();S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:S.timer,tid:null,trem:0,skipvote:S.skipvote,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:S.night,kids:S.kids,cats:S.cats,spoken:[],
-mode:S.mode,net:S.net,votes:{},round:0,tiebreak:S.tiebreak,hostPlays:S.hostPlays,revealVoters:S.revealVoters};
+mode:S.mode,net:S.net,votes:{},round:0,tiebreak:S.tiebreak,hostPlays:S.hostPlays,revealVoters:S.revealVoters,writeClues:S.writeClues,clues:{},fault:null};
 if(S.mode==="host")S.phase="lobby";
 render()}
 
 function resetOpts(){clearOpts();stopTimer();S={phase:"setup",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:false,kids:false,cats:null,spoken:[],
-mode:S.mode,net:S.net,votes:{},round:0,tiebreak:"revote",hostPlays:true,revealVoters:false};
+mode:S.mode,net:S.net,votes:{},round:0,tiebreak:"revote",hostPlays:true,revealVoters:false,writeClues:false,clues:{},fault:null};
 if(S.mode==="host")S.phase="lobby";
 render()}
 
@@ -659,6 +815,8 @@ else{var ta=document.createElement("textarea");ta.value=txt;document.body.append
 
 loadOpts();
 installLifecycle();
+installRulesButton();
+installPWA();
 // Un QR scanné ou un lien partagé (#j=CODE) fait entrer directement en client.
 bootFromHash();
 render();

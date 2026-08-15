@@ -97,6 +97,11 @@ function snapshot() {
     impostorsLeft: S.night ? null : (S.players.length ? bad : null),
     speakOrder: S.ro.map(function (i) { return S.tp[i] ? S.tp[i].id : null; }).filter(function (x) { return x !== null; }),
     spoken: S.spoken.slice(),
+    // Les indices sont publics — c'est tout leur intérêt : garder une trace
+    // de ce qui a été dit. La faute l'est aussi, la sanction doit être visible.
+    writeClues: !!S.writeClues,
+    clues: S.writeClues ? JSON.parse(JSON.stringify(S.clues || {})) : {},
+    fault: S.fault ? { id: S.fault.id, word: S.fault.word, clue: S.fault.clue } : null,
     scores: S.sc,
     opts: { cat: S.cat, night: S.night, skipvote: S.skipvote, timer: S.timer },
     // votedIds dit QUI a voté, jamais POUR QUI — c'est ce qui permet
@@ -266,6 +271,15 @@ function hostHandlers() {
 }
 
 function hostStart() {
+  // Inutile d'attendre 12 s le chien de garde si le navigateur sait déjà
+  // qu'il n'y a pas de réseau.
+  if (!isOnline()) {
+    S.mode = "host";
+    S.net = { code: null, status: "error", err: "offline", seats: [], seq: 0, lastJSON: null };
+    S.phase = "lobby";
+    render();
+    return;
+  }
   clearHostSave();
   S.mode = "host";
   S.net = { code: null, status: "opening", err: null, seats: [], seq: 0, lastJSON: null };
@@ -320,6 +334,11 @@ function hostOnMsg(cid, msg) {
     if (msg.on === false) { if (k !== -1) S.spoken.splice(k, 1); }
     else if (k === -1) S.spoken.push(pid);
     render();
+    return;
+  }
+  if (msg.t === "clue") {
+    if (msg.turn !== S.turn) return;          // indice d'un tour périmé
+    submitClue(si + 1, msg.text);
     return;
   }
   if (msg.t === "vote") {
@@ -473,6 +492,7 @@ function wakeSupported() { return !!(navigator.wakeLock && navigator.wakeLock.re
 // s'est passé ET quoi faire.
 function netErrLabel(e) {
   switch (e) {
+    case "offline": return "Aucune connexion Internet. Le multi-appareils a besoin d'un serveur d'annuaire pour relier les téléphones entre eux — même s'ils sont côte à côte. Le mode « un seul téléphone », lui, fonctionne hors ligne.";
     case "lib": return "La bibliothèque réseau n'a pas pu être chargée. Vérifie que le dossier <strong>vendor/</strong> est bien déployé sur le serveur.";
     case "timeout": return "Le serveur d'annuaire n'a pas répondu en 12 s. Vérifie ta connexion Internet — le multi-appareils en a besoin pour établir la liaison, même entre téléphones côte à côte.";
     case "network":
