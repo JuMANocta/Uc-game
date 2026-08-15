@@ -353,6 +353,14 @@ Le contenu insiste sur les deux points qui perdent les nouveaux joueurs : **on i
 
 Masquer la paire à chaque fin de tour préserve l'incertitude sur son propre rôle : la révéler apprendrait à un Undercover survivant qu'il **est** l'intrus, dès le tour 2. La fin de partie affiche de toute façon `ALLW()` — toutes les paires jouées, tour par tour, côté hôte comme côté joueurs via `gameOver.allWords`.
 
+### Résidus de session — piège de connexion
+
+`clientJoin()` doit repartir d'une session **neuve** : token, identifiant, mot et snapshot de la salle précédente sont effacés, sauf si l'on retape le code de la salle où l'on était déjà (reprise légitime).
+
+Le token périmé était le plus traître. `onError` ne signale « salle introuvable » **que si l'on n'a pas de token** — avec un vieux token en mémoire, un code erroné faisait retenter indéfiniment, laissant le joueur sur « connexion… » sans aucune explication.
+
+`C.err` provient de deux sources : un refus explicite de l'hôte (`REJECT_MSG`) ou un échec réseau (`netErrLabel`). `rejectText()` chaîne les deux — sans quoi « hors ligne », « timeout » ou « bibliothèque absente » tombaient tous sur un « Connexion impossible. » qui n'aide personne.
+
 ### Vérification de version à la connexion
 
 Un joueur qui scanne un QR peut tourner sur une version en cache datant de plusieurs jours. Trois garde-fous :

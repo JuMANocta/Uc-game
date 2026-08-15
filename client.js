@@ -115,8 +115,29 @@ function startHeartbeat() {
 function stopHeartbeat() { if (C._hb) { clearInterval(C._hb); C._hb = null; } }
 
 function clientJoin(code, name) {
+  var want = String(code || "").toUpperCase().trim();
+
+  // Rejoindre est une session NEUVE : tout résidu d'une salle précédente doit
+  // disparaître. Le token périmé était le plus traître — onError ne signale
+  // « salle introuvable » QUE si l'on n'a pas de token ; avec un vieux token
+  // en mémoire, un code erroné faisait retenter indéfiniment, laissant le
+  // joueur sur « connexion… » sans la moindre explication.
+  // Seul cas conservé : on retape le code de la salle où l'on était déjà.
+  var sv = loadClientSave();
+  var resume = !!(sv && sv.code === want && sv.token);
+  if (!resume) clearClientSave();
+  C.token    = resume ? sv.token : null;
+  C.playerId = resume ? sv.playerId : null;
+  C.secret   = resume ? (sv.secret || null) : null;
+  C.snap     = null;          // sinon on afficherait l'état de l'ancienne salle
+  C.myVote   = null;
+  C.wordShown = false;
+  clientTimerStop();
+  stopHeartbeat();
+  if (C._rtid) { clearTimeout(C._rtid); C._rtid = null; }
+
   S.mode = "client";
-  C.code = String(code || "").toUpperCase().trim();
+  C.code = want;
   C.name = cleanName(name);
   setMyName(C.name);          // mémorisé pour les prochaines parties
   C.screen = "connecting";
@@ -404,6 +425,15 @@ function rosterList() {
   }).join("") + "</div>";
 }
 
+// C.err provient de deux sources : un refus explicite de l'hôte (REJECT_MSG)
+// ou un échec réseau (netErrLabel, dans net.js). Sans ce repli, les seconds
+// tombaient tous sur un « Connexion impossible. » qui n'explique rien — dont
+// « hors ligne », pourtant la cause la plus fréquente et la plus simple à dire.
+function rejectText(e) {
+  if (!e) return "Connexion impossible.";
+  return REJECT_MSG[e] || (typeof netErrLabel === "function" ? netErrLabel(e) : "Connexion impossible.");
+}
+
 var REJECT_MSG = {
   full: "La partie est complète.",
   started: "La partie a déjà commencé.",
@@ -425,7 +455,7 @@ function renderClient() {
       '<input type="text" id="jcode" class="code-input" maxlength="6" autocapitalize="characters" autocomplete="off" placeholder="XK7P2M" value="' + (C.code || "") + '"></div>' +
       '<div class="setup-section"><label class="lbl"><span class="lbl-a">02</span> TON PSEUDO</label>' +
       '<input type="text" id="jname" maxlength="20" placeholder="Ton prénom" value="' + (C.name || myName() || "") + '"></div>' +
-      (C.err ? '<p class="err-msg">⚠ ' + (REJECT_MSG[C.err] || C.err) + "</p>" : "") +
+      (C.err ? '<p class="err-msg">⚠ ' + rejectText(C.err) + "</p>" : "") +
       '<button class="btn glow" onclick="var c=document.getElementById(\'jcode\').value,n=document.getElementById(\'jname\').value;if(!c.trim()||!n.trim()){C.err=\'Code et pseudo requis.\';render();return}clientJoin(c,n)">▶ REJOINDRE</button>' +
       '<button class="btn ghost" onclick="S.mode=\'solo\';location.hash=\'\';S.phase=\'splash\';render()">← Retour</button>' +
       '<div class="fline"></div>';
@@ -444,7 +474,7 @@ function renderClient() {
   if (s === "rejected" || s === "error") {
     app.innerHTML = '<div class="hline"></div><div class="icon-big">🚫</div>' +
       '<h2 class="orb fs18 fw700 color-red m8-0">' + G("CONNEXION REFUSÉE") + "</h2>" +
-      '<p class="color-dim6 fs14 lh15 mb16">' + (REJECT_MSG[C.err] || "Connexion impossible.") + "</p>" +
+      '<p class="color-dim6 fs14 lh15 mb16">' + rejectText(C.err) + "</p>" +
       '<button class="btn" onclick="C.screen=\'join\';C.err=null;C.link=\'offline\';render()">← Réessayer</button>' +
       '<div class="fline"></div>';
     return;
