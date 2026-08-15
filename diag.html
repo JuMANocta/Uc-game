@@ -220,6 +220,16 @@ function iceServers() {
   ];
 }
 
+// Sans relais déclaré, l'absence de candidat `relay` est le résultat attendu et
+// ne dit RIEN du réseau. Ne pas faire cette distinction faisait accuser le WiFi
+// de l'utilisateur alors qu'aucun TURN n'avait jamais été renseigné.
+function turnDeclared() {
+  return iceServers().some(function (s) {
+    var u = typeof s.urls === 'string' ? [s.urls] : (s.urls || []);
+    return u.some(function (x) { return /^turns?:/.test(x); });
+  });
+}
+
 function testIce() {
   document.getElementById('ice').innerHTML = '';
   var v = document.getElementById('verdict'); v.style.display = 'none';
@@ -249,22 +259,38 @@ function testIce() {
   function finish() {
     if (done) return; done = true;
     try { pc.close(); } catch (e) {}
+    var turn = turnDeclared();
     iceRow('Réseau local (host)', seen.host ? seen.host + ' candidat(s)' : 'aucun', seen.host ? 'ok' : 'ko');
     iceRow('STUN (srflx)', seen.srflx ? 'répond — IP publique connue' : 'AUCUNE réponse', seen.srflx ? 'ok' : 'ko');
-    iceRow('TURN (relay)', seen.relay ? 'répond — ' + Object.keys(relays).join(', ') : 'AUCUNE réponse', seen.relay ? 'ok' : 'ko');
+    iceRow('TURN (relay)',
+      seen.relay ? 'répond — ' + Object.keys(relays).join(', ')
+                 : (turn ? 'AUCUNE réponse' : 'non testé — aucun relais configuré'),
+      seen.relay ? 'ok' : (turn ? 'ko' : ''));
 
     if (seen.relay) {
       verdict('<b>Ce réseau peut relayer.</b> Même derrière un NAT symétrique — cas des opérateurs ' +
         'mobiles français — la connexion aboutira, en passant par un relais.', true);
+    } else if (!turn) {
+      // Cas de loin le plus fréquent : configuration par défaut, aucun TURN.
+      verdict('<b>Aucun relais n\'est configuré, ce test ne dit donc rien de ton réseau.</b><br>' +
+        (seen.srflx
+          ? 'STUN répond : la connexion aboutira entre appareils sur le même WiFi, et le plus souvent ' +
+            'aussi entre réseaux différents.'
+          : 'STUN lui-même ne répond pas : ce réseau bloque largement l\'UDP, ce qui est un vrai problème.') +
+        '<br><br>Le relais ne sert que de secours, quand un joueur est derrière un NAT symétrique ' +
+        '(fréquent en 4G). Pour savoir si ce réseau le laisse passer, renseigne un relais dans le ' +
+        'formulaire ci-dessus puis relance ce test.', seen.srflx);
     } else if (seen.srflx) {
-      verdict('<b>STUN fonctionne, mais AUCUN relais n\'est joignable.</b><br>' +
+      verdict('<b>STUN fonctionne, mais le relais configuré ne répond pas.</b><br>' +
         'La connexion réussira entre deux appareils sur le même WiFi, mais échouera dès qu\'un joueur ' +
         'est derrière un NAT symétrique — typiquement en 4G chez Free Mobile.<br><br>' +
-        'Les ports TURN sont filtrés par ce réseau. Un serveur TURN en TLS sur le port 443 est ' +
-        'la seule issue fiable : le trafic devient indistinguable d\'une connexion HTTPS.', false);
+        'Soit les identifiants du relais sont faux, soit ses ports sont filtrés par ce réseau. Un ' +
+        'serveur TURN en TLS sur le port 443 est l\'issue la plus fiable : le trafic devient ' +
+        'indistinguable d\'une connexion HTTPS.', false);
     } else {
-      verdict('<b>Ni STUN ni TURN ne répondent.</b> Ce réseau bloque très largement l\'UDP et les ' +
-        'ports non standard. Le multi-appareils ne peut pas fonctionner ici sans un relais en 443.', false);
+      verdict('<b>Ni STUN ni le relais configuré ne répondent.</b> Ce réseau bloque très largement ' +
+        'l\'UDP et les ports non standard. Le multi-appareils ne peut pas fonctionner ici sans un ' +
+        'relais en 443.', false);
     }
   }
 
