@@ -101,9 +101,12 @@ function snapshot() {
     // de ce qui a été dit. La faute l'est aussi, la sanction doit être visible.
     writeClues: !!S.writeClues,
     clues: S.writeClues ? JSON.parse(JSON.stringify(S.clues || {})) : {},
-    fault: S.fault ? { id: S.fault.id, word: S.fault.word, clue: S.fault.clue } : null,
+    fault: S.fault ? { id: S.fault.id, word: S.fault.word, clue: S.fault.clue, kind: S.fault.kind } : null,
     scores: S.sc,
-    opts: { cat: S.cat, night: S.night, skipvote: S.skipvote, timer: S.timer },
+    // Reprises dans les règles affichées côté joueur : elles doivent décrire la
+    // partie réellement en cours, pas une configuration par défaut.
+    opts: { cat: S.cat, night: S.night, skipvote: S.skipvote, timer: S.timer,
+            revealWords: !!S.revealWords, writeClues: !!S.writeClues, faultCat: !!S.faultCat },
     // votedIds dit QUI a voté, jamais POUR QUI — c'est ce qui permet
     // l'affichage « en attente de Marc, Léa » sans rien divulguer.
     vote: {
@@ -127,7 +130,10 @@ function snapshot() {
         skipped: !!S.skipt,
         elimId: li,
         elimRole: pl ? pl.role : null,
-        pair: S.pair ? S.pair.slice() : null,
+        // Masquée par défaut : révéler la paire chaque tour apprendrait à un
+        // Undercover survivant qu'il EST l'intrus.
+        pair: S.revealWords && S.pair ? S.pair.slice() : null,
+        revealWords: !!S.revealWords,
         category: S.ct,
         impostorsLeft: S.players.filter(function (x) {
           return S.alive.indexOf(x.id) !== -1 && x.role !== "civil";
@@ -140,6 +146,9 @@ function snapshot() {
       msg: S.gr.msg,
       roles: S.players.map(function (p) { return { id: p.id, role: p.role }; }),
       pair: S.pair ? S.pair.slice() : null,
+      // Toutes les paires jouées : en fin de partie on veut revoir la partie
+      // entière, quelle que soit l'option de révélation par tour.
+      allWords: S.hist.map(function(h){return {turn:h.turn,cat:h.cat,pair:h.pair.slice()}}),
       category: S.ct,
       turns: S.turn
     } : null,

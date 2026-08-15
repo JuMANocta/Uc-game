@@ -325,6 +325,10 @@ Chacun tape son indice ; `S.clues = {playerId: texte}` est remis à zéro chaque
 
 `saysWord(indice, mot)` normalise casse, accents et ponctuation, puis exige le mot **entier** : « chat » ne se déclenche ni sur « château », ni sur « achat », ni sur « chatons », mais bien sur « des chats ». Pluriel toléré dans les deux sens.
 
+**Faute de catégorie** (`S.faultCat`) — écrire la catégorie élimine aussi, mais **uniquement quand elle n'est pas affichée**. Quand le badge la montre à toute la table, la répéter ne fuite rien : sanctionner reviendrait à éliminer quelqu'un pour avoir recopié son propre écran. Contrairement au mot, elle lie **tous** les joueurs, Mr. White compris — c'est une information partagée, pas un secret personnel.
+
+`wordForms()` gère les pluriels français au-delà du simple `-s` : « Animaux » se déclenche sur « animal », `-eaux/-eau`, `-x`. Sans quoi la règle ratait le cas le plus fréquent, les catégories étant presque toutes au pluriel alors qu'on écrit spontanément au singulier.
+
 Seul **son propre** mot est fautif : un civil qui prononce le mot Undercover fait une déduction légitime, pas une faute. Mr. White n'ayant pas de mot ne peut jamais être sanctionné.
 
 **Aucun avertissement local avant l'envoi** — prévenir « ton indice contient ton mot » rendrait la règle décorative, plus personne ne se ferait prendre. C'est délibéré, et c'est pourquoi l'option est désactivable.
@@ -335,7 +339,19 @@ Seul **son propre** mot est fautif : un civil qui prononce le mot Undercover fai
 
 Fenêtre flottante accessible partout via un bouton « ? » installé **hors de `#app`** : il survit donc à tous les rendus, et un joueur qui lit les règles pendant le débat ne les perd pas quand l'état est rediffusé.
 
+Le texte **décrit la partie réellement en cours** : côté joueur distant il lit `C.snap.opts` (révélation des mots, indices écrits, faute de catégorie, catégorie affichée) et non l'état local, qui n'est pas le sien. La règle de la catégorie est tue quand elle est sans effet — option désactivée, ou catégorie affichée à tous.
+
 Le contenu insiste sur les deux points qui perdent les nouveaux joueurs : **on ignore son propre rôle** (on ne voit qu'un mot), et surtout **les rôles ne changent jamais de la partie alors que les mots changent à chaque tour**. La règle des indices écrits n'apparaît que si l'option est active.
+
+### Préservation des champs de saisie
+
+`render()` remplace tout `#app` par `innerHTML`, donc chaque champ est détruit et recréé. En multi, l'hôte rediffuse l'état dès qu'un joueur envoie un indice : un joueur en train de taper le sien perdait son texte, son curseur, et sur mobile **son clavier se refermait**.
+
+`render()` encapsule désormais `renderInner()` entre `captureInput()` et `restoreInput()` — id, valeur et sélection du champ actif. Un seul point d'entrée protège l'indice, la proposition de Mr. White, le pseudo, le renommage de l'hôte et les noms du setup.
+
+### Révélation des mots (`S.revealWords`, défaut `false`)
+
+Masquer la paire à chaque fin de tour préserve l'incertitude sur son propre rôle : la révéler apprendrait à un Undercover survivant qu'il **est** l'intrus, dès le tour 2. La fin de partie affiche de toute façon `ALLW()` — toutes les paires jouées, tour par tour, côté hôte comme côté joueurs via `gameOver.allWords`.
 
 ### Règles de vote
 

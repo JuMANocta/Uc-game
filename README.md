@@ -59,6 +59,7 @@ Ou double-cliquer sur `index.html`. Aucun serveur requis.
 | **Mode nuit** | Masque le compteur d'imposteurs et les rôles éliminés pendant le débat |
 | **Mode Enfant 🧒** | Filtre les mots adultes (691 paires kid-safe sur 45 catégories) |
 | **Filtre catégories** | Active/désactive individuellement chacune des 48 catégories, avec compteur de paires |
+| **Révéler les mots** | Affiche ou non la paire à chaque fin de tour — masquée par défaut. Tout est dévoilé en fin de partie |
 
 > Toutes les options et les noms des joueurs sont **conservés d'une session à l'autre** (`localStorage`). Un bouton « Réinitialiser les options » remet les valeurs par défaut.
 
@@ -102,7 +103,8 @@ Les paires jouées ne se répètent pas avant épuisement complet du pool (ou du
 ## Fonctionnalités
 
 - **Multi-appareils** — QR code, code de salle à 6 caractères, lobby live, reconnexion automatique après verrouillage du téléphone, reprise de la salle après rechargement de l'hôte
-- **Indices écrits** *(multi-appareils)* — chacun tape son indice sur son téléphone : la partie garde une trace de ce qui a été dit, et **prononcer son propre mot élimine sur-le-champ**. Option désactivable ; sans écran individuel, taper son indice le montrerait à tout le monde
+- **Indices écrits** *(multi-appareils)* — chacun tape son indice sur son téléphone : la partie garde une trace de ce qui a été dit, et **prononcer son propre mot élimine sur-le-champ** — et la catégorie aussi, quand elle est cachée. Option désactivable ; sans écran individuel, taper son indice le montrerait à tout le monde
+- **Récapitulatif final** — toutes les paires jouées, tour par tour, hôte comme joueurs
 - **Vote secret** — chacun vote sur son écran, dépouillement animé, revote en cas d'égalité, option « vote à découvert » montrant qui a voté pour qui
 - **Options persistantes** — nombre de joueurs, noms, timer, modes et filtres restaurés au rechargement
 - **Filtre de catégories** — active/désactive chacune des 48 catégories, avec le nombre de paires par catégorie et la taille du pool résultant
