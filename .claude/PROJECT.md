@@ -121,7 +121,7 @@ splash → setup → handoff → reveal → playing → vote → turn_recap → 
 
 ### Base de données de mots (`DB`)
 
-**744 paires** `[mot_civil, mot_uc, catégorie, kid_safe]` en **42 catégories** :
+**816 paires** `[mot_civil, mot_uc, catégorie, kid_safe]` en **48 catégories** :
 
 | Groupe | Catégories |
 |---|---|
@@ -133,9 +133,11 @@ splash → setup → handoff → reveal → playing → vote → turn_recap → 
 | Arts & Histoire (4) | Danse · Instruments · Architecture · Époques |
 | Sensations & Insolite (4) | Couleurs · Matières · Phobies · Géographie |
 | Lifestyle (2) | Mode · Nature |
+| Quotidien élargi (3) | Transports · Outils · Météo |
+| Plaisirs & imaginaire (3) | Desserts · Fêtes · Mythologie |
 
-- `kid_safe = true` : paire incluse en Mode Enfant — **614 paires sur 39 catégories**
-- `kid_safe = false` : paire exclue en Mode Enfant (alcool, horreur, violence, sujets adultes) — 130 paires
+- `kid_safe = true` : paire incluse en Mode Enfant — **691 paires sur 45 catégories**
+- `kid_safe = false` : paire exclue en Mode Enfant (alcool, horreur, violence, sujets adultes) — 125 paires
 
 `Cocktails` (0/12), `Vins` (0/10) et `Phobies` (0/12) n'ont **aucune** paire kid-safe : ces catégories sont affichées barrées et non sélectionnables quand le Mode Enfant est actif.
 
@@ -144,7 +146,7 @@ Anti-répétition : `S.used` trace les **indices originaux DB** déjà tirés. Q
 **Cascade de repli de `PP()`** (le Mode Enfant n'est jamais contourné) :
 1. pool = `kids` ∩ `cats`
 2. si vide → pool = `kids` seul (le filtre catégories saute, pas le filtre enfant)
-3. si vide → DB entière (inatteignable : 614 paires kid-safe)
+3. si vide → DB entière (inatteignable : 691 paires kid-safe)
 
 ### Fonctions clés
 

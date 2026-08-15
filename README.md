@@ -57,8 +57,8 @@ Ou double-cliquer sur `index.html`. Aucun serveur requis.
 | **Timer débat** | Off · 1min · 2min · 3min · 5min |
 | **Vote nul** | Permet de passer un tour sans élimination |
 | **Mode nuit** | Masque le compteur d'imposteurs et les rôles éliminés pendant le débat |
-| **Mode Enfant 🧒** | Filtre les mots adultes (614 paires kid-safe sur 39 catégories) |
-| **Filtre catégories** | Active/désactive individuellement chacune des 42 catégories, avec compteur de paires |
+| **Mode Enfant 🧒** | Filtre les mots adultes (691 paires kid-safe sur 45 catégories) |
+| **Filtre catégories** | Active/désactive individuellement chacune des 48 catégories, avec compteur de paires |
 
 > Toutes les options et les noms des joueurs sont **conservés d'une session à l'autre** (`localStorage`). Un bouton « Réinitialiser les options » remet les valeurs par défaut.
 
@@ -78,7 +78,7 @@ Ou double-cliquer sur `index.html`. Aucun serveur requis.
 
 ## Base de mots
 
-**744 paires** réparties en **42 catégories** :
+**816 paires** réparties en **48 catégories** :
 
 | Groupe | Catégories |
 |---|---|
@@ -90,10 +90,12 @@ Ou double-cliquer sur `index.html`. Aucun serveur requis.
 | Arts & Histoire | `Danse` · `Instruments` · `Architecture` · `Époques` |
 | Sensations | `Couleurs` · `Matières` · `Phobies` · `Géographie` |
 | Lifestyle | `Mode` · `Nature` |
+| Quotidien élargi | `Transports` · `Outils` · `Météo` |
+| Plaisirs & imaginaire | `Desserts` · `Fêtes` · `Mythologie` |
 
 Les paires jouées ne se répètent pas avant épuisement complet du pool (ou du pool filtré en Mode Enfant / filtre catégories).
 
-**614 paires** sont marquées *kid-safe*. Trois catégories (`Cocktails`, `Vins`, `Phobies`) n'en contiennent aucune : elles apparaissent barrées et non sélectionnables lorsque le Mode Enfant est actif. Le Mode Enfant n'est jamais contourné, même si le filtre de catégories vide le pool.
+**691 paires** sont marquées *kid-safe*. Trois catégories (`Cocktails`, `Vins`, `Phobies`) n'en contiennent aucune : elles apparaissent barrées et non sélectionnables lorsque le Mode Enfant est actif. Le Mode Enfant n'est jamais contourné, même si le filtre de catégories vide le pool.
 
 ---
 
@@ -102,7 +104,7 @@ Les paires jouées ne se répètent pas avant épuisement complet du pool (ou du
 - **Multi-appareils** — QR code, code de salle à 6 caractères, lobby live, reconnexion automatique après verrouillage du téléphone, reprise de la salle après rechargement de l'hôte
 - **Vote secret** — chacun vote sur son écran, dépouillement animé, revote en cas d'égalité, option « vote à découvert » montrant qui a voté pour qui
 - **Options persistantes** — nombre de joueurs, noms, timer, modes et filtres restaurés au rechargement
-- **Filtre de catégories** — active/désactive chacune des 42 catégories, avec le nombre de paires par catégorie et la taille du pool résultant
+- **Filtre de catégories** — active/désactive chacune des 48 catégories, avec le nombre de paires par catégorie et la taille du pool résultant
 - **Ordre de parole** — affiché pendant le débat ; tap sur un nom pour le cocher (a parlé) ; bouton pour tout décocher
 - **Timer** — countdown configurable, bouton de relance si expiré, alerte sonore + vibration à l'expiration ; animation urgente sous 10s
 - **Sons & vibrations** — Web Audio API (zéro fichier audio), vibrations sur toutes les transitions clés
