@@ -30,16 +30,26 @@ function doInstall() {
 // immédiatement, mais la PAGE continue de faire tourner l'ancien code jusqu'au
 // rechargement. D'où cette bannière plutôt qu'un rechargement d'autorité, qui
 // couperait une partie en cours.
-function showUpdateBanner() {
+function showUpdateBanner(msg) {
   if (document.getElementById("upd-banner")) return;
   var b = document.createElement("div");
   b.id = "upd-banner";
   b.className = "upd-banner";
-  b.innerHTML = '<span>✨ Nouvelle version disponible</span>' +
+  b.innerHTML = '<span>' + (msg || "✨ Nouvelle version disponible") + '</span>' +
     '<button type="button" class="upd-btn" onclick="location.reload()">Recharger</button>' +
     '<button type="button" class="upd-x" aria-label="Plus tard" ' +
     'onclick="document.getElementById(\'upd-banner\').remove()">✕</button>';
   document.body.appendChild(b);
+}
+
+// Vérification forcée, déclenchée à la connexion à une salle : le navigateur
+// ne consulte le service worker que sporadiquement, or un joueur qui scanne un
+// QR peut très bien tourner sur une version en cache datant de plusieurs jours.
+function checkForUpdate() {
+  if (!("serviceWorker" in navigator)) return;
+  navigator.serviceWorker.getRegistration().then(function (reg) {
+    if (reg && reg.update) { try { reg.update(); } catch (e) {} }
+  }).catch(function () {});
 }
 
 function installPWA() {

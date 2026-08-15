@@ -102,11 +102,13 @@ function snapshot() {
     writeClues: !!S.writeClues,
     clues: S.writeClues ? JSON.parse(JSON.stringify(S.clues || {})) : {},
     fault: S.fault ? { id: S.fault.id, word: S.fault.word, clue: S.fault.clue, kind: S.fault.kind } : null,
+    pingTally: S.pingOn ? JSON.parse(JSON.stringify(S.pingTally || {})) : {},
     scores: S.sc,
     // Reprises dans les règles affichées côté joueur : elles doivent décrire la
     // partie réellement en cours, pas une configuration par défaut.
     opts: { cat: S.cat, night: S.night, skipvote: S.skipvote, timer: S.timer,
-            revealWords: !!S.revealWords, writeClues: !!S.writeClues, faultCat: !!S.faultCat },
+            revealWords: !!S.revealWords, writeClues: !!S.writeClues, faultCat: !!S.faultCat,
+            pingOn: !!S.pingOn, pingGap: S.pingGap|0 },
     // votedIds dit QUI a voté, jamais POUR QUI — c'est ce qui permet
     // l'affichage « en attente de Marc, Léa » sans rien divulguer.
     vote: {
@@ -297,7 +299,7 @@ function hostStart() {
   if (!NET.use("peerjs")) { S.net.status = "error"; S.net.err = "lib"; render(); return; }
 
   if (S.hostPlays) {
-    S.net.seats.push({ token: "HOST", name: cleanName(S.nm[1] || "Hôte"), connId: null, connected: true, isHost: true });
+    S.net.seats.push({ token: "HOST", name: cleanName(myName() || "Hôte"), connId: null, connected: true, isHost: true });
   }
   syncRoster();
 
@@ -345,6 +347,7 @@ function hostOnMsg(cid, msg) {
     render();
     return;
   }
+  if (msg.t === "buzz") { hostPing(si + 1, msg.to, msg.emoji, msg.pub); return; }
   if (msg.t === "clue") {
     if (msg.turn !== S.turn) return;          // indice d'un tour périmé
     submitClue(si + 1, msg.text);
@@ -387,7 +390,7 @@ function hostHello(cid, msg) {
     S.net.seats[si].connId = cid;
     S.net.seats[si].connected = true;
     S.net.seats[si].lastSeen = Date.now();
-    NET.send(cid, { v: PROTO_V, t: "welcome", token: S.net.seats[si].token, playerId: si + 1, roomCode: S.net.code, state: snapshot() });
+    NET.send(cid, { v: PROTO_V, t: "welcome", build: (typeof BUILD === "string" ? BUILD : ""), token: S.net.seats[si].token, playerId: si + 1, roomCode: S.net.code, state: snapshot() });
     // Il revient en pleine partie : on lui renvoie immédiatement son mot et
     // l'état du timer, sinon il resterait devant un écran vide.
     if (S.phase !== "lobby" && S.alive.indexOf(si + 1) !== -1) {
@@ -407,7 +410,7 @@ function hostHello(cid, msg) {
   var tok = newToken();
   S.net.seats.push({ token: tok, name: name, connId: cid, connected: true, isHost: false, lastSeen: Date.now() });
   syncRoster();
-  NET.send(cid, { v: PROTO_V, t: "welcome", token: tok, playerId: S.net.seats.length, roomCode: S.net.code, state: snapshot() });
+  NET.send(cid, { v: PROTO_V, t: "welcome", build: (typeof BUILD === "string" ? BUILD : ""), token: tok, playerId: S.net.seats.length, roomCode: S.net.code, state: snapshot() });
   SND.ping(); VIB(20);
   render();
 }
@@ -418,6 +421,7 @@ function hostOnClose(cid) {
   if (si === -1) return;
   if (S.phase === "lobby") {
     S.net.seats.splice(si, 1);   // parti avant le début : on libère le siège
+    pushSeatIds();               // les suivants ont reculé d'un cran
   } else {
     S.net.seats[si].connected = false;   // en partie : le siège est conservé
     S.net.seats[si].connId = null;
@@ -452,13 +456,91 @@ function sendSecrets() {
   S.tp.forEach(function (t) { sendSecretTo(t.id); });
 }
 
+// ══════════════════════════════════════════════════════════════
+// PINGS — relayés et arbitrés par l'hôte
+// ══════════════════════════════════════════════════════════════
+// NOM DU MESSAGE : "buzz"/"buzzed", surtout PAS "ping"/"pong" — ces deux-là
+// appartiennent au battement de cœur de la reconnexion, traité en tête de
+// hostOnMsg, qui intercepterait le message avant d'arriver ici.
+// ══════════════════════════════════════════════════════════════
+// Topologie en étoile : les joueurs ne se parlent pas directement. L'hôte
+// valide l'expéditeur par sa CONNEXION, jamais par l'identifiant annoncé —
+// même règle que pour les votes et les indices.
+//
+// Deux portées, deux sens :
+//   to === 0  → public  : « je montre ce que je pense », compté dans pingTally
+//                          et donc visible de toute la table
+//   to  >  0  → privé   : « je te mets la pression », message CIBLÉ, jamais
+//                          dans le snapshot qui est diffusé à tous
+var _pingLast = {};
+
+function pingGapMs() { return S.pingGap > 0 ? S.pingGap : 5000; }
+
+// L'anti-flood vit côté hôte : un client modifié ne peut pas le contourner.
+function pingReady(from) {
+  var last = _pingLast[from] || 0;
+  return Date.now() - last >= pingGapMs();
+}
+
+function hostPing(from, to, emoji, pub) {
+  if (!S.pingOn || !S.net) return;
+  if (emoji !== "bell" && emoji !== "skull") return;
+  to = to | 0;
+  if (to !== 0 && !S.net.seats[to - 1]) return;
+  if (to === from) return;                      // se pinger soi-même n'a aucun sens
+  if (!pingReady(from)) return;                 // trop tôt : ignoré en silence
+  _pingLast[from] = Date.now();
+
+  // Viser tout le monde est public par nature.
+  var isPub = (to === 0) || !!pub;
+
+  if (isPub) {
+    if (to !== 0) {
+      // Le décompte matérialise la pression du groupe et survit au bandeau.
+      S.pingTally = S.pingTally || {};
+      var t = S.pingTally[to] || { bell: 0, skull: 0 };
+      t[emoji] = (t[emoji] || 0) + 1;
+      S.pingTally[to] = t;
+    }
+    NET.broadcast({ v: PROTO_V, t: "buzzed", from: from, to: to, emoji: emoji, pub: true });
+    if (S.mode === "host") showPingToast(from, to, emoji, true);
+    render();
+    return;
+  }
+
+  // Privé : la cible SEULE est servie, par message ciblé — jamais par le
+  // snapshot, qui est diffusé à tout le monde. Même précaution que les mots.
+  var seat = S.net.seats[to - 1];
+  if (to === 1) showPingToast(from, to, emoji, false);
+  else if (seat && seat.connId) NET.send(seat.connId, { v: PROTO_V, t: "buzzed", from: from, to: to, emoji: emoji, pub: false });
+  render();
+}
+
+// ══════════════════════════════════════════════════════════════
+// IDENTITÉ DES SIÈGES
+// ══════════════════════════════════════════════════════════════
+// Les sièges sont un tableau ordonné (playerId = index + 1). Retirer un siège
+// décale donc TOUS les suivants. Or playerId n'était transmis qu'une fois, dans
+// le welcome : un client resté connecté gardait un identifiant périmé et se
+// croyait être quelqu'un d'autre — jusqu'à s'afficher éliminé à la place d'un
+// autre, puisque C.playerId pilote aussi l'écran affiché.
+//
+// À appeler après TOUTE mutation du tableau des sièges.
+function pushSeatIds() {
+  if (S.mode !== "host" || !S.net) return;
+  S.net.seats.forEach(function (s, i) {
+    if (s.isHost || !s.connId) return;
+    NET.send(s.connId, { v: PROTO_V, t: "seat", playerId: i + 1 });
+  });
+}
+
 function kickPlayer(pid) {
   if (!S.net) return;
   var s = S.net.seats[pid - 1];
   if (!s || s.isHost) return;
   if (s.connId) NET.send(s.connId, { v: PROTO_V, t: "reject", reason: "kicked" });
   if (s.connId) NET.kick(s.connId);
-  if (S.phase === "lobby") S.net.seats.splice(pid - 1, 1);
+  if (S.phase === "lobby") { S.net.seats.splice(pid - 1, 1); pushSeatIds(); }
   else { s.connected = false; s.connId = null; s.kicked = true; }
   syncRoster();
   render();

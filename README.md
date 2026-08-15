@@ -105,8 +105,9 @@ Les paires jouées ne se répètent pas avant épuisement complet du pool (ou du
 - **Multi-appareils** — QR code, code de salle à 6 caractères, lobby live, reconnexion automatique après verrouillage du téléphone, reprise de la salle après rechargement de l'hôte
 - **Indices écrits** *(multi-appareils)* — chacun tape son indice sur son téléphone : la partie garde une trace de ce qui a été dit, et **prononcer son propre mot élimine sur-le-champ** — et la catégorie aussi, quand elle est cachée. Option désactivable ; sans écran individuel, taper son indice le montrerait à tout le monde
 - **Récapitulatif final** — toutes les paires jouées, tour par tour, hôte comme joueurs
-- **Vote secret** — chacun vote sur son écran, dépouillement animé, revote en cas d'égalité, option « vote à découvert » montrant qui a voté pour qui
-- **Options persistantes** — nombre de joueurs, noms, timer, modes et filtres restaurés au rechargement
+- **Pings** *(multi-appareils)* — 🔔 pour dire « accélère », 💀 pour mettre la pression, sur un joueur ou toute la table. Vu par tous avec décompte sur le nom visé, ou en privé. Délai anti-matraquage paramétrable
+- **Vote secret** — chacun vote sur son écran, **avec rappel des indices donnés**, dépouillement animé, revote en cas d'égalité, option « vote à découvert » montrant qui a voté pour qui
+- **Options persistantes** — nombre de joueurs, noms, timer, modes et filtres restaurés au rechargement ; le pseudo est mémorisé sur l'appareil et pré-rempli à chaque connexion
 - **Filtre de catégories** — active/désactive chacune des 48 catégories, avec le nombre de paires par catégorie et la taille du pool résultant
 - **Ordre de parole** — affiché pendant le débat ; tap sur un nom pour le cocher (a parlé) ; bouton pour tout décocher
 - **Timer** — countdown configurable, bouton de relance si expiré, alerte sonore + vibration à l'expiration ; animation urgente sous 10s
@@ -117,7 +118,7 @@ Les paires jouées ne se répètent pas avant épuisement complet du pool (ou du
 - **Règles en jeu** — bouton « ? » flottant sur tous les écrans, hôte comme joueurs : rappel du principe, du déroulé et surtout du fait que **les rôles ne changent jamais alors que les mots changent à chaque tour**
 - **Splash screen** — boot log animé au premier chargement
 - **Bouton Abandonner** — disponible pendant le débat (avec confirmation modale)
-- **PWA** — installable sur mobile via un bouton dédié, **bannière de mise à jour** quand une nouvelle version est prête, détection du hors-ligne
+- **PWA** — installable sur mobile via un bouton dédié, **bannière de mise à jour** quand une nouvelle version est prête, **vérification forcée à chaque connexion à une salle** et alerte si l'hôte tourne sur une autre version, détection du hors-ligne
   | Mode | Hors ligne |
   |---|---|
   | Un seul téléphone | ✅ complet, les 816 paires sont embarquées |

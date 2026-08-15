@@ -353,6 +353,56 @@ Le contenu insiste sur les deux points qui perdent les nouveaux joueurs : **on i
 
 Masquer la paire à chaque fin de tour préserve l'incertitude sur son propre rôle : la révéler apprendrait à un Undercover survivant qu'il **est** l'intrus, dès le tour 2. La fin de partie affiche de toute façon `ALLW()` — toutes les paires jouées, tour par tour, côté hôte comme côté joueurs via `gameOver.allWords`.
 
+### Résidus de session — piège de connexion
+
+`clientJoin()` doit repartir d'une session **neuve** : token, identifiant, mot et snapshot de la salle précédente sont effacés, sauf si l'on retape le code de la salle où l'on était déjà (reprise légitime).
+
+Le token périmé était le plus traître. `onError` ne signale « salle introuvable » **que si l'on n'a pas de token** — avec un vieux token en mémoire, un code erroné faisait retenter indéfiniment, laissant le joueur sur « connexion… » sans aucune explication.
+
+`C.err` provient de deux sources : un refus explicite de l'hôte (`REJECT_MSG`) ou un échec réseau (`netErrLabel`). `rejectText()` chaîne les deux — sans quoi « hors ligne », « timeout » ou « bibliothèque absente » tombaient tous sur un « Connexion impossible. » qui n'aide personne.
+
+### Vérification de version à la connexion
+
+Un joueur qui scanne un QR peut tourner sur une version en cache datant de plusieurs jours. Trois garde-fous :
+
+1. `checkForUpdate()` force `reg.update()` **à chaque connexion** — par code comme par QR. Le navigateur ne consulte le service worker que sporadiquement.
+2. Le `welcome` porte le `BUILD` de l'hôte. Version différente mais protocole identique → bandeau non bloquant nommant la version, la partie reste jouable.
+3. **Protocole différent → écran dédié.** Auparavant `clientOnMsg` faisait un simple `return` sur `msg.v !== PROTO_V` : le joueur restait indéfiniment sur « connexion » sans la moindre explication. Il voit désormais la raison et un bouton pour recharger.
+
+### Identité des sièges — piège structurel
+
+`playerId = index + 1` dans un tableau. Retirer un siège décale donc **tous les suivants**. Or `playerId` n'était transmis qu'une fois, dans le `welcome` : un client resté connecté gardait un identifiant périmé et se croyait être quelqu'un d'autre — jusqu'à s'afficher éliminé à la place d'un autre, `C.playerId` pilotant aussi l'écran affiché.
+
+`pushSeatIds()` renvoie à chaque client son identifiant faisant autorité, et **doit être appelé après toute mutation du tableau des sièges**. La reconnexion, elle, était déjà correcte : `hostHello` recalcule `playerId` depuis le token.
+
+Les votes et indices n'ont jamais été affectés : l'hôte les attribue via `seatByConn`, jamais via l'identifiant annoncé par le client.
+
+### Noms — deux notions distinctes
+
+| Clé | Portée |
+|---|---|
+| `S.nm` | Roster de la partie **courante** — en solo il contient les noms des autres joueurs |
+| `uc_me` | **Mon nom sur cet appareil** — durable, indépendant de toute partie |
+
+L'hôte tirait son nom de `S.nm[1]`, c'est-à-dire « le premier de la liste » et non « moi » : il héritait donc du nom d'un ancien hôte ou d'un ami. Il lit désormais `uc_me`, qui alimente aussi le pré-remplissage du pseudo à la connexion.
+
+### Pings (`S.pingOn`, `S.pingGap`)
+
+Fenêtre flottante sur le modèle des règles, hors de `#app` : elle survit aux rediffusions d'état. Un tap = un ping envoyé, sans étape intermédiaire.
+
+**Le nom du message sur le fil est `buzz`/`buzzed`, surtout pas `ping`/`pong`** — ces deux-là appartiennent au battement de cœur de la reconnexion, traité en tête de `hostOnMsg`, qui interceptait le message avant qu'il n'arrive à destination. C'est le premier bug qu'a révélé le banc d'essai.
+
+Deux portées, deux sens :
+
+| Portée | Diffusion | Décompte | Sens |
+|---|---|---|---|
+| `to = 0` ou public | à tous | `pingTally` | montrer ce que l'on pense |
+| privé | **message ciblé** | aucun | mettre la pression |
+
+Un ping privé **ne figure jamais dans le snapshot**, qui est diffusé à tous — il part par `NET.send` sur la seule connexion de la cible, exactement comme les mots secrets. La cible voit toujours qui l'envoie : un buzz anonyme ouvrirait la porte au harcèlement.
+
+`pingTally` est remis à zéro à chaque tour. L'anti-flood vit côté hôte (`pingReady`), par expéditeur : un client modifié ne peut pas le contourner.
+
 ### Règles de vote
 
 - Clôture automatique quand tous les vivants **connectés** ont voté ; bouton manuel toujours présent.

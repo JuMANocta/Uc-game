@@ -115,9 +115,31 @@ function startHeartbeat() {
 function stopHeartbeat() { if (C._hb) { clearInterval(C._hb); C._hb = null; } }
 
 function clientJoin(code, name) {
+  var want = String(code || "").toUpperCase().trim();
+
+  // Rejoindre est une session NEUVE : tout résidu d'une salle précédente doit
+  // disparaître. Le token périmé était le plus traître — onError ne signale
+  // « salle introuvable » QUE si l'on n'a pas de token ; avec un vieux token
+  // en mémoire, un code erroné faisait retenter indéfiniment, laissant le
+  // joueur sur « connexion… » sans la moindre explication.
+  // Seul cas conservé : on retape le code de la salle où l'on était déjà.
+  var sv = loadClientSave();
+  var resume = !!(sv && sv.code === want && sv.token);
+  if (!resume) clearClientSave();
+  C.token    = resume ? sv.token : null;
+  C.playerId = resume ? sv.playerId : null;
+  C.secret   = resume ? (sv.secret || null) : null;
+  C.snap     = null;          // sinon on afficherait l'état de l'ancienne salle
+  C.myVote   = null;
+  C.wordShown = false;
+  clientTimerStop();
+  stopHeartbeat();
+  if (C._rtid) { clearTimeout(C._rtid); C._rtid = null; }
+
   S.mode = "client";
-  C.code = String(code || "").toUpperCase().trim();
+  C.code = want;
   C.name = cleanName(name);
+  setMyName(C.name);          // mémorisé pour les prochaines parties
   C.screen = "connecting";
   C.link = "connecting";
   C.err = null;
@@ -125,16 +147,34 @@ function clientJoin(code, name) {
 
   if (!isOnline()) { C.screen = "rejected"; C.err = "offline"; C.link = "dead"; render(); return; }
   if (!NET.use("peerjs")) { C.screen = "error"; C.err = "lib"; render(); return; }
+  checkForUpdate();          // le joueur peut arriver avec une version en cache
   requestWake();
   NET.join(C.code, clientHandlers());
   render();
 }
 
 function clientOnMsg(msg) {
-  if (!msg || msg.v !== PROTO_V) return;
+  if (!msg) return;
+  // Un protocole différent = versions incompatibles. Le SIGNALER, au lieu de
+  // laisser le joueur devant un écran de connexion qui ne finira jamais : c'est
+  // ce que faisait le simple `return` d'avant.
+  if (msg.v !== PROTO_V) {
+    if (msg.t === "welcome" || msg.t === "state") {
+      C.screen = "outdated"; C.link = "dead";
+      stopHeartbeat(); if (C._rtid) { clearTimeout(C._rtid); C._rtid = null; }
+      checkForUpdate(); render();
+    }
+    return;
+  }
   C._lastSeen = Date.now();
 
   if (msg.t === "welcome") {
+    // Même protocole mais version différente : rien de bloquant, mais on le dit
+    // et on force une vérification — l'écart finira par poser problème.
+    if (msg.build && typeof BUILD === "string" && msg.build !== BUILD) {
+      checkForUpdate();
+      showUpdateBanner("⚠ L'hôte utilise une autre version (" + msg.build + ")");
+    }
     C.token = msg.token; C.playerId = msg.playerId; C.code = msg.roomCode;
     C.snap = msg.state; C.link = "online";
     adoptRoster(); syncClientScreen();
@@ -167,6 +207,17 @@ function clientOnMsg(msg) {
     render();
     return;
   }
+  // L'hôte a renuméroté les sièges : on adopte SON identifiant, jamais celui
+  // qu'on avait mis en cache. C.playerId pilote l'écran affiché, un décalage
+  // faisait croire au joueur qu'il était quelqu'un d'autre.
+  if (msg.t === "seat") {
+    if (typeof msg.playerId === "number" && msg.playerId > 0) {
+      C.playerId = msg.playerId;
+      saveClientSave(); syncClientScreen(); render();
+    }
+    return;
+  }
+  if (msg.t === "buzzed") { showPingToast(msg.from, msg.to, msg.emoji, msg.pub); return; }
   if (msg.t === "pong") { C.link = "online"; return; }
 }
 
@@ -300,6 +351,7 @@ function renderClientVote() {
                  (id === C.playerId ? " (toi)" : "") + "</span></button>";
         }).join("") +
         (v.skipAllowed ? '<button class="vote-btn skip" onclick="clientVote(-1)"><span>🚫 Personne</span></button>' : "") + "</div>") +
+    cluesBoard() +
     '<button class="btn-abandon" onclick="showConfirm(\'Quitter la partie ?\',clientLeave)">✕ Quitter</button>' +
     '<div class="fline"></div>';
 }
@@ -321,6 +373,7 @@ function renderClientResult() {
     (v.resolved !== null && v.resolved !== undefined
       ? '<p class="color-dim6 fs14 lh15">' + (v.resolved === -1 ? "Personne n'est éliminé." : "<strong class=\"color-white\">" + (S.nm[v.resolved] || "?") + "</strong> est éliminé.") + "</p>"
       : '<p class="color-red fs14 fw600">⚖ Égalité — l\'hôte départage…</p>') +
+    cluesBoard() +
     '<div class="fline"></div>';
   rows.forEach(function (r) {
     var e = document.getElementById("ctb" + (r.target === -1 ? "X" : r.target));
@@ -368,8 +421,17 @@ function rosterList() {
   if (!C.snap || !C.snap.roster) return "";
   return '<div class="flex gap4 flex-wrap flex-center mb10">' + C.snap.roster.map(function (r) {
     return '<span class="chip' + (r.connected ? "" : " off") + (r.id === C.playerId ? " me" : "") + '">' +
-      (r.host ? "👑 " : "") + r.name + (r.id === C.playerId ? " (toi)" : "") + "</span>";
+      (r.host ? "👑 " : "") + r.name + (r.id === C.playerId ? " (toi)" : "") + pingBadge(r.id) + "</span>";
   }).join("") + "</div>";
+}
+
+// C.err provient de deux sources : un refus explicite de l'hôte (REJECT_MSG)
+// ou un échec réseau (netErrLabel, dans net.js). Sans ce repli, les seconds
+// tombaient tous sur un « Connexion impossible. » qui n'explique rien — dont
+// « hors ligne », pourtant la cause la plus fréquente et la plus simple à dire.
+function rejectText(e) {
+  if (!e) return "Connexion impossible.";
+  return REJECT_MSG[e] || (typeof netErrLabel === "function" ? netErrLabel(e) : "Connexion impossible.");
 }
 
 var REJECT_MSG = {
@@ -392,8 +454,8 @@ function renderClient() {
       '<div class="setup-section"><label class="lbl"><span class="lbl-a">01</span> CODE DE LA PARTIE</label>' +
       '<input type="text" id="jcode" class="code-input" maxlength="6" autocapitalize="characters" autocomplete="off" placeholder="XK7P2M" value="' + (C.code || "") + '"></div>' +
       '<div class="setup-section"><label class="lbl"><span class="lbl-a">02</span> TON PSEUDO</label>' +
-      '<input type="text" id="jname" maxlength="20" placeholder="Ton prénom" value="' + (C.name || "") + '"></div>' +
-      (C.err ? '<p class="err-msg">⚠ ' + (REJECT_MSG[C.err] || C.err) + "</p>" : "") +
+      '<input type="text" id="jname" maxlength="20" placeholder="Ton prénom" value="' + (C.name || myName() || "") + '"></div>' +
+      (C.err ? '<p class="err-msg">⚠ ' + rejectText(C.err) + "</p>" : "") +
       '<button class="btn glow" onclick="var c=document.getElementById(\'jcode\').value,n=document.getElementById(\'jname\').value;if(!c.trim()||!n.trim()){C.err=\'Code et pseudo requis.\';render();return}clientJoin(c,n)">▶ REJOINDRE</button>' +
       '<button class="btn ghost" onclick="S.mode=\'solo\';location.hash=\'\';S.phase=\'splash\';render()">← Retour</button>' +
       '<div class="fline"></div>';
@@ -412,7 +474,7 @@ function renderClient() {
   if (s === "rejected" || s === "error") {
     app.innerHTML = '<div class="hline"></div><div class="icon-big">🚫</div>' +
       '<h2 class="orb fs18 fw700 color-red m8-0">' + G("CONNEXION REFUSÉE") + "</h2>" +
-      '<p class="color-dim6 fs14 lh15 mb16">' + (REJECT_MSG[C.err] || "Connexion impossible.") + "</p>" +
+      '<p class="color-dim6 fs14 lh15 mb16">' + rejectText(C.err) + "</p>" +
       '<button class="btn" onclick="C.screen=\'join\';C.err=null;C.link=\'offline\';render()">← Réessayer</button>' +
       '<div class="fline"></div>';
     return;
@@ -444,6 +506,19 @@ function renderClient() {
       '<p class="color-dim6 fs14 lh15 mb14">Tu es hors jeu — mais tu peux suivre la partie.</p>' +
       speakBoard(true) + rosterList() +
       '<button class="btn ghost" onclick="showConfirm(\'Quitter la partie ?\',clientLeave)">✕ Quitter</button>' +
+      '<div class="fline"></div>';
+    return;
+  }
+
+  if (s === "outdated") {
+    app.innerHTML = '<div class="hline"></div>' +
+      '<div class="icon-big">⬇</div>' +
+      '<h2 class="orb fs17 fw700 color-red m8-0">' + G("VERSION INCOMPATIBLE") + "</h2>" +
+      '<p class="color-dim6 fs14 lh15 mb14">Ton application est plus ancienne que celle de l\'hôte : ' +
+      'elles ne parlent pas le même protocole.</p>' +
+      '<p class="color-dim fs13 mb14">Recharge la page pour récupérer la dernière version, puis rescanne le QR.</p>' +
+      '<button class="btn glow" onclick="location.reload()">↻ RECHARGER</button>' +
+      '<p class="build-stamp">build ' + BUILD + '</p>' +
       '<div class="fline"></div>';
     return;
   }
@@ -560,7 +635,7 @@ function speakBoard(readonly) {
     var me = id === C.playerId;
     return '<div class="speak-item' + (done ? " spoke" : "") + (me ? " mine" : "") + '">' +
       '<span class="speak-num orb">' + (done ? "✓" : (rank + 1)) + "</span>" +
-      '<span class="speak-name">' + (S.nm[id] || ("Joueur " + id)) + (me ? " (toi)" : "") + "</span></div>";
+      '<span class="speak-name">' + (S.nm[id] || ("Joueur " + id)) + (me ? " (toi)" : "") + pingBadge(id) + "</span></div>";
   }).join("") + "</div>";
 }
 
@@ -617,7 +692,7 @@ function bootFromHash() {
     C.token = sv.token; C.playerId = sv.playerId;
     C.name = sv.name || ""; C.secret = sv.secret || null;
     C.screen = "connecting"; C.link = "connecting"; C._retries = 0;
-    if (NET.use("peerjs")) { requestWake(); NET.join(C.code, clientHandlers()); }
+    if (NET.use("peerjs")) { checkForUpdate(); requestWake(); NET.join(C.code, clientHandlers()); }
     return true;
   }
   if (sv && sv.code === C.code) C.name = sv.name || "";
