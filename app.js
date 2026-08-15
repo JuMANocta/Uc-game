@@ -55,7 +55,7 @@ var DB=[
 
 // Estampille affichée sur l'accueil : permet de vérifier d'un coup d'oeil
 // quelle version le navigateur sert réellement (cache du service worker).
-var BUILD="v18-2026.08.15";
+var BUILD="v19-2026.08.15";
 var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}
@@ -532,6 +532,10 @@ return '<div class="lobby-row"><span class="dot-conn'+(s.connected?" on":"")+'">
 (s.isHost?'<span class="orb fs9 color-dim3 ls2">HÔTE</span>':'<button class="kick-btn" onclick="kickPlayer('+(i+1)+')" aria-label="Exclure '+s.name+'">✕</button>')+
 '</div>'}).join(""):'<p class="color-dim3 fs12 tc mb0">Personne pour l\'instant…</p>')+'</div>'+
 (ready?'':'<p class="cats-warn">Il faut au moins 3 joueurs pour lancer.</p>')+
+// L'hôte doit savoir AVANT sa soirée que la 4G ne passera pas : sans relais,
+// seuls les joueurs du même WiFi pourront se connecter.
+(typeof hasTurn==="function"&&!hasTurn()
+ ?'<p class="cats-note">📶 Aucun relais configuré : les joueurs en <b>données mobiles</b> risquent de ne pas pouvoir rejoindre. Sur un même WiFi, aucun souci. <a href="diag.html">Tester le réseau</a></p>':'')+
 '<button class="btn glow" onclick="S.phase=\'setup\';render()"'+(ready?"":" disabled")+'>▶ CONFIGURER LA PARTIE</button>'+
 '<button class="btn-abandon" onclick="showConfirm(\'Fermer la salle ? Tous les joueurs seront déconnectés.\',closeRoom)">✕ Fermer la salle</button>'+
 '<div class="fline"></div>';
