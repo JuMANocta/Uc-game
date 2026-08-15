@@ -404,3 +404,12 @@ input[type=text]::placeholder { color: rgba(255,255,255,0.48); }
 .lobby-edit { flex: 1; background: rgba(5,217,232,0.06); border: 1px solid rgba(5,217,232,0.3); color: #fff; font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 600; padding: 5px 8px; min-width: 0; }
 .allw { display: flex; flex-direction: column; gap: 3px; margin: 6px 0 10px; }
 .allw-row { display: flex; gap: 8px; align-items: baseline; text-align: left; font-size: 13px; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+/* Carte de reprise : action principale + croix pour oublier la salle */
+.mode-card.resume { flex-direction: row; align-items: stretch; gap: 0; padding: 0; }
+.resume-main { flex: 1; display: flex; flex-direction: column; gap: 3px; padding: 12px 14px;
+  background: transparent; border: none; text-align: left; cursor: pointer; font: inherit; color: inherit; }
+.resume-x { flex: 0 0 44px; background: transparent; border: none; border-left: 1px solid rgba(255,215,0,0.25);
+  color: rgba(255,255,255,0.5); font-size: 15px; cursor: pointer; }
+.resume-x:active { color: #ff2a6d; }
+.sb5 { animation-delay: 3.1s; }

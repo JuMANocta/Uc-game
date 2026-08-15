@@ -55,7 +55,7 @@ var DB=[
 
 // Estampille affichée sur l'accueil : permet de vérifier d'un coup d'oeil
 // quelle version le navigateur sert réellement (cache du service worker).
-var BUILD="v12-2026.08.15";
+var BUILD="v13-2026.08.15";
 var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}
@@ -333,10 +333,6 @@ app.innerHTML='<div class="hline"></div>'+
 // Chaque mode est UNE carte titre + explication, au lieu d'un bouton suivi
 // d'un paragraphe : deux fois moins de marges empilées, et l'accueil tient
 // sur un petit écran maintenant qu'il propose trois entrées au lieu d'une.
-(function(){var hs=readHostSave(),cs=loadClientSave();
-if(hs)return'<button class="mode-card resume sb sb1" onclick="resumeHost()"><span class="mode-ttl">↻ REPRENDRE LA SALLE '+hs.code+'</span><span class="mode-sub">Une partie était en cours sur ce téléphone</span></button>';
-if(cs&&cs.token)return'<button class="mode-card resume sb sb1" onclick="clientResume()"><span class="mode-ttl">↻ REVENIR DANS LA PARTIE '+cs.code+'</span><span class="mode-sub">Tu étais connecté à cette salle</span></button>';
-return''})()+
 '<button class="mode-card sb sb2" onclick="S.mode=\'solo\';S.phase=\'setup\';render()">'+
  '<span class="mode-ttl">📱 UN SEUL TÉLÉPHONE</span>'+
  '<span class="mode-sub">On se passe l\'appareil — fonctionne hors-ligne</span></button>'+
@@ -355,6 +351,21 @@ return '<button class="mode-card sb sb3" onclick="hostStart()">'+
        '<span class="mode-ttl">📡 CHACUN SON TÉLÉPHONE</span>'+
        '<span class="mode-sub">Chacun voit son mot et vote sur son écran — Internet requis</span></button>'+
        '<button class="btn ghost sb sb4" onclick="S.mode=\'client\';C.screen=\'join\';render()">🔗 J\'ai un code, je rejoins</button>'})()+
+// La reprise passe SOUS les deux modes : c'est une exception, pas le chemin
+// normal. La croix permet d'oublier la salle sans avoir à la reprendre juste
+// pour la fermer. Un <button> ne pouvant pas en contenir un autre, la carte
+// devient un <div> portant deux boutons distincts.
+(function(){var hs=readHostSave(),cs=loadClientSave();
+var mk=function(act,ttl,sub,forget){
+return '<div class="mode-card resume sb sb5">'+
+ '<button class="resume-main" onclick="'+act+'">'+
+ '<span class="mode-ttl">'+ttl+'</span><span class="mode-sub">'+sub+'</span></button>'+
+ '<button class="resume-x" aria-label="Oublier cette salle" onclick="'+forget+'">✕</button></div>'};
+if(hs)return mk('resumeHost()','↻ REPRENDRE LA SALLE '+hs.code,
+ 'Une partie était en cours sur ce téléphone','forgetHostSave()');
+if(cs&&cs.token)return mk('clientResume()','↻ REVENIR DANS LA PARTIE '+cs.code,
+ 'Tu étais connecté à cette salle','forgetClientSave()');
+return''})()+
 (canInstall()?'<button class="btn ghost sb sb4" onclick="doInstall()">⬇ Installer l\'application</button>':'')+
 '<p class="build-stamp">build '+BUILD+'</p>'+
 '<div class="fline"></div>';return}
@@ -894,6 +905,17 @@ function fullReset(){stopTimer();S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.
 mode:S.mode,net:S.net,votes:{},round:0,tiebreak:S.tiebreak,hostPlays:S.hostPlays,revealVoters:S.revealVoters,revealWords:S.revealWords,writeClues:S.writeClues,faultCat:S.faultCat,clues:{},fault:null};
 if(S.mode==="host")S.phase="lobby";
 render()}
+
+// Oublier une salle jette une partie éventuellement en cours : on confirme.
+function forgetHostSave(){
+var d=readHostSave();
+showConfirm('Oublier la salle '+(d?d.code:'')+' ?<br>La partie en cours sera perdue.',
+ function(){clearHostSave();render()})}
+
+function forgetClientSave(){
+var d=loadClientSave();
+showConfirm('Oublier la partie '+(d?d.code:'')+' ?<br>Tu devras rescanner le QR pour revenir.',
+ function(){clearClientSave();render()})}
 
 function resetOpts(){clearOpts();stopTimer();S={phase:"setup",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:false,kids:false,cats:null,spoken:[],
 mode:S.mode,net:S.net,votes:{},round:0,tiebreak:"revote",hostPlays:true,revealVoters:false,writeClues:false,clues:{},fault:null};
