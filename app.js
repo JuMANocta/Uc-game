@@ -291,7 +291,13 @@ app.innerHTML='<div class="hline"></div><div class="mb20">'+G("UNDERCOVER","orb 
 
 '</div></div>'+
 
-'<div class="setup-section"><details class="cats-details"><summary class="lbl cats-sum"><span class="lbl-a">05</span> CATÉGORIES <span class="cats-count">'+poolSize()+' paires</span></summary>'+
+// Le dénominateur ne compte que les catégories SÉLECTIONNABLES : en Mode
+// Enfant, celles sans aucune paire adaptée sont grisées, les inclure
+// afficherait un total qu'on ne peut jamais atteindre.
+(function(){
+var sel=allCats().filter(function(c){return catCount(c)>0});
+var on=sel.filter(function(c){return !S.cats||S.cats.indexOf(c)!==-1}).length;
+return '<div class="setup-section"><details class="cats-details"><summary class="lbl cats-sum"><span class="lbl-a">05</span> CATÉGORIES <span class="cats-count">'+on+'/'+sel.length+' · '+poolSize()+' paires</span></summary>'})()+
 (S.cats?'<button class="btn ghost mini mb6" onclick="S.cats=null;render()">↺ Tout activer</button>':'')+
 '<div class="cats-grid">'+allCats().map(function(c){var n=catCount(c);var on=n>0&&(!S.cats||S.cats.indexOf(c)!==-1);
 return'<button class="cat-tog'+(on?" on":"")+(n?"":" na")+'" aria-pressed="'+(on?"true":"false")+'" onclick="TCat(\''+c+'\')">'+c+'<span class="cat-n">'+n+'</span></button>'}).join("")+'</div>'+
