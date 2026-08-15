@@ -196,6 +196,9 @@ app.innerHTML='<div class="hline"></div>'+
 '<p class="boot-line l3">&gt; IMPOSTEURS PRÊTS</p>'+
 '<p class="boot-line l4">&gt; QUI EST L\'UNDERCOVER ?</p>'+
 '</div>'+
+(function(){var hs=readHostSave(),cs=loadClientSave();return(
+(hs?'<button class="btn gold splash-btn2" onclick="resumeHost()">↻ REPRENDRE LA SALLE '+hs.code+'</button>':'')+
+(!hs&&cs&&cs.token?'<button class="btn gold splash-btn2" onclick="clientResume()">↻ REVENIR DANS LA PARTIE '+cs.code+'</button>':''))})()+
 '<button class="btn splash-btn" onclick="S.mode=\'solo\';S.phase=\'setup\';render()">📱 UN SEUL TÉLÉPHONE</button>'+
 (window.isSecureContext
  ?'<button class="btn ghost splash-btn2" onclick="hostStart()">📡 CHACUN SON TÉLÉPHONE</button>'+
@@ -426,7 +429,7 @@ S.ro=shuffle(S.tp.map(function(_,i){return i}));
 S.ri=0;S.wv=false;S.vt=null;S.spoken=[];S.votes={};S.round=0;S.turn++;
 S.phase=(S.mode==="host")?"playing":"handoff";
 render();
-if(S.mode==="host")startTimer()}
+if(S.mode==="host"){requestWake();startTimer()}}
 
 function confirmSeen(){SND.click();VIB(30);S.wv=false;if(S.ri<S.tp.length-1){S.ri++;S.phase="handoff"}else{S.phase="playing";render();startTimer();return}render()}
 
@@ -477,6 +480,7 @@ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.write
 else{var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand("copy")}catch(e){}document.body.removeChild(ta)}}
 
 loadOpts();
+installLifecycle();
 // Un QR scanné ou un lien partagé (#j=CODE) fait entrer directement en client.
 bootFromHash();
 render();

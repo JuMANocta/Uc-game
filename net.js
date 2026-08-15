@@ -126,18 +126,59 @@ function pushState() {
   persistHost();
 }
 
-function persistHost() {
+// L'hôte est un point unique de défaillance : tout l'état vit dans son
+// navigateur. On sauvegarde donc S en entier (moins le transitoire) pour
+// survivre à un rechargement de page ou à un crash d'onglet.
+var _lastPersist = 0;
+function persistHost(force) {
   if (S.mode !== "host" || !S.net) return;
+  var now = Date.now();
+  if (!force && now - _lastPersist < 1000) return;   // throttle ~1/s
+  _lastPersist = now;
   try {
+    var g = {};
+    for (var k in S) {
+      if (!S.hasOwnProperty(k)) continue;
+      if (k === "tid" || k === "net") continue;      // non sérialisable / reconstruit
+      g[k] = S[k];
+    }
     localStorage.setItem("uc_net_host", JSON.stringify({
-      code: S.net.code,
-      seats: S.net.seats,
-      pc: S.pc, nm: S.nm, phase: S.phase,
-      savedAt: Date.now()
+      code: S.net.code, seats: S.net.seats, S: g, savedAt: now
     }));
   } catch (e) {}
 }
 function clearHostSave() { try { localStorage.removeItem("uc_net_host"); } catch (e) {} }
+
+// Une sauvegarde de plus de 6 h n'a plus de sens pour une partie de soirée.
+function readHostSave() {
+  try {
+    var d = JSON.parse(localStorage.getItem("uc_net_host") || "null");
+    if (!d || !d.savedAt || !d.code) return null;
+    if (Date.now() - d.savedAt > 6 * 3600 * 1000) { clearHostSave(); return null; }
+    return d;
+  } catch (e) { return null; }
+}
+
+// Reprend la salle AVEC LE MÊME CODE : c'est ce qui fait que les boucles de
+// retry des clients la retrouvent toutes seules, sans action de personne.
+function resumeHost() {
+  var d = readHostSave();
+  if (!d) return false;
+  stopTimer();
+  var g = d.S || {};
+  for (var k in g) if (g.hasOwnProperty(k)) S[k] = g[k];
+  S.tid = null; S.trem = 0;
+  S.mode = "host";
+  S.net = { code: d.code, status: "opening", err: null, seats: d.seats || [], seq: 0, lastJSON: null };
+  // Toutes les connexions sont mortes après un rechargement : les joueurs
+  // reviendront d'eux-mêmes via leur token.
+  S.net.seats.forEach(function (s) { s.connected = !!s.isHost; s.connId = null; });
+  if (!NET.use("peerjs")) { S.net.status = "error"; S.net.err = "lib"; render(); return true; }
+  NET.host({ code: d.code }, hostHandlers());
+  startHostSweeper();
+  render();
+  return true;
+}
 
 // ══════════════════════════════════════════════════════════════
 // SESSION HÔTE
@@ -177,7 +218,18 @@ function syncRoster() {
   if (S.pc >= 3 && S.uc > MUC()) S.uc = MUC();
 }
 
+function hostHandlers() {
+  return {
+    onOpen: function (code) { S.net.code = code; S.net.status = "open"; persistHost(true); render(); },
+    onPeer: function () { /* on attend le hello avant d'attribuer un siège */ },
+    onMsg: hostOnMsg,
+    onClose: hostOnClose,
+    onError: function (e) { S.net.status = "error"; S.net.err = e; render(); }
+  };
+}
+
 function hostStart() {
+  clearHostSave();
   S.mode = "host";
   S.net = { code: null, status: "opening", err: null, seats: [], seq: 0, lastJSON: null };
   S.phase = "lobby";
@@ -189,14 +241,28 @@ function hostStart() {
   }
   syncRoster();
 
-  NET.host({}, {
-    onOpen: function (code) { S.net.code = code; S.net.status = "open"; render(); },
-    onPeer: function () { /* on attend le hello avant d'attribuer un siège */ },
-    onMsg: hostOnMsg,
-    onClose: hostOnClose,
-    onError: function (e) { S.net.status = "error"; S.net.err = e; render(); }
-  });
+  NET.host({}, hostHandlers());
+  startHostSweeper();
   render();
+}
+
+// Un téléphone qui se verrouille ne ferme pas toujours proprement sa connexion :
+// iOS suspend l'onglet sans notifier. On considère donc silencieux > 20 s comme
+// déconnecté, sinon un joueur parti resterait "connecté" et bloquerait un vote.
+var _sweepTid = null;
+function startHostSweeper() {
+  if (_sweepTid) return;
+  _sweepTid = setInterval(hostSweep, 5000);
+}
+function stopHostSweeper() { if (_sweepTid) { clearInterval(_sweepTid); _sweepTid = null; } }
+function hostSweep() {
+  if (S.mode !== "host" || !S.net) { stopHostSweeper(); return; }
+  var now = Date.now(), changed = false;
+  S.net.seats.forEach(function (s) {
+    if (s.isHost || !s.connected) return;
+    if (now - (s.lastSeen || 0) > 20000) { s.connected = false; s.connId = null; changed = true; }
+  });
+  if (changed) render();
 }
 
 function hostOnMsg(cid, msg) {
@@ -205,6 +271,8 @@ function hostOnMsg(cid, msg) {
 
   var si = seatByConn(cid);
   if (si === -1) return;
+  S.net.seats[si].lastSeen = Date.now();
+  if (!S.net.seats[si].connected) { S.net.seats[si].connected = true; render(); }
 
   if (msg.t === "ping") { NET.send(cid, { v: PROTO_V, t: "pong" }); return; }
   if (msg.t === "set_name" && S.phase === "lobby") {
@@ -221,6 +289,7 @@ function hostHello(cid, msg) {
   if (si !== -1) {
     S.net.seats[si].connId = cid;
     S.net.seats[si].connected = true;
+    S.net.seats[si].lastSeen = Date.now();
     NET.send(cid, { v: PROTO_V, t: "welcome", token: S.net.seats[si].token, playerId: si + 1, roomCode: S.net.code, state: snapshot() });
     render();
     return;
@@ -233,7 +302,7 @@ function hostHello(cid, msg) {
   if (nameTaken(name)) { NET.send(cid, { v: PROTO_V, t: "reject", reason: "name_taken" }); return; }
 
   var tok = newToken();
-  S.net.seats.push({ token: tok, name: name, connId: cid, connected: true, isHost: false });
+  S.net.seats.push({ token: tok, name: name, connId: cid, connected: true, isHost: false, lastSeen: Date.now() });
   syncRoster();
   NET.send(cid, { v: PROTO_V, t: "welcome", token: tok, playerId: S.net.seats.length, roomCode: S.net.code, state: snapshot() });
   SND.ping(); VIB(20);
@@ -268,10 +337,65 @@ function kickPlayer(pid) {
 
 function closeRoom() {
   NET.destroy();
+  stopHostSweeper();
+  releaseWake();
   clearHostSave();
   S.mode = "solo"; S.net = null; S.phase = "splash";
   S.pc = 6; S.nm = {}; loadOpts();
   render();
+}
+
+// ══════════════════════════════════════════════════════════════
+// WAKE LOCK — empêcher l'écran de s'éteindre
+// ══════════════════════════════════════════════════════════════
+// Sur iOS c'est la mitigation PRINCIPALE, pas un bonus : empêcher la suspension
+// de l'onglet vaut bien mieux que devoir s'en remettre. Support partiel
+// (Safari ≥ 16.4) — on dégrade en silence.
+var _wake = null;
+function requestWake() {
+  if (_wake || !navigator.wakeLock || !navigator.wakeLock.request) return;
+  try {
+    navigator.wakeLock.request("screen").then(function (w) {
+      _wake = w;
+      if (w.addEventListener) w.addEventListener("release", function () { _wake = null; });
+    }).catch(function () {});
+  } catch (e) {}
+}
+function releaseWake() {
+  if (!_wake) return;
+  try { _wake.release(); } catch (e) {}
+  _wake = null;
+}
+function wakeSupported() { return !!(navigator.wakeLock && navigator.wakeLock.request); }
+
+// ══════════════════════════════════════════════════════════════
+// VISIBILITÉ — le moment critique du jeu
+// ══════════════════════════════════════════════════════════════
+// Pendant un débat de 3 minutes les téléphones se verrouillent. Au retour, le
+// Wake Lock est perdu et la connexion est probablement morte : on reprend tout
+// immédiatement plutôt que d'attendre le prochain backoff.
+function onVisibility() {
+  if (typeof document.visibilityState === "string" && document.visibilityState !== "visible") return;
+  if (S.mode === "host" || S.mode === "client") requestWake();
+  if (S.mode === "client") clientWakeUp();
+  if (S.mode === "host") hostSweep();
+}
+
+function installLifecycle() {
+  if (document.addEventListener) document.addEventListener("visibilitychange", onVisibility);
+  if (window.addEventListener) {
+    window.addEventListener("pageshow", onVisibility);
+    window.addEventListener("beforeunload", function (e) {
+      if (S.mode !== "host" || !S.net) return;
+      persistHost(true);
+      // Avertir seulement si une partie est réellement en cours.
+      if (S.phase !== "lobby" && S.phase !== "splash" && S.phase !== "setup") {
+        e.preventDefault();
+        e.returnValue = "";
+        return "";
+      }
+    });
+  }
 }
 
 // URL de jointure : le HASH, pas une query string. `?j=CODE` casserait le

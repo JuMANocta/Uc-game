@@ -40,6 +40,80 @@ function adoptRoster() {
   C.snap.roster.forEach(function (r) { S.nm[r.id] = r.name; });
 }
 
+// ══════════════════════════════════════════════════════════════
+// RECONNEXION
+// ══════════════════════════════════════════════════════════════
+// Un téléphone verrouillé pendant le débat, c'est le cas NORMAL, pas un cas
+// limite. L'écran n'est donc jamais vidé pendant une reconnexion : le mot reste
+// lisible depuis C.secret, mis en cache local. Le lien n'est requis que pour
+// envoyer un vote et recevoir un nouveau snapshot.
+var RETRY_MS = [1000, 2000, 4000, 8000];
+function retryDelay(n) {
+  return RETRY_MS[Math.min(n, RETRY_MS.length - 1)] + Math.floor(Math.random() * 400); // gigue
+}
+
+function clientHandlers() {
+  return {
+    onOpen: function () {
+      C.link = "online"; C._retries = 0; C._lastSeen = Date.now();
+      NET.toHost({ v: PROTO_V, t: "hello", token: C.token, name: C.name });
+      startHeartbeat();
+      render();
+    },
+    onMsg: clientOnMsg,
+    onClose: function () { dropLink(); },
+    onError: function (e) {
+      C.err = e;
+      // Sans token on n'a jamais réussi à entrer : code faux ou salle absente,
+      // c'est définitif. Avec un token, l'hôte recharge peut-être sa page —
+      // on continue de retenter, sa salle rouvrira sur le même code.
+      if (!C.token) {
+        C.screen = (e === "no-room") ? "rejected" : "error";
+        C.link = "dead"; stopHeartbeat(); render(); return;
+      }
+      dropLink();
+    }
+  };
+}
+
+function dropLink() {
+  if (C.link === "dead") return;
+  C.link = "reconnecting";
+  render();
+  scheduleReconnect();
+}
+
+function scheduleReconnect() {
+  if (C.link === "dead" || C._rtid) return;
+  var d = retryDelay(C._retries || 0);
+  C._retries = (C._retries || 0) + 1;
+  C._rtid = setTimeout(function () {
+    C._rtid = null;
+    if (C.link === "dead" || C.link === "online") return;
+    NET.join(C.code, clientHandlers());   // l'adaptateur détruit et reconstruit le Peer
+  }, d);
+}
+
+// Retour à l'écran : on retente tout de suite, sans attendre le backoff.
+function clientWakeUp() {
+  if (C.link === "online" || C.link === "dead" || !C.code || !C.token) return;
+  C._retries = 0;
+  if (C._rtid) { clearTimeout(C._rtid); C._rtid = null; }
+  NET.join(C.code, clientHandlers());
+}
+
+// Un silence prolongé signale un lien mort même quand onClose n'a jamais été
+// appelé — iOS suspend l'onglet sans rien notifier.
+function startHeartbeat() {
+  stopHeartbeat();
+  C._hb = setInterval(function () {
+    if (C.link !== "online") return;
+    if (Date.now() - (C._lastSeen || 0) > 15000) { dropLink(); return; }
+    NET.toHost({ v: PROTO_V, t: "ping" });
+  }, 5000);
+}
+function stopHeartbeat() { if (C._hb) { clearInterval(C._hb); C._hb = null; } }
+
 function clientJoin(code, name) {
   S.mode = "client";
   C.code = String(code || "").toUpperCase().trim();
@@ -47,28 +121,17 @@ function clientJoin(code, name) {
   C.screen = "connecting";
   C.link = "connecting";
   C.err = null;
+  C._retries = 0;
 
   if (!NET.use("peerjs")) { C.screen = "error"; C.err = "lib"; render(); return; }
-
-  NET.join(C.code, {
-    onOpen: function () {
-      C.link = "online";
-      NET.toHost({ v: PROTO_V, t: "hello", token: C.token, name: C.name });
-    },
-    onMsg: clientOnMsg,
-    onClose: function () { if (C.link !== "dead") { C.link = "reconnecting"; render(); } },
-    onError: function (e) {
-      C.err = e;
-      if (e === "no-room") { C.screen = "rejected"; C.link = "dead"; }
-      else { C.link = "reconnecting"; }
-      render();
-    }
-  });
+  requestWake();
+  NET.join(C.code, clientHandlers());
   render();
 }
 
 function clientOnMsg(msg) {
   if (!msg || msg.v !== PROTO_V) return;
+  C._lastSeen = Date.now();
 
   if (msg.t === "welcome") {
     C.token = msg.token; C.playerId = msg.playerId; C.code = msg.roomCode;
@@ -79,7 +142,9 @@ function clientOnMsg(msg) {
   }
   if (msg.t === "reject") {
     C.screen = "rejected"; C.err = msg.reason; C.link = "dead";
-    clearClientSave(); NET.destroy(); render();
+    stopHeartbeat();
+    if (C._rtid) { clearTimeout(C._rtid); C._rtid = null; }
+    clearClientSave(); NET.destroy(); releaseWake(); render();
     return;
   }
   if (msg.t === "state") {
@@ -89,7 +154,7 @@ function clientOnMsg(msg) {
   }
   if (msg.t === "secret") {
     C.secret = { turn: msg.turn, word: msg.word, isMrWhite: msg.isMrWhite, category: msg.category };
-    C.wordShown = false; saveClientSave(); render();
+    C.wordShown = false; saveClientSave(); requestWake(); render();
     return;
   }
   if (msg.t === "pong") { C.link = "online"; return; }
@@ -110,10 +175,31 @@ function syncClientScreen() {
 
 function clientLeave() {
   NET.toHost({ v: PROTO_V, t: "leave" });
-  NET.destroy(); clearClientSave();
+  C.link = "dead";
+  stopHeartbeat();
+  if (C._rtid) { clearTimeout(C._rtid); C._rtid = null; }
+  NET.destroy(); clearClientSave(); releaseWake();
   S.mode = "solo"; C.screen = "join"; C.token = null; C.snap = null; C.secret = null;
+  C.link = "offline"; C._retries = 0;
   location.hash = "";
+  S.phase = "splash";
   render();
+}
+
+// Reprise après fermeture complète de l'app : le token en localStorage permet
+// de retrouver son siège et son mot sans repasser par le lobby.
+function clientResume() {
+  var sv = loadClientSave();
+  if (!sv || !sv.code || !sv.token) return false;
+  S.mode = "client";
+  C.code = sv.code; C.token = sv.token; C.playerId = sv.playerId;
+  C.name = sv.name || ""; C.secret = sv.secret || null;
+  C.screen = "connecting"; C.link = "connecting"; C._retries = 0;
+  if (!NET.use("peerjs")) { C.screen = "error"; C.err = "lib"; render(); return true; }
+  requestWake();
+  NET.join(C.code, clientHandlers());
+  render();
+  return true;
 }
 
 // ══════════════════════════════════════════════════════════════
@@ -208,7 +294,15 @@ function bootFromHash() {
   S.mode = "client";
   C.code = m[1].toUpperCase();
   var sv = loadClientSave();
-  if (sv && sv.code === C.code) { C.token = sv.token; C.name = sv.name || ""; C.secret = sv.secret || null; }
+  // Déjà connu de cette salle : on se reconnecte sans repasser par le pseudo.
+  if (sv && sv.code === C.code && sv.token) {
+    C.token = sv.token; C.playerId = sv.playerId;
+    C.name = sv.name || ""; C.secret = sv.secret || null;
+    C.screen = "connecting"; C.link = "connecting"; C._retries = 0;
+    if (NET.use("peerjs")) { requestWake(); NET.join(C.code, clientHandlers()); }
+    return true;
+  }
+  if (sv && sv.code === C.code) C.name = sv.name || "";
   C.screen = "join";
   return true;
 }
