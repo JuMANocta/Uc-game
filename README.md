@@ -178,9 +178,21 @@ Si ton serveur envoie une CSP, elle doit autoriser le serveur d'annuaire PeerJS,
 | `font-src` | `https://fonts.gstatic.com` | Fichiers de polices |
 | `script-src` | `'unsafe-inline'` | Le jeu utilise des `onclick=` en attribut |
 
-Bloc nginx prêt à l'emploi : **[`deploy/nginx-uc.conf.example`](deploy/nginx-uc.conf.example)**. Il isole le jeu dans son propre `location`, de sorte que le reste du site garde sa CSP stricte.
+CSP minimale pour le jeu :
 
-> ⚠️ **Piège nginx** — les `add_header` ne sont **pas hérités** dans un `location` qui déclare les siens : nginx remplace la liste entière au lieu de la compléter. Tous les en-têtes du `server` doivent y être répétés, faute de quoi HSTS et consorts disparaissent silencieusement sur ce chemin. Le fichier d'exemple les reprend tous.
+```
+default-src 'self';
+script-src 'self' 'unsafe-inline';
+style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com;
+font-src 'self' https://fonts.gstatic.com;
+img-src 'self' data:;
+connect-src 'self' https://0.peerjs.com wss://0.peerjs.com stun: turn:;
+worker-src 'self'; manifest-src 'self';
+```
+
+Le mieux est d'isoler le jeu dans son propre `location`, pour que le reste du site garde sa CSP stricte.
+
+> ⚠️ **Piège nginx** — les `add_header` ne sont **pas hérités** dans un `location` qui déclare les siens : nginx remplace la liste entière au lieu de la compléter. Tous les en-têtes du `server` doivent y être répétés, faute de quoi HSTS et consorts disparaissent silencieusement sur ce chemin.
 
 > **Permissions-Policy** — un `vibrate=()` désactive tout le retour haptique du jeu, qui vibre à chaque transition clé. À retirer pour le chemin du jeu.
 
