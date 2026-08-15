@@ -343,11 +343,55 @@ hw+cs+
 eh+
 '<div class="flex gap8 mb10 flex-center">'+(S.night?'<div class="imposteur-box night"><span class="orb fs11 color-dim4 ls2">MODE NUIT</span></div>':'<div class="imposteur-box"><span class="orb fs18 fw900">'+bad+'</span><span class="orb fs10 color-dim5 ls2">IMPOSTEUR'+(bad>1?"S":"")+'<br>RESTANT'+(bad>1?"S":"")+'</span></div>')+(S.timer?'<div id="tdisp" class="timer-disp'+(S.trem<=10&&S.trem>0?" urgent":S.trem===0?" done":"")+'">'+( S.trem===0?"VOTEZ !":TF(S.trem))+'</div>':'')+'</div>'+
 (S.timer&&S.trem===0?'<button class="btn ghost mb6" onclick="startTimer();render()">↺ Relancer ('+TF(S.timer)+')</button>':'')+
-'<button class="btn red glow" onclick="stopTimer();S.phase=\'vote\';S.vt=null;render()">🗳️ VOTER POUR ÉLIMINER</button>'+
+'<button class="btn red glow" onclick="goVote()">🗳️ VOTER POUR ÉLIMINER</button>'+
 (S.hist.length?'<button class="btn ghost mt4" onclick="S.showHist=!S.showHist;render()">📋 Historique ('+S.hist.length+' tour'+(S.hist.length>1?"s":"")+')</button>'+(S.showHist?'<div class="hist-box mt6">'+HIST()+'</div>':''): '')+
 CSC()+
 '<button class="btn-abandon" onclick="showConfirm(\'Abandonner la partie en cours ?\',fullReset)">✕ Abandonner</button>'+
 '<div class="fline"></div>';return}
+
+if(p==="vote"&&S.mode==="host"){
+var cands=S.voteCands||S.alive;
+var exp=votersExpected();
+var waiting=exp.filter(function(id){return S.votes[id]===undefined});
+var nv=Object.keys(S.votes).length;
+var meVotes=S.hostPlays&&S.alive.indexOf(1)!==-1&&S.votes[1]===undefined;
+app.innerHTML='<div class="hline"></div>'+
+'<div class="flex flex-between mb10"><span class="tag">TOUR '+S.turn+'</span><span class="tag">'+nv+'/'+exp.length+' VOTES</span></div>'+
+'<h2 class="orb fs18 fw700 color-red mb6">'+G(S.round?"REVOTE":"VOTE EN COURS")+'</h2>'+
+'<p class="color-dim4 fs13 mb10">'+(S.round?"Égalité — seuls les ex æquo sont candidats.":"Chacun vote en secret sur son téléphone.")+'</p>'+
+(S.round?'<div class="flex gap4 flex-wrap flex-center mb10">'+cands.map(function(id){return '<span class="chip">'+N(id)+'</span>'}).join("")+'</div>':'')+
+'<p class="orb fs10 color-dim3 ls2 mb4">ONT VOTÉ</p>'+
+'<div class="flex gap4 flex-wrap flex-center mb8">'+exp.map(function(id){var v=S.votes[id]!==undefined;
+return '<span class="chip'+(v?" voted":" off")+'">'+(v?"✓ ":"⋯ ")+N(id)+'</span>'}).join("")+'</div>'+
+(waiting.length?'<p class="color-dim fs12 mb8">En attente de '+waiting.map(function(i){return N(i)}).join(", ")+'</p>':'<p class="color-cyan fs13 mb8">Tout le monde a voté.</p>')+
+(meVotes?'<p class="orb fs10 color-dim3 ls2 mb4">TON VOTE</p><div class="flex flex-col gap6 mb10">'+
+ cands.map(function(id){return '<button class="vote-btn" onclick="hostVote('+id+')"><span>'+N(id)+'</span></button>'}).join("")+
+ (S.skipvote&&!S.voteCands?'<button class="vote-btn skip" onclick="hostVote(-1)"><span>🚫 Personne</span></button>':'')+'</div>':'')+
+'<button class="btn red glow" onclick="closeVote()"'+(nv?"":" disabled")+'>CLORE LE VOTE'+(waiting.length?' ('+waiting.length+' manquant'+(waiting.length>1?"s":"")+')':'')+'</button>'+
+'<div class="fline"></div>';return}
+
+if(p==="vote_result"){
+var tl=S.tally;var top=tl.rows.length?tl.rows[0].count:1;
+app.innerHTML='<div class="hline"></div><span class="tag">TOUR '+S.turn+'</span>'+
+'<h2 class="orb fs18 fw700 color-cyan m8-0">'+G("DÉPOUILLEMENT")+'</h2>'+
+(tl.rows.length?'<div class="tally mb8">'+tl.rows.map(function(r){
+return '<div class="tally-row"><span class="tally-nm">'+(r.target===-1?"🚫 Personne":N(r.target))+'</span>'+
+'<div class="tally-bg"><div class="tally-bar" id="tb'+(r.target===-1?"X":r.target)+'"></div></div>'+
+'<span class="orb fs15 fw900 color-cyan min-w24">'+r.count+'</span></div>'+
+(r.voters?'<p class="tally-voters">'+r.voters.map(function(i){return N(i)}).join(", ")+'</p>':'')}).join("")+'</div>'
+:'<p class="color-dim fs13 mb8">Aucun vote exprimé.</p>')+
+(tl.abstentions?'<p class="color-dim3 fs12 mb8">'+tl.abstentions+' abstention'+(tl.abstentions>1?"s":"")+'</p>':'')+
+(tl.resolved!==null
+ ?'<p class="color-dim6 fs14 lh15 mb10">'+(tl.resolved===-1?"Personne n'est éliminé.":'<strong class="color-white">'+N(tl.resolved)+'</strong> est éliminé.')+'</p>'+
+  '<button class="btn red glow" onclick="applyVote('+tl.resolved+')">▶ CONTINUER</button>'
+ :'<p class="color-red fs14 fw600 mb8">⚖ Égalité entre '+tl.tied.map(function(i){return N(i)}).join(", ")+'</p>'+
+  (canRevote()?'<button class="btn glow" onclick="doRevote()">↻ REVOTE ENTRE LES EX ÆQUO</button>':'<p class="cats-warn">Revote déjà utilisé ce tour.</p>')+
+  '<button class="btn ghost" onclick="applyVote(-1)">🚫 Personne n\'est éliminé</button>'+
+  '<button class="btn ghost" onclick="tieRandom()">🎲 Le sort décide</button>')+
+'<div class="fline"></div>';
+tl.rows.forEach(function(r){var e=document.getElementById("tb"+(r.target===-1?"X":r.target));
+if(e)e.style.setProperty("--tw",Math.max(6,Math.round(r.count/top*100))+"%")});
+return}
 
 if(p==="vote"){
 var ap2=S.players.filter(function(x){return S.alive.indexOf(x.id)!==-1});
@@ -454,6 +498,92 @@ render();
 if(S.mode==="host"){requestWake();startTimer()}}
 
 function confirmSeen(){SND.click();VIB(30);S.wv=false;if(S.ri<S.tp.length-1){S.ri++;S.phase="handoff"}else{S.phase="playing";render();startTimer();return}render()}
+
+// ══════════════════════════════════════════════════════════════
+// VOTE SECRET DISTRIBUÉ (mode hôte)
+// ══════════════════════════════════════════════════════════════
+// Quelle que soit l'issue, ce bloc ne fait qu'une chose : poser S.vt et
+// appeler doElim(). Tout l'aval (mrwhite_guess, checkEnd, scores, historique)
+// reste rigoureusement inchangé — le vote distribué n'est qu'un périphérique
+// de saisie sophistiqué pour une variable qui existait déjà.
+
+function goVote(){
+if(S.mode==="host"){startVote();return}
+stopTimer();S.phase="vote";S.vt=null;render()}
+
+// L'hôte joue aussi : son vote passe par le même dépouillement que les autres.
+function hostVote(target){
+S.votes[1]=target;
+if(allVoted())closeVote();else render()}
+
+function startVote(){
+S.phase="vote";S.votes={};S.round=0;S.voteCands=null;S.tally=null;
+stopTimer();render()}
+
+// Un joueur déconnecté ne doit jamais bloquer la table : on n'attend que les
+// vivants effectivement connectés. Le bouton de clôture manuelle reste
+// toujours disponible, parce qu'il y aura toujours un téléphone mort.
+function votersExpected(){
+return S.alive.filter(function(id){
+var s=S.net&&S.net.seats[id-1];
+return s&&s.connected})}
+
+function allVoted(){
+var exp=votersExpected();
+if(!exp.length)return false;
+return exp.every(function(id){return S.votes[id]!==undefined})}
+
+function computeTally(){
+var counts={},voters={};
+Object.keys(S.votes).forEach(function(v){
+var t=S.votes[v];
+counts[t]=(counts[t]||0)+1;
+(voters[t]=voters[t]||[]).push(+v)});
+var max=0;
+for(var k in counts)if(counts[k]>max)max=counts[k];
+var leaders=Object.keys(counts).filter(function(k){return counts[k]===max}).map(Number);
+var rows=Object.keys(counts).map(function(k){
+return{target:+k,count:counts[k],voters:S.revealVoters?voters[k]:null}})
+.sort(function(a,b){return b.count-a.count});
+return{rows:rows,leaders:leaders,max:max,
+abstentions:S.alive.length-Object.keys(S.votes).length}}
+
+function closeVote(){
+if(S.phase!=="vote")return;
+var t=computeTally();
+var resolved=null,tied=null;
+
+if(t.leaders.length===1){resolved=t.leaders[0]}
+else{
+// « Personne » ne gagne jamais une égalité, seulement une majorité franche :
+// sinon un seul abstentionniste forcerait le tour nul.
+var real=t.leaders.filter(function(x){return x!==-1});
+if(real.length===1)resolved=real[0];
+else tied=real.length?real:S.alive.slice()}
+
+S.tally={rows:t.rows,abstentions:t.abstentions,resolved:resolved,tied:tied};
+S.phase="vote_result";
+SND.click();VIB(40);
+render()}
+
+// Applique le résultat : c'est le seul point de sortie vers le moteur existant.
+function applyVote(target){
+S.tally=null;S.voteCands=null;
+S.vt=target;
+doElim()}
+
+// Départage : un seul revote autorisé, puis tour nul — sinon deux joueurs
+// obstinés peuvent faire tourner la partie en rond.
+function canRevote(){return (S.round||0)<1}
+function doRevote(){
+if(!S.tally||!S.tally.tied)return;
+S.voteCands=S.tally.tied.slice();
+S.votes={};S.round=(S.round||0)+1;S.tally=null;
+S.phase="vote";SND.ping();VIB(30);render()}
+function tieRandom(){
+if(!S.tally||!S.tally.tied)return;
+var t=S.tally.tied;
+applyVote(t[Math.floor(Math.random()*t.length)])}
 
 function doElim(){
 if(S.vt===null)return;

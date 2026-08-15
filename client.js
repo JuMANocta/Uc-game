@@ -204,9 +204,79 @@ function syncClientScreen() {
   var me = C.snap.roster.filter(function (r) { return r.id === C.playerId; })[0];
   if (me && !me.alive) { C.screen = "dead"; return; }
   if (p === "playing") { C.screen = "word"; return; }
-  if (p === "vote") { C.screen = "vote"; return; }
+  if (p === "vote") {
+    // Nouveau tour de vote (ou revote) : on repart d'un choix vierge.
+    var v = C.snap.vote || {};
+    if (C._voteKey !== C.snap.turn + ":" + (v.round || 0)) {
+      C._voteKey = C.snap.turn + ":" + (v.round || 0);
+      C.myVote = null;
+    }
+    C.screen = "vote"; return;
+  }
+  if (p === "vote_result") { C.screen = "result"; return; }
   if (p === "turn_recap") { C.screen = "recap"; return; }
   if (p === "game_over") { C.screen = "over"; return; }
+}
+
+function clientVote(target) {
+  if (!C.snap) return;
+  C.myVote = target;
+  NET.toHost({ v: PROTO_V, t: "vote", target: target, turn: C.snap.turn, round: (C.snap.vote && C.snap.vote.round) || 0 });
+  SND.click(); VIB(30);
+  render();
+}
+
+function renderClientVote() {
+  var v = C.snap.vote || {};
+  var cands = v.candidates || [];
+  var voted = v.votedIds || [];
+  var iVoted = C.myVote !== null && C.myVote !== undefined;
+  var waiting = (C.snap.roster || []).filter(function (r) {
+    return r.alive && r.connected && voted.indexOf(r.id) === -1;
+  });
+
+  app.innerHTML = '<div class="hline"></div>' + linkPill() +
+    '<div class="flex flex-between mb10"><span class="tag">TOUR ' + C.snap.turn + '</span>' +
+    '<span class="tag">' + voted.length + "/" + (C.snap.roster || []).filter(function (r) { return r.alive && r.connected; }).length + " VOTES</span></div>" +
+    '<h2 class="orb fs18 fw700 color-red mb6">' + G(v.round ? "REVOTE" : "À TON TOUR DE VOTER") + "</h2>" +
+    '<p class="color-dim4 fs13 mb12">' + (v.round ? "Égalité — départage entre les ex æquo." : "Ton vote est secret.") + "</p>" +
+    (iVoted
+      ? '<div class="icon-med">🗳️</div><p class="color-cyan fs15 fw600 mb6">Tu as voté ' +
+        (C.myVote === -1 ? "« personne »" : "pour <strong>" + (S.nm[C.myVote] || "?") + "</strong>") + "</p>" +
+        '<button class="btn ghost mb10" onclick="C.myVote=null;render()">↺ Changer mon vote</button>' +
+        (waiting.length ? '<p class="color-dim fs12">En attente de ' + waiting.map(function (r) { return r.name; }).join(", ") + "</p>"
+                        : '<p class="color-cyan fs13">Tout le monde a voté — dépouillement…</p>')
+      : '<div class="flex flex-col gap6 mb10">' + cands.map(function (id) {
+          return '<button class="vote-btn" onclick="clientVote(' + id + ')"><span>' + (S.nm[id] || ("Joueur " + id)) +
+                 (id === C.playerId ? " (toi)" : "") + "</span></button>";
+        }).join("") +
+        (v.skipAllowed ? '<button class="vote-btn skip" onclick="clientVote(-1)"><span>🚫 Personne</span></button>' : "") + "</div>") +
+    '<button class="btn-abandon" onclick="showConfirm(\'Quitter la partie ?\',clientLeave)">✕ Quitter</button>' +
+    '<div class="fline"></div>';
+}
+
+function renderClientResult() {
+  var v = C.snap.vote || {};
+  var rows = v.rows || [];
+  var top = rows.length ? rows[0].count : 1;
+  app.innerHTML = '<div class="hline"></div>' + linkPill() +
+    '<span class="tag">TOUR ' + C.snap.turn + "</span>" +
+    '<h2 class="orb fs18 fw700 color-cyan m8-0">' + G("DÉPOUILLEMENT") + "</h2>" +
+    (rows.length ? '<div class="tally mb8">' + rows.map(function (r) {
+      return '<div class="tally-row"><span class="tally-nm">' + (r.target === -1 ? "🚫 Personne" : (S.nm[r.target] || "?")) + "</span>" +
+        '<div class="tally-bg"><div class="tally-bar" id="ctb' + (r.target === -1 ? "X" : r.target) + '"></div></div>' +
+        '<span class="orb fs15 fw900 color-cyan min-w24">' + r.count + "</span></div>" +
+        (r.voters ? '<p class="tally-voters">' + r.voters.map(function (i) { return S.nm[i] || "?"; }).join(", ") + "</p>" : "");
+    }).join("") + "</div>" : '<p class="color-dim fs13 mb8">Aucun vote exprimé.</p>') +
+    (v.abstentions ? '<p class="color-dim3 fs12 mb8">' + v.abstentions + " abstention" + (v.abstentions > 1 ? "s" : "") + "</p>" : "") +
+    (v.resolved !== null && v.resolved !== undefined
+      ? '<p class="color-dim6 fs14 lh15">' + (v.resolved === -1 ? "Personne n'est éliminé." : "<strong class=\"color-white\">" + (S.nm[v.resolved] || "?") + "</strong> est éliminé.") + "</p>"
+      : '<p class="color-red fs14 fw600">⚖ Égalité — l\'hôte départage…</p>') +
+    '<div class="fline"></div>';
+  rows.forEach(function (r) {
+    var e = document.getElementById("ctb" + (r.target === -1 ? "X" : r.target));
+    if (e) e.style.setProperty("--tw", Math.max(6, Math.round(r.count / top * 100)) + "%");
+  });
 }
 
 function clientLeave() {
@@ -314,6 +384,8 @@ function renderClient() {
   }
 
   if (s === "word") return renderClientWord();
+  if (s === "vote") return renderClientVote();
+  if (s === "result") return renderClientResult();
 
   if (s === "dead") {
     app.innerHTML = '<div class="hline"></div>' + linkPill() +

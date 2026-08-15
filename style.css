@@ -316,3 +316,12 @@ input[type=text]::placeholder { color: rgba(255,255,255,0.2); }
 .word-hide { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; padding: 26px 0; background: rgba(5,217,232,0.04); border: 1px dashed rgba(5,217,232,0.3); color: #05d9e8; cursor: pointer; font-family: 'Rajdhani', sans-serif; }
 .word-open { padding: 18px 0; cursor: pointer; }
 .speak-item.mine { border-color: rgba(5,217,232,0.45); background: rgba(5,217,232,0.07); }
+
+/* Dépouillement du vote secret */
+.tally { display: flex; flex-direction: column; gap: 6px; }
+.tally-row { display: flex; align-items: center; gap: 8px; }
+.tally-nm { flex: 0 0 32%; text-align: left; font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tally-bg { flex: 1; height: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(5,217,232,0.12); }
+.tally-bar { width: var(--tw, 0%); height: 100%; background: linear-gradient(90deg, rgba(5,217,232,0.5), rgba(5,217,232,0.85)); transition: width 0.45s ease; }
+.tally-voters { font-size: 11px; color: rgba(255,255,255,0.28); text-align: left; margin: -2px 0 2px 32%; }
+.chip.voted { border-color: rgba(5,217,232,0.45); color: #05d9e8; }

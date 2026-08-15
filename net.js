@@ -99,12 +99,18 @@ function snapshot() {
     spoken: S.spoken.slice(),
     scores: S.sc,
     opts: { cat: S.cat, night: S.night, skipvote: S.skipvote, timer: S.timer },
+    // votedIds dit QUI a voté, jamais POUR QUI — c'est ce qui permet
+    // l'affichage « en attente de Marc, Léa » sans rien divulguer.
     vote: {
       open: S.phase === "vote",
-      candidates: S.alive.slice(),
+      candidates: S.voteCands || S.alive.slice(),
       votedIds: Object.keys(S.votes || {}).map(Number),
-      tally: null,
-      result: null
+      round: S.round || 0,
+      skipAllowed: !!S.skipvote && !S.voteCands,
+      rows: S.tally ? S.tally.rows : null,
+      tied: S.tally ? S.tally.tied : null,
+      resolved: S.tally ? S.tally.resolved : null,
+      abstentions: S.tally ? S.tally.abstentions : 0
     },
     recap: null,
     gameOver: null
@@ -283,6 +289,20 @@ function hostOnMsg(cid, msg) {
     if (msg.on === false) { if (k !== -1) S.spoken.splice(k, 1); }
     else if (k === -1) S.spoken.push(pid);
     render();
+    return;
+  }
+  if (msg.t === "vote") {
+    // turn et round protègent des votes périmés envoyés par un client qui
+    // s'est reconnecté sur un état plus récent.
+    if (S.phase !== "vote" || msg.turn !== S.turn || msg.round !== S.round) return;
+    var voter = si + 1;
+    if (S.alive.indexOf(voter) === -1) return;
+    var cands = S.voteCands || S.alive;
+    if (msg.target !== -1 && cands.indexOf(msg.target) === -1) return;
+    if (msg.target === -1 && (!S.skipvote || S.voteCands)) return;
+    S.votes[voter] = msg.target;
+    render();
+    if (allVoted()) closeVote();
     return;
   }
   if (msg.t === "set_name" && S.phase === "lobby") {
