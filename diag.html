@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UNDERCOVER — Diagnostic réseau</title>
+<style>
+  body { background:#05050f; color:#fff; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; margin:0; padding:16px; font-size:14px; line-height:1.5; }
+  h1 { font-size:17px; color:#05d9e8; margin:0 0 4px; letter-spacing:1px; }
+  .sub { color:rgba(255,255,255,.35); font-size:12px; margin:0 0 16px; }
+  .row { display:flex; gap:8px; padding:7px 0; border-bottom:1px solid rgba(255,255,255,.07); align-items:flex-start; }
+  .k { flex:0 0 42%; color:rgba(255,255,255,.45); font-size:13px; }
+  .v { flex:1; word-break:break-word; font-size:13px; }
+  .ok { color:#00dc82; } .ko { color:#ff2a6d; } .wait { color:#ffb300; }
+  #log { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); padding:10px; margin-top:14px; font-family:ui-monospace,Menlo,Consolas,monospace; font-size:12px; white-space:pre-wrap; word-break:break-word; max-height:45vh; overflow:auto; }
+  h2 { font-size:13px; color:rgba(255,255,255,.5); margin:18px 0 6px; letter-spacing:1px; text-transform:uppercase; }
+  button { width:100%; padding:13px; margin-top:12px; background:rgba(5,217,232,.12); border:1px solid rgba(5,217,232,.4); color:#05d9e8; font-size:14px; font-weight:600; cursor:pointer; border-radius:3px; }
+  button.danger { background:rgba(255,42,109,.12); border-color:rgba(255,42,109,.4); color:#ff2a6d; }
+  #verdict { padding:12px; margin-top:14px; border-radius:3px; font-size:13px; display:none; }
+  #verdict.bad { background:rgba(255,42,109,.1); border:1px solid rgba(255,42,109,.4); }
+  #verdict.good { background:rgba(0,220,130,.1); border:1px solid rgba(0,220,130,.4); }
+  a { color:#05d9e8; }
+</style>
+</head>
+<body>
+<h1>DIAGNOSTIC RÉSEAU</h1>
+<p class="sub">Teste la création d'une salle, indépendamment du jeu.</p>
+
+<h2>Contexte</h2>
+<div id="ctx"></div>
+
+<h2>Journal</h2>
+<div id="log">Démarrage…
+</div>
+
+<div id="verdict"></div>
+
+<button onclick="location.reload()">↻ Relancer le test</button>
+<button class="danger" onclick="nuke()">🗑 Purger le cache et le service worker</button>
+<p class="sub" style="margin-top:14px">Purger force le rechargement complet de la dernière version. C'est le premier réflexe si le jeu semble figé sur une ancienne version.</p>
+
+<script>
+var t0 = Date.now();
+function ms(){ return String(Date.now()-t0).padStart(5,' ')+' ms  '; }
+function log(s){ var l=document.getElementById('log'); l.textContent += ms()+s+'\n'; l.scrollTop=l.scrollHeight; }
+function row(k,v,cls){
+  var d=document.createElement('div'); d.className='row';
+  d.innerHTML='<span class="k">'+k+'</span><span class="v '+(cls||'')+'">'+v+'</span>';
+  document.getElementById('ctx').appendChild(d);
+}
+function verdict(txt,good){
+  var v=document.getElementById('verdict');
+  v.className = good?'good':'bad'; v.style.display='block'; v.innerHTML=txt;
+}
+
+// ── Contexte ────────────────────────────────────────────────────
+row('Adresse', location.origin+location.pathname);
+row('Contexte sécurisé', window.isSecureContext ? 'oui (HTTPS)' : 'NON — WebRTC est impossible',
+    window.isSecureContext?'ok':'ko');
+row('WebRTC', typeof RTCPeerConnection==='function' ? 'disponible' : 'ABSENT de ce navigateur',
+    typeof RTCPeerConnection==='function'?'ok':'ko');
+row('Navigateur', navigator.userAgent.slice(0,80));
+
+// ── Service worker : la cause n°1 d'une version figée ───────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(function(rs){
+    row('Service workers', rs.length ? rs.length+' enregistré(s)' : 'aucun', rs.length?'wait':'ok');
+    if (window.caches) caches.keys().then(function(keys){
+      row('Caches présents', keys.length ? keys.join(', ') : 'aucun', 'wait');
+      if (keys.length && keys.indexOf('uc-game-v5')===-1) {
+        row('⚠ Version du cache', 'ANCIENNE — purge nécessaire', 'ko');
+      }
+    });
+  });
+} else { row('Service workers','non supporté'); }
+
+function nuke(){
+  var jobs=[];
+  if ('serviceWorker' in navigator)
+    jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){
+      return Promise.all(rs.map(function(r){ return r.unregister(); }));
+    }));
+  if (window.caches)
+    jobs.push(caches.keys().then(function(ks){
+      return Promise.all(ks.map(function(k){ return caches.delete(k); }));
+    }));
+  Promise.all(jobs).then(function(){
+    alert('Cache et service worker purgés. La page va se recharger.');
+    location.reload(true);
+  });
+}
+
+// ── 1. La bibliothèque est-elle déployée ? ──────────────────────
+log('Récupération de vendor/peerjs.min.js…');
+fetch('vendor/peerjs.min.js', {cache:'no-store'}).then(function(r){
+  log('  HTTP '+r.status+' ('+(r.headers.get('content-type')||'type inconnu')+')');
+  if (!r.ok) throw new Error('HTTP '+r.status);
+  return r.text();
+}).then(function(txt){
+  log('  '+txt.length+' octets reçus');
+  if (txt.indexOf('<html') !== -1 || txt.indexOf('<!DOCTYPE') !== -1) {
+    log('  ✗ C\'est une PAGE HTML, pas du JavaScript.');
+    row('vendor/peerjs.min.js','page d\'erreur HTML renvoyée','ko');
+    verdict('<b>Le fichier <code>vendor/peerjs.min.js</code> n\'est pas déployé.</b><br>'+
+            'Le serveur renvoie une page HTML à sa place. Vérifie que le dossier <code>vendor/</code> a bien été copié lors du déploiement.', false);
+    return;
+  }
+  row('vendor/peerjs.min.js', Math.round(txt.length/1024)+' Ko — OK','ok');
+  loadAndTest();
+}).catch(function(e){
+  log('  ✗ Échec : '+e.message);
+  row('vendor/peerjs.min.js','INACCESSIBLE','ko');
+  verdict('<b>Impossible de récupérer <code>vendor/peerjs.min.js</code>.</b><br>'+
+          'Le dossier <code>vendor/</code> est probablement absent du serveur. C\'est la cause du blocage sur « ouverture de la salle ».', false);
+});
+
+// ── 2. Ouverture réelle d'une salle ─────────────────────────────
+function loadAndTest(){
+  log('Chargement de la bibliothèque…');
+  var s=document.createElement('script');
+  s.src='vendor/peerjs.min.js';
+  s.onload=function(){
+    if (typeof window.Peer!=='function'){
+      log('  ✗ chargé mais window.Peer est absent');
+      row('window.Peer','absent','ko');
+      verdict('<b>Le fichier se charge mais ne définit pas <code>Peer</code>.</b> Il est probablement corrompu ou tronqué.', false);
+      return;
+    }
+    log('  ✓ window.Peer disponible');
+    openRoom();
+  };
+  s.onerror=function(){
+    log('  ✗ le navigateur a refusé d\'exécuter le script');
+    verdict('<b>Le script a été refusé par le navigateur</b> (type MIME incorrect servi par Apache ?).', false);
+  };
+  document.head.appendChild(s);
+}
+
+function openRoom(){
+  var code='DIAG'+Math.floor(Math.random()*9000+1000);
+  log('Ouverture de la salle « ucgame-'+code+' »…');
+  log('  (connexion au serveur d\'annuaire 0.peerjs.com)');
+  var done=false;
+  var peer=new window.Peer('ucgame-'+code,{debug:0});
+
+  var wd=setTimeout(function(){
+    if(done)return; done=true;
+    log('  ✗ AUCUNE réponse après 15 s');
+    row('Ouverture de salle','timeout','ko');
+    verdict('<b>Le serveur d\'annuaire ne répond pas.</b><br>'+
+            'Ni succès ni erreur en 15 s — le symptôme exact de ton blocage.<br><br>'+
+            'Causes probables, par ordre de fréquence :<br>'+
+            '• ton réseau bloque les WebSockets (WiFi d\'entreprise, VPN, bloqueur de pub, DNS filtrant)<br>'+
+            '• le broker public <code>0.peerjs.com</code> est momentanément indisponible<br><br>'+
+            'À tester : réessaie en partage de connexion 4G. Si ça marche, c\'est ton réseau.', false);
+    try{peer.destroy()}catch(e){}
+  },15000);
+
+  peer.on('open', function(id){
+    if(done)return; done=true; clearTimeout(wd);
+    log('  ✓ SALLE OUVERTE — id « '+id+' »');
+    row('Ouverture de salle','réussie','ok');
+    verdict('<b>Tout fonctionne.</b> La salle s\'ouvre correctement depuis ce téléphone et ce réseau.<br><br>'+
+            'Si le jeu reste malgré tout bloqué, c\'est qu\'il sert une ancienne version : utilise le bouton de purge ci-dessous, puis recharge.', true);
+    try{peer.destroy()}catch(e){}
+  });
+
+  peer.on('error', function(err){
+    if(done)return; done=true; clearTimeout(wd);
+    var t=(err&&err.type)||'inconnu';
+    log('  ✗ erreur « '+t+' » : '+((err&&err.message)||''));
+    row('Ouverture de salle','erreur : '+t,'ko');
+    var expl={
+      'browser-incompatible':'Ce navigateur ne gère pas WebRTC.',
+      'ssl-unavailable':'HTTPS requis.',
+      'server-error':'Le serveur d\'annuaire a renvoyé une erreur — il est probablement en panne.',
+      'socket-error':'La connexion WebSocket a échoué. Ton réseau les bloque très probablement.',
+      'socket-closed':'La connexion WebSocket a été fermée. Réseau instable ou filtrant.',
+      'network':'Impossible de joindre le serveur d\'annuaire.',
+      'unavailable-id':'Identifiant déjà pris (improbable ici — réessaie).'
+    }[t]||'Erreur inattendue.';
+    verdict('<b>'+expl+'</b><br><br>Code technique : <code>'+t+'</code><br><br>'+
+            'Si le message évoque le réseau, teste en partage de connexion 4G pour confirmer.', false);
+    try{peer.destroy()}catch(e){}
+  });
+}
+</script>
+</body>
+</html>

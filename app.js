@@ -48,6 +48,9 @@ var DB=[
 ["Chêne","Châtaignier","Nature",true],["Rivière","Ruisseau","Nature",true],["Falaise","Colline","Nature",true],["Rose","Pivoine","Nature",true],["Tulipe","Narcisse","Nature",true],["Champignon","Truffe","Nature",true],["Mousse","Lichen","Nature",true],["Séquoia","Baobab","Nature",true],["Lavande","Romarin","Nature",true],["Grotte","Caverne","Nature",true],["Marais","Tourbière","Nature",true],["Dune","Berme","Nature",true]
 ];
 
+// Estampille affichée sur l'accueil : permet de vérifier d'un coup d'oeil
+// quelle version le navigateur sert réellement (cache du service worker).
+var BUILD="v5-2026.08.15";
 var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}
@@ -197,19 +200,25 @@ app.innerHTML='<div class="hline"></div>'+
 '<p class="boot-line l3">&gt; IMPOSTEURS PRÊTS</p>'+
 '<p class="boot-line l4">&gt; QUI EST L\'UNDERCOVER ?</p>'+
 '</div>'+
-// Les boutons entrent en cascade APRÈS le boot log (sb1 → sb4), jamais avant.
-(function(){var hs=readHostSave(),cs=loadClientSave();return(
-(hs?'<button class="btn gold sb sb1" onclick="resumeHost()">↻ REPRENDRE LA SALLE '+hs.code+'</button>':'')+
-(!hs&&cs&&cs.token?'<button class="btn gold sb sb1" onclick="clientResume()">↻ REVENIR DANS LA PARTIE '+cs.code+'</button>':''))})()+
-'<p class="orb fs10 color-dim3 ls2 sb sb1 mb6">COMMENT JOUEZ-VOUS ?</p>'+
-'<button class="btn sb sb2" onclick="S.mode=\'solo\';S.phase=\'setup\';render()">📱 UN SEUL TÉLÉPHONE</button>'+
-'<p class="mode-hint sb sb2">On se passe l\'appareil — fonctionne hors-ligne</p>'+
+// Chaque mode est UNE carte titre + explication, au lieu d'un bouton suivi
+// d'un paragraphe : deux fois moins de marges empilées, et l'accueil tient
+// sur un petit écran maintenant qu'il propose trois entrées au lieu d'une.
+(function(){var hs=readHostSave(),cs=loadClientSave();
+if(hs)return'<button class="mode-card resume sb sb1" onclick="resumeHost()"><span class="mode-ttl">↻ REPRENDRE LA SALLE '+hs.code+'</span><span class="mode-sub">Une partie était en cours sur ce téléphone</span></button>';
+if(cs&&cs.token)return'<button class="mode-card resume sb sb1" onclick="clientResume()"><span class="mode-ttl">↻ REVENIR DANS LA PARTIE '+cs.code+'</span><span class="mode-sub">Tu étais connecté à cette salle</span></button>';
+return''})()+
+'<button class="mode-card sb sb2" onclick="S.mode=\'solo\';S.phase=\'setup\';render()">'+
+ '<span class="mode-ttl">📱 UN SEUL TÉLÉPHONE</span>'+
+ '<span class="mode-sub">On se passe l\'appareil — fonctionne hors-ligne</span></button>'+
 (window.isSecureContext
- ?'<button class="btn sb sb3" onclick="hostStart()">📡 CHACUN SON TÉLÉPHONE</button>'+
-  '<p class="mode-hint sb sb3">Chacun voit son mot et vote sur son écran</p>'+
+ ?'<button class="mode-card sb sb3" onclick="hostStart()">'+
+   '<span class="mode-ttl">📡 CHACUN SON TÉLÉPHONE</span>'+
+   '<span class="mode-sub">Chacun voit son mot et vote sur son écran</span></button>'+
   '<button class="btn ghost sb sb4" onclick="S.mode=\'client\';C.screen=\'join\';render()">🔗 J\'ai un code, je rejoins</button>'
- :'<button class="btn sb sb3" disabled>📡 CHACUN SON TÉLÉPHONE</button>'+
-  '<p class="cats-warn tc sb sb3">⚠ Ce mode exige HTTPS — indisponible sur cette adresse.</p>')+
+ :'<button class="mode-card sb sb3" disabled>'+
+   '<span class="mode-ttl">📡 CHACUN SON TÉLÉPHONE</span>'+
+   '<span class="mode-sub">⚠ Exige HTTPS — indisponible sur cette adresse</span></button>')+
+'<p class="build-stamp">build '+BUILD+'</p>'+
 '<div class="fline"></div>';return}
 
 if(p==="lobby"){
