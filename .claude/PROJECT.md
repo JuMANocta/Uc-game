@@ -311,10 +311,25 @@ Enveloppe `{v:1, t:<type>, …}`.
 | `sendSecretTo(pid)` / `sendSecrets()` | Envoi ciblé des mots |
 | `startVote()` / `closeVote()` / `computeTally()` | Vote secret et dépouillement |
 | `applyVote(t)` | Pose `S.vt` et appelle `doElim()` — seul point de sortie vers le moteur |
+| `submitClue(pid,txt)` | Enregistre un indice, ou déclenche la faute |
+| `saysWord(indice,mot)` | Détection du mot entier, tolérante aux accents et pluriels |
+| `clueFault(pid,...)` | Élimination immédiate → `checkEnd()` |
 | `doRevote()` / `tieRandom()` / `canRevote()` | Départage des égalités |
 | `hostSweep()` | Marque déconnecté un siège silencieux > 20 s |
 | `scheduleReconnect()` / `clientWakeUp()` | Backoff avec gigue, reprise immédiate au retour à l'écran |
 | `requestWake()` / `releaseWake()` | Wake Lock — mitigation principale sur iOS |
+
+### Indices écrits (option `S.writeClues`, multi-appareils)
+
+Chacun tape son indice ; `S.clues = {playerId: texte}` est remis à zéro chaque tour et diffusé à tous — c'est tout l'intérêt, garder une trace de ce qui a été dit.
+
+`saysWord(indice, mot)` normalise casse, accents et ponctuation, puis exige le mot **entier** : « chat » ne se déclenche ni sur « château », ni sur « achat », ni sur « chatons », mais bien sur « des chats ». Pluriel toléré dans les deux sens.
+
+Seul **son propre** mot est fautif : un civil qui prononce le mot Undercover fait une déduction légitime, pas une faute. Mr. White n'ayant pas de mot ne peut jamais être sanctionné.
+
+**Aucun avertissement local avant l'envoi** — prévenir « ton indice contient ton mot » rendrait la règle décorative, plus personne ne se ferait prendre. C'est délibéré, et c'est pourquoi l'option est désactivable.
+
+`clueFault()` emprunte exactement le chemin d'une élimination par vote : `checkEnd()` distribue les points et décide de la fin de partie. Seul l'écran de récap diffère, via `S.fault`.
 
 ### Règles de vote
 

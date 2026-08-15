@@ -97,6 +97,11 @@ function snapshot() {
     impostorsLeft: S.night ? null : (S.players.length ? bad : null),
     speakOrder: S.ro.map(function (i) { return S.tp[i] ? S.tp[i].id : null; }).filter(function (x) { return x !== null; }),
     spoken: S.spoken.slice(),
+    // Les indices sont publics — c'est tout leur intérêt : garder une trace
+    // de ce qui a été dit. La faute l'est aussi, la sanction doit être visible.
+    writeClues: !!S.writeClues,
+    clues: S.writeClues ? JSON.parse(JSON.stringify(S.clues || {})) : {},
+    fault: S.fault ? { id: S.fault.id, word: S.fault.word, clue: S.fault.clue } : null,
     scores: S.sc,
     opts: { cat: S.cat, night: S.night, skipvote: S.skipvote, timer: S.timer },
     // votedIds dit QUI a voté, jamais POUR QUI — c'est ce qui permet
@@ -320,6 +325,11 @@ function hostOnMsg(cid, msg) {
     if (msg.on === false) { if (k !== -1) S.spoken.splice(k, 1); }
     else if (k === -1) S.spoken.push(pid);
     render();
+    return;
+  }
+  if (msg.t === "clue") {
+    if (msg.turn !== S.turn) return;          // indice d'un tour périmé
+    submitClue(si + 1, msg.text);
     return;
   }
   if (msg.t === "vote") {

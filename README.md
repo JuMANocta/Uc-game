@@ -102,6 +102,7 @@ Les paires jouées ne se répètent pas avant épuisement complet du pool (ou du
 ## Fonctionnalités
 
 - **Multi-appareils** — QR code, code de salle à 6 caractères, lobby live, reconnexion automatique après verrouillage du téléphone, reprise de la salle après rechargement de l'hôte
+- **Indices écrits** *(multi-appareils)* — chacun tape son indice sur son téléphone : la partie garde une trace de ce qui a été dit, et **prononcer son propre mot élimine sur-le-champ**. Option désactivable ; sans écran individuel, taper son indice le montrerait à tout le monde
 - **Vote secret** — chacun vote sur son écran, dépouillement animé, revote en cas d'égalité, option « vote à découvert » montrant qui a voté pour qui
 - **Options persistantes** — nombre de joueurs, noms, timer, modes et filtres restaurés au rechargement
 - **Filtre de catégories** — active/désactive chacune des 48 catégories, avec le nombre de paires par catégorie et la taille du pool résultant
