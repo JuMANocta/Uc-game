@@ -35,6 +35,11 @@
 
 <div id="verdict"></div>
 
+<h2>Traversée de NAT</h2>
+<p class="sub" style="margin:0 0 8px">Quels chemins ton réseau autorise-t-il ? C'est ce qui décide si deux téléphones peuvent se joindre.</p>
+<div id="ice"></div>
+<button onclick="testIce()">🧊 Tester la traversée de NAT</button>
+
 <button onclick="location.reload()">↻ Relancer le test</button>
 <button class="danger" onclick="nuke()">🗑 Purger le cache et le service worker</button>
 <p class="sub" style="margin-top:14px">Purger force le rechargement complet de la dernière version. C'est le premier réflexe si le jeu semble figé sur une ancienne version.</p>
@@ -93,9 +98,16 @@ if ('serviceWorker' in navigator) {
     row('Service workers', rs.length ? rs.length+' enregistré(s)' : 'aucun', rs.length?'wait':'ok');
     if (window.caches) caches.keys().then(function(keys){
       row('Caches présents', keys.length ? keys.join(', ') : 'aucun', 'wait');
-      if (keys.length && keys.indexOf('uc-game-v5')===-1) {
-        row('⚠ Version du cache', 'ANCIENNE — purge nécessaire', 'ko');
-      }
+      if (!keys.length) return;
+      // La version attendue est lue dans sw.js plutôt qu'écrite en dur : codée
+      // en dur, elle se périmait à chaque livraison et annonçait « ANCIENNE »
+      // à tout le monde.
+      fetch('sw.js', {cache:'no-store'}).then(function(r){ return r.text(); }).then(function(t){
+        var m = t.match(/CACHE\s*=\s*'([^']+)'/);
+        if (!m) return;
+        var ok = keys.indexOf(m[1]) !== -1;
+        row('Version du cache', ok ? m[1] + ' — à jour' : 'ANCIENNE (attendu : ' + m[1] + ')', ok ? 'ok' : 'ko');
+      }).catch(function(){});
     });
   });
 } else { row('Service workers','non supporté'); }
@@ -139,6 +151,88 @@ fetch('vendor/peerjs.min.js', {cache:'no-store'}).then(function(r){
   verdict('<b>Impossible de récupérer <code>vendor/peerjs.min.js</code>.</b><br>'+
           'Le dossier <code>vendor/</code> est probablement absent du serveur. C\'est la cause du blocage sur « ouverture de la salle ».', false);
 });
+
+// ── Traversée de NAT ────────────────────────────────────────────
+// Un réseau peut laisser passer STUN et bloquer TURN, ou l'inverse. Le type de
+// candidat obtenu dit exactement où l'on est :
+//   host  → rien que le réseau local
+//   srflx → STUN répond, l'IP publique est connue
+//   relay → TURN répond : c'est LE cas qui sauve les réseaux à NAT symétrique,
+//           comme les opérateurs mobiles français
+function iceRow(k, v, cls) {
+  var d = document.createElement('div'); d.className = 'row';
+  d.innerHTML = '<span class="k">' + k + '</span><span class="v ' + (cls || '') + '">' + v + '</span>';
+  document.getElementById('ice').appendChild(d);
+}
+
+function iceServers() {
+  try {
+    var c = JSON.parse(localStorage.getItem('uc_ice') || 'null');
+    if (c && c.iceServers && c.iceServers.length) return c.iceServers;
+  } catch (e) {}
+  return [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: ['turn:eu-0.turn.peerjs.com:3478', 'turn:us-0.turn.peerjs.com:3478'],
+      username: 'peerjs', credential: 'peerjsp' },
+    { urls: ['turn:openrelay.metered.ca:80', 'turn:openrelay.metered.ca:443',
+             'turns:openrelay.metered.ca:443'],
+      username: 'openrelayproject', credential: 'openrelayproject' }
+  ];
+}
+
+function testIce() {
+  document.getElementById('ice').innerHTML = '';
+  var v = document.getElementById('verdict'); v.style.display = 'none';
+  log('Test de traversée de NAT…');
+  if (typeof RTCPeerConnection !== 'function') { iceRow('WebRTC', 'absent', 'ko'); return; }
+
+  var seen = {}, relays = {}, done = false;
+  var pc = new RTCPeerConnection({ iceServers: iceServers() });
+  pc.createDataChannel('t');
+
+  pc.onicecandidate = function (e) {
+    if (!e.candidate) { finish(); return; }
+    var c = e.candidate.candidate || '';
+    var m = c.match(/ typ (\w+)/);
+    if (!m) return;
+    seen[m[1]] = (seen[m[1]] || 0) + 1;
+    if (m[1] === 'relay') {
+      // Le port du relais dit QUEL chemin a fonctionné — décisif pour savoir
+      // si le réseau ne tolère que le 443.
+      var p = c.match(/ (\d+) typ relay/);
+      var proto = /tcp/i.test(c) ? 'TCP' : 'UDP';
+      if (p) { relays[proto + ' via ' + (c.indexOf('443') !== -1 ? '443' : 'autre port')] = 1; }
+      log('  ✓ relais obtenu (' + proto + ')');
+    }
+  };
+
+  function finish() {
+    if (done) return; done = true;
+    try { pc.close(); } catch (e) {}
+    iceRow('Réseau local (host)', seen.host ? seen.host + ' candidat(s)' : 'aucun', seen.host ? 'ok' : 'ko');
+    iceRow('STUN (srflx)', seen.srflx ? 'répond — IP publique connue' : 'AUCUNE réponse', seen.srflx ? 'ok' : 'ko');
+    iceRow('TURN (relay)', seen.relay ? 'répond — ' + Object.keys(relays).join(', ') : 'AUCUNE réponse', seen.relay ? 'ok' : 'ko');
+
+    if (seen.relay) {
+      verdict('<b>Ce réseau peut relayer.</b> Même derrière un NAT symétrique — cas des opérateurs ' +
+        'mobiles français — la connexion aboutira, en passant par un relais.', true);
+    } else if (seen.srflx) {
+      verdict('<b>STUN fonctionne, mais AUCUN relais n\'est joignable.</b><br>' +
+        'La connexion réussira entre deux appareils sur le même WiFi, mais échouera dès qu\'un joueur ' +
+        'est derrière un NAT symétrique — typiquement en 4G chez Free Mobile.<br><br>' +
+        'Les ports TURN sont filtrés par ce réseau. Un serveur TURN en TLS sur le port 443 est ' +
+        'la seule issue fiable : le trafic devient indistinguable d\'une connexion HTTPS.', false);
+    } else {
+      verdict('<b>Ni STUN ni TURN ne répondent.</b> Ce réseau bloque très largement l\'UDP et les ' +
+        'ports non standard. Le multi-appareils ne peut pas fonctionner ici sans un relais en 443.', false);
+    }
+  }
+
+  pc.createOffer().then(function (o) { return pc.setLocalDescription(o); }).catch(function (e) {
+    iceRow('Erreur', String(e && e.message || e), 'ko');
+  });
+  setTimeout(finish, 9000);   // certains réseaux ne terminent jamais la collecte
+}
 
 // ── 2. Ouverture réelle d'une salle ─────────────────────────────
 function loadAndTest(){

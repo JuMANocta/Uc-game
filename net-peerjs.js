@@ -11,6 +11,42 @@
 //  · Sans serveur TURN, un NAT symétrique (fréquent chez les opérateurs
 //    mobiles) empêche la connexion. Sur un WiFi commun, ça passe.
 
+// ══════════════════════════════════════════════════════════════
+// CONFIGURATION ICE
+// ══════════════════════════════════════════════════════════════
+// PeerJS embarque un STUN Google et deux relais TURN, mais UNIQUEMENT sur le
+// port 3478 — fréquemment filtré sur les réseaux mobiles français, Free Mobile
+// en tête, qui combine CGNAT agressif et blocage des ports non standard.
+//
+// D'où les replis sur 80 et 443 : un TURN en TLS sur 443 est indistinguable
+// d'une connexion HTTPS ordinaire, c'est la dernière porte qui reste ouverte
+// quand tout le reste est fermé.
+//
+// Ces relais publics sont gratuits et sans garantie de service. Pour une
+// fiabilité contractuelle, héberger son propre coturn et le déclarer via
+// localStorage['uc_ice'] — voir diag.html.
+var ICE_DEFAULT = {
+  iceServers: [
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: ["turn:eu-0.turn.peerjs.com:3478", "turn:us-0.turn.peerjs.com:3478"],
+      username: "peerjs", credential: "peerjsp" },
+    { urls: ["turn:openrelay.metered.ca:80",
+             "turn:openrelay.metered.ca:443",
+             "turns:openrelay.metered.ca:443"],
+      username: "openrelayproject", credential: "openrelayproject" }
+  ]
+};
+
+// Surcharge possible sans toucher au code : permet de brancher son propre
+// serveur TURN depuis la page de diagnostic.
+function iceConfig() {
+  try {
+    var c = JSON.parse(localStorage.getItem("uc_ice") || "null");
+    if (c && c.iceServers && c.iceServers.length) return c;
+  } catch (e) {}
+  return ICE_DEFAULT;
+}
+
 var PeerAdapter = (function () {
   var _peer = null;        // instance PeerJS courante
   var _conns = {};         // connId opaque -> {conn, open}
@@ -98,7 +134,7 @@ var PeerAdapter = (function () {
     killPeer();
     _code = code;
     _status = "opening";
-    _peer = new window.Peer("ucgame-" + code, { debug: 0 });
+    _peer = new window.Peer("ucgame-" + code, { debug: 0, config: iceConfig() });
     armWatch(12000);
 
     _peer.on("open", function () {
@@ -134,7 +170,7 @@ var PeerAdapter = (function () {
   function openClient() {
     killPeer();
     _status = "opening";
-    _peer = new window.Peer(null, { debug: 0 });   // id aléatoire attribué par le broker
+    _peer = new window.Peer(null, { debug: 0, config: iceConfig() });   // id aléatoire attribué par le broker
     armWatch(12000);
 
     _peer.on("open", function () {
