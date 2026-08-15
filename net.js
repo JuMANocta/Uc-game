@@ -112,8 +112,39 @@ function snapshot() {
       resolved: S.tally ? S.tally.resolved : null,
       abstentions: S.tally ? S.tally.abstentions : 0
     },
-    recap: null,
-    gameOver: null
+    // Récap et fin de partie révèlent la paire et les rôles — mais seulement
+    // une fois le tour terminé, exactement comme l'écran turn_recap du mode
+    // mono-téléphone. Le tour suivant tire de nouveaux mots.
+    recap: S.phase === "turn_recap" ? (function () {
+      var li = S.skipt ? null : (S.elim.length ? S.elim[S.elim.length - 1] : null);
+      var pl = li ? S.players.filter(function (x) { return x.id === li; })[0] : null;
+      return {
+        skipped: !!S.skipt,
+        elimId: li,
+        elimRole: pl ? pl.role : null,
+        pair: S.pair ? S.pair.slice() : null,
+        category: S.ct,
+        impostorsLeft: S.players.filter(function (x) {
+          return S.alive.indexOf(x.id) !== -1 && x.role !== "civil";
+        }).length
+      };
+    })() : null,
+
+    gameOver: (S.phase === "game_over" && S.gr) ? {
+      winner: S.gr.winner,
+      msg: S.gr.msg,
+      roles: S.players.map(function (p) { return { id: p.id, role: p.role }; }),
+      pair: S.pair ? S.pair.slice() : null,
+      category: S.ct,
+      turns: S.turn
+    } : null,
+
+    // Mr. White démasqué : il tape sa proposition sur son propre téléphone,
+    // les autres voient qu'on l'attend.
+    mw: S.phase === "mrwhite_guess" ? {
+      playerId: S.vt,
+      guess: S.mwGuessText || null
+    } : null
   };
 }
 
@@ -303,6 +334,14 @@ function hostOnMsg(cid, msg) {
     S.votes[voter] = msg.target;
     render();
     if (allVoted()) closeVote();
+    return;
+  }
+  if (msg.t === "mw_answer") {
+    if (S.phase !== "mrwhite_guess" || msg.turn !== S.turn) return;
+    if (si + 1 !== S.vt) return;                 // seul le Mr. White démasqué répond
+    S.mwGuessText = String(msg.guess || "").replace(/[<>&"]/g, "").slice(0, 40);
+    SND.ping(); VIB(30);
+    render();
     return;
   }
   if (msg.t === "set_name" && S.phase === "lobby") {

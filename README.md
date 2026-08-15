@@ -2,6 +2,17 @@
 
 Jeu de société **Undercover** en version navigateur, thème cyberpunk "Night City". Aucune installation, aucune dépendance : ouvrez `index.html` et jouez.
 
+## Deux façons de jouer
+
+Le choix se fait à l'ouverture de l'application.
+
+| Mode | Fonctionnement |
+|---|---|
+| 📱 **Un seul téléphone** | Le jeu original : on se passe l'appareil, chacun découvre son mot en privé, le vote se fait à voix haute. Fonctionne hors-ligne. |
+| 📡 **Chacun son téléphone** | L'hôte affiche un **QR code**, les autres le scannent, saisissent leur pseudo et rejoignent la salle. Chacun reçoit **son mot sur son propre écran** et **vote en secret**. Plus de passage de téléphone. |
+
+> Le mode multi-appareils exige **HTTPS** (contrainte WebRTC) et une connexion Internet pour établir la liaison. Le bouton est désactivé avec explication si l'application est servie en HTTP simple.
+
 ## Principe du jeu
 
 Chaque joueur reçoit secrètement un mot. La plupart ont le **même mot (civils)**, mais quelques-uns ont un **mot proche mais différent (Undercover)**, et éventuellement un joueur n'a **aucun mot (Mr. White)**.
@@ -88,6 +99,8 @@ Les paires jouées ne se répètent pas avant épuisement complet du pool (ou du
 
 ## Fonctionnalités
 
+- **Multi-appareils** — QR code, code de salle à 6 caractères, lobby live, reconnexion automatique après verrouillage du téléphone, reprise de la salle après rechargement de l'hôte
+- **Vote secret** — chacun vote sur son écran, dépouillement animé, revote en cas d'égalité, option « vote à découvert » montrant qui a voté pour qui
 - **Options persistantes** — nombre de joueurs, noms, timer, modes et filtres restaurés au rechargement
 - **Filtre de catégories** — active/désactive chacune des 42 catégories, avec le nombre de paires par catégorie et la taille du pool résultant
 - **Ordre de parole** — affiché pendant le débat ; tap sur un nom pour le cocher (a parlé) ; bouton pour tout décocher
@@ -104,9 +117,18 @@ Les paires jouées ne se répètent pas avant épuisement complet du pool (ou du
 
 ## Phases de jeu
 
+**Un seul téléphone**
 ```
 splash → setup → handoff → reveal → playing → vote → turn_recap → game_over
                                                ↗ mrwhite_guess ↗
+```
+
+**Chacun son téléphone** — `handoff` et `reveal` disparaissent, un dépouillement s'intercale
+```
+splash → lobby → setup → playing → vote → vote_result → turn_recap → game_over
+                            ↑                              ↓
+                            └──────────────────────────────┘
+                                    ↗ mrwhite_guess ↗
 ```
 
 | Phase | Description |
@@ -126,16 +148,33 @@ splash → setup → handoff → reveal → playing → vote → turn_recap → 
 
 ```
 uc-game/
-├── index.html       # Shell HTML
-├── app.js           # DB + logique complète (vanilla JS)
-├── style.css        # Thème cyberpunk Night City
-├── manifest.json    # PWA manifest
-├── sw.js            # Service worker (cache-first)
+├── index.html         # Shell HTML
+├── app.js             # DB + logique de jeu (vanilla JS)
+├── net.js             # Façade réseau NET + protocole + session hôte
+├── net-peerjs.js      # Adaptateur WebRTC (seul fichier utilisant PeerJS)
+├── client.js          # État et écrans du joueur distant
+├── qr.js              # Peinture du QR code dans un canvas
+├── style.css          # Thème cyberpunk Night City
+├── manifest.json      # PWA manifest
+├── sw.js              # Service worker (stale-while-revalidate)
+├── vendor/
+│   ├── peerjs.min.js  # PeerJS 1.5.4 (MIT)
+│   └── qrcode.js      # qrcode-generator 1.4.4 (MIT)
 └── icons/
-    └── icon.svg     # Icône PWA
+    └── icon.svg       # Icône PWA
 ```
 
-**Aucune dépendance** — pas de Node, pas de bundler, pas de framework.
+**Pas de build, pas de Node, pas de bundler.** Les deux bibliothèques tierces sont commitées dans `vendor/` : un `git pull` suffit à déployer. PeerJS n'est chargé qu'au moment où l'on choisit le multi-appareils, le mode solo ne paie pas ses 90 Ko.
+
+### Architecture réseau
+
+L'hôte fait autorité : l'état complet vit sur son téléphone, les clients sont des terminaux passifs qui reçoivent des **snapshots complets** (jamais des deltas — la reconnexion emprunte ainsi le même chemin de code que le fonctionnement normal).
+
+Toute la logique de jeu ne parle qu'à la façade `NET` ; `net-peerjs.js` est le seul fichier qui mentionne PeerJS. Un adaptateur Supabase peut être ajouté sans toucher `app.js` ni `client.js`.
+
+**Confidentialité** — un client ne reçoit que `word` et `isMrWhite`, jamais son `role` : lui dire qu'il est « undercover » lui révélerait son camp, ce que l'écran de révélation mono-téléphone se garde bien de faire. Une seule fonction, `snapshot()`, produit les données diffusées, et n'expose les rôles qu'une fois les joueurs éliminés.
+
+**Limites assumées** — 12 joueurs maximum en multi (l'hôte tient N−1 connexions, c'est lourd sur mobile ; le solo garde 20). Sans serveur TURN, un NAT symétrique — fréquent chez les opérateurs mobiles — peut empêcher la connexion : sur un WiFi commun, ça passe. Si le téléphone de l'hôte meurt définitivement, la partie est perdue : il n'y a pas de migration d'hôte, car répliquer la table des rôles sur un appareil de secours détruirait la confidentialité.
 
 ---
 

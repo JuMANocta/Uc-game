@@ -235,6 +235,12 @@ Anti-répétition : `S.used` trace les **indices originaux DB** déjà tirés. Q
 | I16 | — | Compteur de paires par catégorie et taille du pool dans le setup ; alerte pool < 25 |
 | I17 | — | `navigator.share()` pour le partage natif mobile (presse-papiers en secours) |
 | I18 | — | `aria-label` + `aria-pressed` sur tous les toggles ; `allCats()` mémoïsé |
+| P0 | `40633e5` | Fondations multi-appareils : `S.mode`, `readNameInputs()`, correction de `fullReset`/`resetOpts`/`saveOpts` |
+| P1 | `c1eeb3b` | Lobby réseau : façade `NET`, adaptateur PeerJS, QR, code de salle, roster live, exclusion |
+| P2 | `7c9bde6` | Reconnexion (backoff, heartbeat, visibilitychange) et persistance de l'hôte + Wake Lock |
+| P3 | `d7c25c0` | Mots secrets ciblés — les phases `handoff`/`reveal` disparaissent en multi |
+| P4 | `6140889` | Vote secret distribué, dépouillement animé, revote sur égalité |
+| P5 | — | Écrans récap/fin côté client, Mr. White tapant sa proposition, vote à découvert (feature J) |
 
 ### Nouvelles fonctionnalités
 
@@ -260,6 +266,80 @@ Anti-répétition : `S.used` trace les **indices originaux DB** déjà tirés. Q
 
 ---
 
+---
+
+## Mode multi-appareils
+
+Chacun joue sur son propre téléphone. Le choix se fait à l'entrée de l'application ; le mode mono-téléphone reste strictement inchangé.
+
+### Fichiers
+
+| Fichier | Rôle |
+|---|---|
+| `net.js` | Façade `NET`, protocole, `snapshot()`, session hôte, Wake Lock, cycle de vie |
+| `net-peerjs.js` | Adaptateur WebRTC — **seul fichier mentionnant `Peer`** |
+| `client.js` | État `C` et `renderClient()` — écrans du joueur distant |
+| `qr.js` | `drawQR(canvas, texte)` — peint le QR sans passer par les helpers à `style=""` |
+| `vendor/peerjs.min.js` | PeerJS 1.5.4 (MIT), chargé paresseusement, précaché par le SW |
+| `vendor/qrcode.js` | qrcode-generator 1.4.4 (MIT) |
+
+### Principes structurants
+
+1. **L'hôte fait autorité.** `S` reste l'unique source de vérité, sur son appareil.
+2. **Snapshots complets, jamais de deltas.** La reconnexion emprunte le même chemin de code que le fonctionnement normal — c'est ce qui la rend structurelle plutôt que rustinée.
+3. **Le client tolère l'absence de réseau.** Son mot est en cache local et reste affiché pendant une coupure ; l'écran n'est jamais vidé. Le lien n'est requis que pour envoyer un vote et recevoir un snapshot.
+4. **Un client ne reçoit jamais son rôle** — seulement `word` et `isMrWhite`.
+5. **L'identité est le token, jamais l'id de connexion.** Les `connId` sont opaques et forgés par l'adaptateur ; la logique de jeu ne doit jamais les inspecter ni les corréler.
+6. **Les sièges sont un tableau ordonné** (`playerId = index + 1`) : la renumérotation après un départ est automatique et préserve l'invariant d'ids contigus dont dépend `startSession()`.
+
+### Protocole
+
+Enveloppe `{v:1, t:<type>, …}`.
+
+**Client → hôte** : `hello {token,name}` · `vote {target,turn,round}` · `spoke {on}` · `mw_answer {guess,turn}` · `set_name` · `ping` · `leave`
+**Hôte → client** : `welcome {token,playerId,roomCode,state}` · `reject {reason}` · `state <Snapshot>` · **`secret {turn,word,isMrWhite,category}` — ciblé uniquement** · `timer {action,remaining}` · `pong`
+
+### Fonctions clés
+
+| Fonction | Rôle |
+|---|---|
+| `hostStart()` / `resumeHost()` | Ouvre ou reprend une salle (même code → les clients la retrouvent seuls) |
+| `snapshot()` | **Unique producteur** des données diffusées |
+| `pushState()` | Diffusion idempotente, appelée sans condition depuis `render()` |
+| `sendSecretTo(pid)` / `sendSecrets()` | Envoi ciblé des mots |
+| `startVote()` / `closeVote()` / `computeTally()` | Vote secret et dépouillement |
+| `applyVote(t)` | Pose `S.vt` et appelle `doElim()` — seul point de sortie vers le moteur |
+| `doRevote()` / `tieRandom()` / `canRevote()` | Départage des égalités |
+| `hostSweep()` | Marque déconnecté un siège silencieux > 20 s |
+| `scheduleReconnect()` / `clientWakeUp()` | Backoff avec gigue, reprise immédiate au retour à l'écran |
+| `requestWake()` / `releaseWake()` | Wake Lock — mitigation principale sur iOS |
+
+### Règles de vote
+
+- Clôture automatique quand tous les vivants **connectés** ont voté ; bouton manuel toujours présent.
+- **« Personne » ne gagne jamais une égalité**, seulement une majorité franche.
+- Égalité → revote limité aux ex æquo, **plafonné à un seul**, puis tour nul. L'hôte garde « personne » et « le sort décide ».
+- `turn` et `round` sur chaque vote : un client reconnecté ne peut pas injecter un vote périmé.
+
+### Stockage
+
+- `uc_net_host` : `{code, seats, S (complet moins tid/net), savedAt}` — throttlé à 1/s, purgé après 6 h
+- `uc_net_client` : `{code, token, playerId, name, secret}`
+
+### Limites assumées
+
+- **HTTPS obligatoire** (WebRTC) — bouton désactivé avec explication sinon.
+- **12 joueurs maximum** en multi (l'hôte tient N−1 `RTCPeerConnection`) ; le solo garde 20.
+- **Pas de serveur TURN** : un NAT symétrique (fréquent en 4G) peut empêcher la connexion. Sur WiFi commun, ça passe. C'est le go/no-go à tester sur deux réseaux distincts.
+- **Pas de migration d'hôte** : répliquer la table des rôles sur un appareil de secours détruirait la confidentialité. Si l'hôte meurt, la partie est finie.
+- Le broker public `peerjs.com` sert d'annuaire : Internet est requis pour **établir** la liaison.
+
+### Bancs d'essai
+
+Cinq suites Node exercent le protocole sans WebRTC (adaptateur factice, horloge et minuteries pilotées) : lobby et tokens, reconnexion et persistance, distribution des secrets et étanchéité, dépouillement et égalités, écrans de fin. Elles vérifient notamment qu'**aucun mot de joueur vivant ni champ `role` ne sort dans une diffusion**.
+
+---
+
 ## Roadmap (à faire)
 
 ### En attente
@@ -267,7 +347,9 @@ Anti-répétition : `S.used` trace les **indices originaux DB** déjà tirés. Q
 | # | Priorité | Description |
 |---|---|---|
 | G | Moyenne | **Listes de mots custom** — écran dédié pour ajouter ses propres paires `[civil, UC, catégorie]`, sauvegardées en `localStorage['uc_custom']`, sélectionnables à la place ou en complément de la DB |
-| J | Moyenne | **Récap visuel des votes** — après chaque élimination, afficher qui a voté pour qui (nécessite d'enregistrer les votes pendant la phase `vote`) |
+| P6 | Conditionnelle | **Adaptateur Supabase** (`net-supabase.js`) implémentant les quatre mêmes fonctions que l'adaptateur PeerJS. Devient nécessaire — et non plus optionnel — si le test inter-réseaux (WiFi + 4G) échoue à cause du NAT symétrique. La façade est déjà en place. |
+
+✅ **J — Récap visuel des votes** : livré avec P5 en multi (option « vote à découvert »). Reste à porter en mode solo si souhaité.
 
 ### Idées futures non planifiées
 

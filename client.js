@@ -148,8 +148,11 @@ function clientOnMsg(msg) {
     return;
   }
   if (msg.t === "state") {
+    var prev = C.snap ? C.snap.phase : null;
     C.snap = msg.state; C.link = "online";
-    adoptRoster(); syncClientScreen(); render();
+    adoptRoster(); syncClientScreen();
+    clientPhaseFX(prev, msg.state.phase);
+    render();
     return;
   }
   if (msg.t === "secret") {
@@ -214,8 +217,31 @@ function syncClientScreen() {
     C.screen = "vote"; return;
   }
   if (p === "vote_result") { C.screen = "result"; return; }
+  if (p === "mrwhite_guess") {
+    C.screen = (C.snap.mw && C.snap.mw.playerId === C.playerId) ? "mw" : "mwwait";
+    return;
+  }
   if (p === "turn_recap") { C.screen = "recap"; return; }
   if (p === "game_over") { C.screen = "over"; return; }
+}
+
+// Sons et vibrations sur les transitions marquantes, comme en mono-téléphone.
+function clientPhaseFX(prev, now) {
+  if (prev === now) return;
+  if (now === "vote") { SND.ping(); VIB(40); }
+  else if (now === "vote_result") { SND.click(); VIB(30); }
+  else if (now === "turn_recap") { SND.elim(); VIB([80, 40, 120]); }
+  else if (now === "game_over") {
+    var w = C.snap && C.snap.gameOver ? C.snap.gameOver.winner : null;
+    SND.win(w); VIB([100, 50, 100, 50, 200]);
+  }
+}
+
+function clientMwSend() {
+  var el = document.getElementById("mwg");
+  if (!el || !el.value.trim()) return;
+  NET.toHost({ v: PROTO_V, t: "mw_answer", guess: el.value.trim(), turn: C.snap.turn });
+  SND.click(); VIB(30);
 }
 
 function clientVote(target) {
@@ -399,11 +425,94 @@ function renderClient() {
     return;
   }
 
-  // Écrans vote / recap / fin — P4 et P5.
+  if (s === "mw") {
+    var sent = C.snap.mw && C.snap.mw.guess;
+    app.innerHTML = '<div class="hline"></div>' + linkPill() +
+      '<div class="icon-big">🤍</div>' +
+      '<h2 class="orb fs18 fw700 color-white m8-0">' + G("TU ES DÉMASQUÉ") + "</h2>" +
+      '<p class="color-red fs14 fw600 lh15 mb14">Dernière chance : quel est le mot des civils ?</p>' +
+      (sent
+        ? '<p class="orb fs11 color-dim4 ls2 mb6">TA PROPOSITION</p>' +
+          G(sent, "orb fs22 fw900 color-white text-shadow-white") +
+          '<p class="color-dim fs13 mt14">Les autres vérifient…</p>'
+        : '<input type="text" id="mwg" maxlength="40" placeholder="Ton mot" autocomplete="off">' +
+          '<button class="btn glow mt6" onclick="clientMwSend()">▶ PROPOSER</button>') +
+      '<div class="fline"></div>';
+    return;
+  }
+
+  if (s === "mwwait") {
+    var mw = C.snap.mw || {};
+    app.innerHTML = '<div class="hline"></div>' + linkPill() +
+      '<div class="icon-big">🤍</div>' +
+      '<h2 class="orb fs17 fw700 color-white m8-0">' + G("MR. WHITE DÉMASQUÉ") + "</h2>" +
+      '<p class="color-dim6 fs14 lh15 mb10">' + (S.nm[mw.playerId] || "?") + " était Mr. White !</p>" +
+      (mw.guess
+        ? '<p class="orb fs11 color-dim4 ls2 mb6">SA PROPOSITION</p>' +
+          G(mw.guess, "orb fs22 fw900 color-white text-shadow-white") +
+          '<p class="color-dim fs13 mt14">L\'hôte tranche…</p>'
+        : '<p class="color-dim fs13">Il réfléchit à sa proposition…</p>') +
+      '<div class="fline"></div>';
+    return;
+  }
+
+  if (s === "recap") {
+    var r = C.snap.recap || {};
+    var ok = !r.skipped && r.elimRole && r.elimRole !== "civil";
+    var roleLbl = r.elimRole === "civil" ? "👤 Civil" : r.elimRole === "undercover" ? "🕵️ Undercover" : "🤍 Mr. White";
+    app.innerHTML = '<div class="hline"></div>' + linkPill() +
+      '<span class="tag">FIN DU TOUR ' + C.snap.turn + "</span>" +
+      '<div class="icon-med">' + (r.skipped ? "🚫" : ok ? "🎯" : "😬") + "</div>" +
+      '<h2 class="orb fs18 fw700 ' + (r.skipped ? "color-dim7" : ok ? "color-cyan" : "color-red") + ' m8-0">' +
+      G(r.skipped ? "VOTE NUL" : ok ? "BON CHOIX !" : "MAUVAIS CHOIX...") + "</h2>" +
+      (r.skipped
+        ? '<p class="color-dim6 fs14 mb6">Personne n\'a été éliminé ce tour.</p>'
+        : '<p class="color-dim6 fs14 mb6"><strong class="color-white">' + (S.nm[r.elimId] || "?") + "</strong> était " + roleLbl + "</p>") +
+      (r.category ? '<div class="cat-badge mt12">' + r.category + "</div>" : "") +
+      (r.pair ? '<div class="words-row"><div class="word-card civ"><span class="wl">MOT CIVIL</span><span class="wv">' + r.pair[0] +
+                '</span></div><div class="word-card uc"><span class="wl">MOT UC</span><span class="wv">' + r.pair[1] + "</span></div></div>" : "") +
+      '<p class="orb fs10 color-dim3 ls2 mb0">' + r.impostorsLeft + " IMPOSTEUR" + (r.impostorsLeft > 1 ? "S" : "") +
+      " RESTANT" + (r.impostorsLeft > 1 ? "S" : "") + "</p>" +
+      '<p class="color-dim fs13 mt12">L\'hôte lance le tour suivant…</p>' +
+      '<div class="fline"></div>';
+    return;
+  }
+
+  if (s === "over") {
+    var go = C.snap.gameOver || {};
+    var cc = go.winner === "civil" ? "color-cyan text-shadow-cyan" : go.winner === "uc" ? "color-red text-shadow-red" : "color-gold text-shadow-gold";
+    var ic = go.winner === "civil" ? "👤" : go.winner === "uc" ? "🕵️" : "🤍";
+    var lb = go.winner === "civil" ? "VICTOIRE CIVILE" : go.winner === "uc" ? "VICTOIRE UNDERCOVER" : "VICTOIRE MR. WHITE";
+    var mine = (go.roles || []).filter(function (x) { return x.id === C.playerId; })[0];
+    var won = mine && ((mine.role === "civil" && go.winner === "civil") ||
+                       (mine.role === "undercover" && go.winner === "uc") ||
+                       (mine.role === "mrwhite" && go.winner === "mrwhite"));
+    app.innerHTML = '<div class="hline"></div><div class="icon-big">' + ic + "</div>" +
+      '<h1 class="orb fs20 fw900 ls4 m8-0 ' + cc + '">' + G(lb) + "</h1>" +
+      '<p class="color-dim6 fs14 lh15 mb6">' + (go.msg || "") + "</p>" +
+      (mine ? '<p class="fs15 fw700 ' + (won ? "color-green" : "color-dim5") + ' mb6">' +
+              (won ? "🎉 Tu as gagné" : "Tu as perdu") + " — tu étais " +
+              (mine.role === "civil" ? "👤 Civil" : mine.role === "undercover" ? "🕵️ Undercover" : "🤍 Mr. White") + "</p>" : "") +
+      '<p class="orb fs10 color-dim3 ls2">' + (go.turns || "?") + " TOURS JOUÉS</p>" +
+      (go.category ? '<div class="cat-badge mt8">' + go.category + "</div>" : "") +
+      (go.pair ? '<div class="words-row"><div class="word-card civ"><span class="wl">MOT CIVIL</span><span class="wv">' + go.pair[0] +
+                 '</span></div><div class="word-card uc"><span class="wl">MOT UC</span><span class="wv">' + go.pair[1] + "</span></div></div>" : "") +
+      '<div class="role-grid">' + (go.roles || []).map(function (x) {
+        var rc = x.role === "mrwhite" ? "rt-mw" : x.role === "undercover" ? "rt-uc" : "rt-civ";
+        return '<div class="role-tile ' + rc + '"><span class="orb fs11 fw700">' + (S.nm[x.id] || "?") + "</span>" +
+          '<span class="fs10 ' + (x.role === "mrwhite" ? "color-white" : x.role === "undercover" ? "color-red" : "color-cyan") + '">' +
+          (x.role === "civil" ? "👤 Civil" : x.role === "undercover" ? "🕵️ UC" : "🤍 Mr.W") + "</span></div>";
+      }).join("") + "</div>" +
+      '<p class="color-dim fs13 mt12">L\'hôte peut relancer une partie.</p>' +
+      '<button class="btn ghost" onclick="showConfirm(\'Quitter la partie ?\',clientLeave)">✕ Quitter</button>' +
+      '<div class="fline"></div>';
+    return;
+  }
+
   app.innerHTML = '<div class="hline"></div>' + linkPill() +
     '<div class="icon-big">🎮</div>' +
     '<h2 class="orb fs16 fw700 color-cyan m8-0">EN JEU</h2>' +
-    '<p class="color-dim fs13 mb16">Écran « ' + s + ' » — à venir.</p>' +
+    '<p class="color-dim fs13 mb16">En attente de l\'hôte…</p>' +
     rosterList() +
     '<button class="btn ghost" onclick="showConfirm(\'Quitter la partie ?\',clientLeave)">✕ Quitter</button>' +
     '<div class="fline"></div>';

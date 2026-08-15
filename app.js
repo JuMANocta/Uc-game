@@ -264,6 +264,7 @@ app.innerHTML='<div class="hline"></div><div class="mb20">'+G("UNDERCOVER","orb 
 '<div class="opt-row"><div class="opt-lbl"><span class="opt-title">Vote nul</span><span class="opt-desc">Permet de passer un tour sans élimination</span></div><button class="tog '+(S.skipvote?"on":"")+'" aria-label="Vote nul" aria-pressed="'+(S.skipvote?"true":"false")+'" onclick="S.skipvote=!S.skipvote;render()"><span class="dot"></span></button></div>'+
 
 '<div class="opt-row"><div class="opt-lbl"><span class="opt-title">🌙 Mode nuit</span><span class="opt-desc">Masque les rôles et le compteur pendant le débat</span></div><button class="tog '+(S.night?"on":"")+'" aria-label="Mode nuit" aria-pressed="'+(S.night?"true":"false")+'" onclick="S.night=!S.night;render()"><span class="dot"></span></button></div>'+
+(S.mode==="host"?'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">👁 Vote à découvert</span><span class="opt-desc">Au dépouillement, montre qui a voté pour qui</span></div><button class="tog '+(S.revealVoters?"on":"")+'" aria-label="Vote à découvert" aria-pressed="'+(S.revealVoters?"true":"false")+'" onclick="S.revealVoters=!S.revealVoters;render()"><span class="dot"></span></button></div>':'')+
 '<div class="opt-row last"><div class="opt-lbl"><span class="opt-title">🧒 Mode Enfant</span><span class="opt-desc">614 paires adaptées sur 39 catégories — exclut alcool, horreur, contenu adulte</span></div><button class="tog '+(S.kids?"on":"")+'" aria-label="Mode Enfant" aria-pressed="'+(S.kids?"true":"false")+'" onclick="S.kids=!S.kids;render()"><span class="dot"></span></button></div>'+
 
 '</div></div>'+
@@ -405,7 +406,15 @@ if(p==="mrwhite_guess"){
 app.innerHTML='<div class="hline"></div><div class="icon-med">🤍</div>'+
 '<h2 class="orb fs18 fw700 color-white m8-0">'+G("MR. WHITE DÉMASQUÉ")+'</h2>'+
 '<p class="color-dim5 fs14 lh15 mb6">'+N(S.vt)+' était Mr. White !</p>'+
-'<p class="color-red fs14 fw600 mb20">Dernière chance : deviner le mot des civils.</p>'+
+'<p class="color-red fs14 fw600 mb12">Dernière chance : deviner le mot des civils.</p>'+
+// En multi, Mr. White tape sa proposition sur SON téléphone : plus besoin
+// que l'hôte arbitre à l'oral ce qui a été dit ou non.
+(S.mode==="host"
+ ?(S.mwGuessText
+   ?'<p class="orb fs11 color-dim4 ls2 mb6">SA PROPOSITION</p>'+G(S.mwGuessText,"orb fs22 fw900 color-white text-shadow-white")+
+    '<p class="color-dim3 fs12 mt8 mb12">Mot civil attendu : <strong class="color-cyan">'+S.pair[0]+'</strong></p>'
+   :'<div class="pbar mb12"><div class="pbar-fill indet"></div></div><p class="color-dim fs13 mb12">Il tape sa proposition sur son téléphone…</p>')
+ :'')+
 '<p class="orb color-dim4 fs10 ls2 mb12">A-T-IL DEVINÉ ?</p>'+
 '<div class="flex gap8"><button class="btn green half" onclick="mwGuess(true)">✓ OUI</button><button class="btn red half" onclick="mwGuess(false)">✕ NON</button></div><div class="fline"></div>';return}
 
@@ -591,7 +600,7 @@ if(S.vt===-1){SND.click();VIB(50);S.skipt=true;recordTurn(null);S.phase="turn_re
 SND.elim();VIB([80,40,120]);
 var tid=S.vt;var tg=S.players.filter(function(p){return p.id===tid})[0];
 S.alive=S.alive.filter(function(id){return id!==tid});S.elim.push(tid);
-if(tg.role==="mrwhite"){S.phase="mrwhite_guess";render();return}
+if(tg.role==="mrwhite"){S.phase="mrwhite_guess";S.mwGuessText="";render();return}
 checkEnd(tg)}
 
 function mwGuess(ok){
