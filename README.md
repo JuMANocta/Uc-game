@@ -178,21 +178,13 @@ Si ton serveur envoie une CSP, elle doit autoriser le serveur d'annuaire PeerJS,
 | `font-src` | `https://fonts.gstatic.com` | Fichiers de polices |
 | `script-src` | `'unsafe-inline'` | Le jeu utilise des `onclick=` en attribut |
 
-Exemple nginx :
+Bloc nginx prêt à l'emploi : **[`deploy/nginx-uc.conf.example`](deploy/nginx-uc.conf.example)**. Il isole le jeu dans son propre `location`, de sorte que le reste du site garde sa CSP stricte.
 
-```nginx
-add_header Content-Security-Policy "\
-default-src 'self'; \
-script-src 'self' 'unsafe-inline'; \
-style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; \
-style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; \
-font-src 'self' https://fonts.gstatic.com; \
-img-src 'self' data:; \
-connect-src 'self' https://0.peerjs.com wss://0.peerjs.com stun: turn:; \
-worker-src 'self'; manifest-src 'self'; base-uri 'self'; frame-ancestors 'none';" always;
-```
+> ⚠️ **Piège nginx** — les `add_header` ne sont **pas hérités** dans un `location` qui déclare les siens : nginx remplace la liste entière au lieu de la compléter. Tous les en-têtes du `server` doivent y être répétés, faute de quoi HSTS et consorts disparaissent silencieusement sur ce chemin. Le fichier d'exemple les reprend tous.
 
-> Pour se passer entièrement de Google Fonts, héberger les deux polices en local et retirer les `<link>` correspondants d'`index.html` : seules les deux lignes `connect-src` restent alors nécessaires.
+> **Permissions-Policy** — un `vibrate=()` désactive tout le retour haptique du jeu, qui vibre à chaque transition clé. À retirer pour le chemin du jeu.
+
+> Pour se passer entièrement de Google Fonts, héberger les deux polices en local et retirer les `<link>` correspondants d'`index.html` : seule la ligne `connect-src` reste alors nécessaire.
 
 En cas de doute, ouvrir **`diag.html`** : elle détecte et nomme les violations CSP.
 

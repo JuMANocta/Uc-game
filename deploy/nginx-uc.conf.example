@@ -1,0 +1,61 @@
+# ══════════════════════════════════════════════════════════════════════
+# UNDERCOVER — bloc nginx pour le multi-appareils
+# ══════════════════════════════════════════════════════════════════════
+#
+# À insérer AVANT le `location / { … }` existant, dans le même server{}.
+#
+# ── PIÈGE NGINX À CONNAÎTRE ───────────────────────────────────────────
+# Les `add_header` ne sont PAS hérités dans un location{} qui déclare ses
+# propres `add_header` : nginx REMPLACE la liste entière, il ne la complète
+# pas. Tous les en-têtes du server{} doivent donc être répétés ici, sinon
+# HSTS, X-Frame-Options et les autres disparaissent silencieusement pour
+# /uc/ — on croit durcir un chemin et on l'expose.
+#
+# L'intérêt de ce bloc dédié : seul /uc/ voit une CSP élargie, le reste du
+# site garde la sienne, stricte.
+# ──────────────────────────────────────────────────────────────────────
+
+location /uc/ {
+    proxy_pass https://localhost:4430/index/uc/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_cache_bypass $http_upgrade;
+    proxy_hide_header X-Powered-By;
+    proxy_redirect ~^(?:https?://[^/]+)?/index/(.*)$ /$1;
+
+    # ── CSP : les trois ajouts nécessaires au jeu ─────────────────────
+    #   connect-src    https://0.peerjs.com wss://0.peerjs.com
+    #                  → INDISPENSABLE. Sans lui, le navigateur coupe le
+    #                    WebSocket de signaling avant que PeerJS ne puisse
+    #                    réagir : ni "open" ni "error", écran figé sur
+    #                    « ouverture de la salle » sans aucun message.
+    #   connect-src    stun: turn:
+    #                  → Chrome applique connect-src aux serveurs ICE.
+    #                    Sans eux, les joueurs en 4G derrière un NAT
+    #                    symétrique ne peuvent pas être relayés.
+    #   style-src-elem / font-src  fonts.googleapis.com / fonts.gstatic.com
+    #                  → purement cosmétique (polices Orbitron/Rajdhani).
+    #                    À supprimer si tu héberges les polices en local.
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://0.peerjs.com wss://0.peerjs.com stun: turn:; worker-src 'self'; manifest-src 'self'; base-uri 'self'; frame-ancestors 'self';" always;
+
+    # ── En-têtes repris du server{} (obligatoire, cf. piège ci-dessus) ─
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+    add_header Referrer-Policy "no-referrer" always;
+    add_header X-Download-Options "noopen" always;
+    add_header X-Permitted-Cross-Domain-Policies "none" always;
+    add_header X-Robots-Tag "none" always;
+
+    # ── Permissions-Policy : vibrate et fullscreen RÉACTIVÉS ──────────
+    # Le server{} contient vibrate=() et fullscreen=(), qui désactivent la
+    # vibration et le plein écran. Le jeu vibre à chaque transition clé
+    # (révélation, élimination, fin de timer) : sans cette ligne, tout le
+    # retour haptique est muet. Géolocalisation, micro et caméra restent
+    # bloqués — le jeu n'en a aucun usage.
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=(), magnetometer=(), gyroscope=(), payment=()" always;
+}
