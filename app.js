@@ -55,7 +55,7 @@ var DB=[
 
 // Estampille affichée sur l'accueil : permet de vérifier d'un coup d'oeil
 // quelle version le navigateur sert réellement (cache du service worker).
-var BUILD="v6-2026.08.15";
+var BUILD="v7-2026.08.15";
 var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}
@@ -223,6 +223,7 @@ ov.innerHTML='<div class="rules-box">'+
 '<p class="rules-key">🔄 <b>Les mots, eux, changent à chaque tour.</b> Nouvelle paire, nouvelle catégorie. Ton mot précédent ne sert plus — mais tout ce que tu as appris sur les autres reste valable.</p>'+
 '<p class="rules-dim">C\'est le cœur du jeu : les soupçons s\'accumulent d\'un tour sur l\'autre, alors que le vocabulaire repart de zéro.</p>'+
 
+'<p class="rules-dim">Le mode « chacun son téléphone » a besoin d\'Internet pour relier les appareils, même côte à côte. Le mode « un seul téléphone » fonctionne hors ligne.</p>'+
 '<h3 class="rules-h">Bien donner son indice</h3>'+
 '<ul class="rules-ul">'+
 '<li><b>Trop précis</b> → l\'Undercover comprend le mot des civils et te copie</li>'+
@@ -287,14 +288,22 @@ return''})()+
 '<button class="mode-card sb sb2" onclick="S.mode=\'solo\';S.phase=\'setup\';render()">'+
  '<span class="mode-ttl">📱 UN SEUL TÉLÉPHONE</span>'+
  '<span class="mode-sub">On se passe l\'appareil — fonctionne hors-ligne</span></button>'+
-(window.isSecureContext
- ?'<button class="mode-card sb sb3" onclick="hostStart()">'+
-   '<span class="mode-ttl">📡 CHACUN SON TÉLÉPHONE</span>'+
-   '<span class="mode-sub">Chacun voit son mot et vote sur son écran</span></button>'+
-  '<button class="btn ghost sb sb4" onclick="S.mode=\'client\';C.screen=\'join\';render()">🔗 J\'ai un code, je rejoins</button>'
- :'<button class="mode-card sb sb3" disabled>'+
-   '<span class="mode-ttl">📡 CHACUN SON TÉLÉPHONE</span>'+
-   '<span class="mode-sub">⚠ Exige HTTPS — indisponible sur cette adresse</span></button>')+
+// Le multi-appareils a deux prérequis non négociables : HTTPS (WebRTC) et
+// Internet (l'annuaire qui met les téléphones en relation). On les annonce
+// AVANT le clic, plutôt que de laisser l'utilisateur buter sur un échec.
+(function(){
+if(!window.isSecureContext)
+ return '<button class="mode-card sb sb3" disabled><span class="mode-ttl">📡 CHACUN SON TÉLÉPHONE</span>'+
+        '<span class="mode-sub">⚠ Exige HTTPS — indisponible sur cette adresse</span></button>';
+if(!isOnline())
+ return '<button class="mode-card sb sb3" disabled><span class="mode-ttl">📡 CHACUN SON TÉLÉPHONE</span>'+
+        '<span class="mode-sub">⚠ Hors ligne — ce mode a besoin d\'Internet pour relier les téléphones</span></button>'+
+        '<p class="mode-hint">Le mode « un seul téléphone » fonctionne, lui, sans réseau.</p>';
+return '<button class="mode-card sb sb3" onclick="hostStart()">'+
+       '<span class="mode-ttl">📡 CHACUN SON TÉLÉPHONE</span>'+
+       '<span class="mode-sub">Chacun voit son mot et vote sur son écran — Internet requis</span></button>'+
+       '<button class="btn ghost sb sb4" onclick="S.mode=\'client\';C.screen=\'join\';render()">🔗 J\'ai un code, je rejoins</button>'})()+
+(canInstall()?'<button class="btn ghost sb sb4" onclick="doInstall()">⬇ Installer l\'application</button>':'')+
 '<p class="build-stamp">build '+BUILD+'</p>'+
 '<div class="fline"></div>';return}
 
@@ -807,6 +816,7 @@ else{var ta=document.createElement("textarea");ta.value=txt;document.body.append
 loadOpts();
 installLifecycle();
 installRulesButton();
+installPWA();
 // Un QR scanné ou un lien partagé (#j=CODE) fait entrer directement en client.
 bootFromHash();
 render();

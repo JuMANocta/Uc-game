@@ -357,6 +357,15 @@ Directives requises : `connect-src https://0.peerjs.com wss://0.peerjs.com stun:
 
 `diag.html` écoute `securitypolicyviolation` et nomme la directive fautive — c'est le seul moyen de diagnostiquer ce cas depuis le navigateur du joueur.
 
+### PWA (`pwa.js`)
+
+Fichier dédié : ni logique de jeu, ni transport, uniquement le dialogue avec le navigateur.
+
+- `isOnline()` — `navigator.onLine` ne prouve pas qu'Internet est joignable, mais quand il répond `false` on est certainement hors ligne. Suffisant pour barrer le multi-appareils **avant** une tentative vouée à l'échec, plutôt que d'attendre les 12 s du chien de garde.
+- `canInstall()` / `doInstall()` — l'événement `beforeinstallprompt` est capturé et neutralisé pour garder la main sur le moment de l'invite.
+- Bannière de mise à jour — le SW appelle `skipWaiting()`, donc la nouvelle version prend la main tout de suite, mais la **page** continue de faire tourner l'ancien code jusqu'au rechargement. D'où une bannière plutôt qu'un rechargement d'autorité, qui couperait une partie en cours.
+- L'enregistrement du service worker a quitté `index.html` : plus aucun script inline, donc plus besoin de `script-src 'unsafe-inline'` pour lui.
+
 ### Limites assumées
 
 - **HTTPS obligatoire** (WebRTC) — bouton désactivé avec explication sinon.

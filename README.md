@@ -11,7 +11,7 @@ Le choix se fait à l'ouverture de l'application.
 | 📱 **Un seul téléphone** | Le jeu original : on se passe l'appareil, chacun découvre son mot en privé, le vote se fait à voix haute. Fonctionne hors-ligne. |
 | 📡 **Chacun son téléphone** | L'hôte affiche un **QR code**, les autres le scannent, saisissent leur pseudo et rejoignent la salle. Chacun reçoit **son mot sur son propre écran** et **vote en secret**. Plus de passage de téléphone. |
 
-> Le mode multi-appareils exige **HTTPS** (contrainte WebRTC) et une connexion Internet pour établir la liaison. Le bouton est désactivé avec explication si l'application est servie en HTTP simple.
+> **Le mode multi-appareils exige HTTPS et une connexion Internet.** Les téléphones se parlent ensuite en direct, mais un serveur d'annuaire est nécessaire pour les mettre en relation — même côte à côte sur le même WiFi. Sans HTTPS ou sans réseau, la carte est désactivée avec sa raison ; le mode « un seul téléphone » reste disponible et fonctionne entièrement hors ligne.
 
 ## Principe du jeu
 
@@ -115,7 +115,11 @@ Les paires jouées ne se répètent pas avant épuisement complet du pool (ou du
 - **Règles en jeu** — bouton « ? » flottant sur tous les écrans, hôte comme joueurs : rappel du principe, du déroulé et surtout du fait que **les rôles ne changent jamais alors que les mots changent à chaque tour**
 - **Splash screen** — boot log animé au premier chargement
 - **Bouton Abandonner** — disponible pendant le débat (avec confirmation modale)
-- **PWA** — installable sur mobile, fonctionne hors-ligne sur HTTPS
+- **PWA** — installable sur mobile via un bouton dédié, **bannière de mise à jour** quand une nouvelle version est prête, détection du hors-ligne
+  | Mode | Hors ligne |
+  |---|---|
+  | Un seul téléphone | ✅ complet, les 816 paires sont embarquées |
+  | Chacun son téléphone | ❌ Internet requis pour l'annuaire |
 
 ---
 

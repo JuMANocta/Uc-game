@@ -271,6 +271,15 @@ function hostHandlers() {
 }
 
 function hostStart() {
+  // Inutile d'attendre 12 s le chien de garde si le navigateur sait déjà
+  // qu'il n'y a pas de réseau.
+  if (!isOnline()) {
+    S.mode = "host";
+    S.net = { code: null, status: "error", err: "offline", seats: [], seq: 0, lastJSON: null };
+    S.phase = "lobby";
+    render();
+    return;
+  }
   clearHostSave();
   S.mode = "host";
   S.net = { code: null, status: "opening", err: null, seats: [], seq: 0, lastJSON: null };
@@ -483,6 +492,7 @@ function wakeSupported() { return !!(navigator.wakeLock && navigator.wakeLock.re
 // s'est passé ET quoi faire.
 function netErrLabel(e) {
   switch (e) {
+    case "offline": return "Aucune connexion Internet. Le multi-appareils a besoin d'un serveur d'annuaire pour relier les téléphones entre eux — même s'ils sont côte à côte. Le mode « un seul téléphone », lui, fonctionne hors ligne.";
     case "lib": return "La bibliothèque réseau n'a pas pu être chargée. Vérifie que le dossier <strong>vendor/</strong> est bien déployé sur le serveur.";
     case "timeout": return "Le serveur d'annuaire n'a pas répondu en 12 s. Vérifie ta connexion Internet — le multi-appareils en a besoin pour établir la liaison, même entre téléphones côte à côte.";
     case "network":

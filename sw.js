@@ -1,5 +1,5 @@
 // Bump CACHE à chaque déploiement pour purger les anciennes versions.
-var CACHE = 'uc-game-v6';
+var CACHE = 'uc-game-v7';
 var ASSETS = [
   './',
   './index.html',
@@ -8,6 +8,7 @@ var ASSETS = [
   './net.js',
   './net-peerjs.js',
   './client.js',
+  './pwa.js',
   './qr.js',
   './vendor/qrcode.js',
   // Chargé paresseusement par net-peerjs.js, mais précaché malgré tout pour

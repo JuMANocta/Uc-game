@@ -123,6 +123,7 @@ function clientJoin(code, name) {
   C.err = null;
   C._retries = 0;
 
+  if (!isOnline()) { C.screen = "rejected"; C.err = "offline"; C.link = "dead"; render(); return; }
   if (!NET.use("peerjs")) { C.screen = "error"; C.err = "lib"; render(); return; }
   requestWake();
   NET.join(C.code, clientHandlers());
