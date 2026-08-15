@@ -46,8 +46,10 @@ Ou double-cliquer sur `index.html`. Aucun serveur requis.
 | **Timer débat** | Off · 1min · 2min · 3min · 5min |
 | **Vote nul** | Permet de passer un tour sans élimination |
 | **Mode nuit** | Masque le compteur d'imposteurs et les rôles éliminés pendant le débat |
-| **Mode Enfant 🧒** | Filtre les mots adultes (~520 paires kid-safe sur 42 catégories) |
-| **Filtre catégories** | Active/désactive individuellement chacune des 42 catégories |
+| **Mode Enfant 🧒** | Filtre les mots adultes (614 paires kid-safe sur 39 catégories) |
+| **Filtre catégories** | Active/désactive individuellement chacune des 42 catégories, avec compteur de paires |
+
+> Toutes les options et les noms des joueurs sont **conservés d'une session à l'autre** (`localStorage`). Un bouton « Réinitialiser les options » remet les valeurs par défaut.
 
 ---
 
@@ -80,17 +82,20 @@ Ou double-cliquer sur `index.html`. Aucun serveur requis.
 
 Les paires jouées ne se répètent pas avant épuisement complet du pool (ou du pool filtré en Mode Enfant / filtre catégories).
 
+**614 paires** sont marquées *kid-safe*. Trois catégories (`Cocktails`, `Vins`, `Phobies`) n'en contiennent aucune : elles apparaissent barrées et non sélectionnables lorsque le Mode Enfant est actif. Le Mode Enfant n'est jamais contourné, même si le filtre de catégories vide le pool.
+
 ---
 
 ## Fonctionnalités
 
-- **Filtre de catégories** — active/désactive chacune des 42 catégories avant la partie
+- **Options persistantes** — nombre de joueurs, noms, timer, modes et filtres restaurés au rechargement
+- **Filtre de catégories** — active/désactive chacune des 42 catégories, avec le nombre de paires par catégorie et la taille du pool résultant
 - **Ordre de parole** — affiché pendant le débat ; tap sur un nom pour le cocher (a parlé) ; bouton pour tout décocher
-- **Timer** — countdown configurable, bouton de relance si expiré, alerte sonore + vibration à l'expiration ; animation urgente sous 30s
+- **Timer** — countdown configurable, bouton de relance si expiré, alerte sonore + vibration à l'expiration ; animation urgente sous 10s
 - **Sons & vibrations** — Web Audio API (zéro fichier audio), vibrations sur toutes les transitions clés
 - **Historique** — consultable pendant le débat et dans les récapitulatifs
 - **Hall of Fame** — scores cumulés en `localStorage`, top 10 persistant, détail des victoires par rôle (👤 🕵️ 🤍)
-- **Partage** — bouton pour copier le récapitulatif de fin de partie dans le presse-papiers
+- **Partage** — partage natif du récapitulatif (`navigator.share`), presse-papiers en secours
 - **Splash screen** — boot log animé au premier chargement
 - **Bouton Abandonner** — disponible pendant le débat (avec confirmation modale)
 - **PWA** — installable sur mobile, fonctionne hors-ligne sur HTTPS

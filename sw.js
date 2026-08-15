@@ -1,4 +1,5 @@
-var CACHE = 'uc-game-v2';
+// Bump CACHE à chaque déploiement pour purger les anciennes versions.
+var CACHE = 'uc-game-v3';
 var ASSETS = [
   './',
   './index.html',
@@ -11,7 +12,10 @@ var ASSETS = [
 self.addEventListener('install', function(e) {
   e.waitUntil(
     caches.open(CACHE).then(function(cache) {
-      return cache.addAll(ASSETS);
+      // cache:'reload' — ignore le cache HTTP, récupère bien la version fraîche
+      return cache.addAll(ASSETS.map(function(u) {
+        return new Request(u, { cache: 'reload' });
+      }));
     }).then(function() {
       return self.skipWaiting();
     })
@@ -31,19 +35,25 @@ self.addEventListener('activate', function(e) {
   );
 });
 
+// Stale-while-revalidate : on sert le cache immédiatement (rapide, offline),
+// mais on rafraîchit toujours en arrière-plan. Le rechargement suivant a la
+// nouvelle version — sans dépendre d'un bump manuel de CACHE.
 self.addEventListener('fetch', function(e) {
-  // Ne gérer que les requêtes same-origin (pas Google Fonts etc.)
+  if (e.request.method !== 'GET') return;
   if (e.request.url.indexOf(self.location.origin) !== 0) return;
+
   e.respondWith(
     caches.match(e.request).then(function(cached) {
-      return cached || fetch(e.request).then(function(response) {
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
+      var network = fetch(e.request).then(function(response) {
+        if (response && response.status === 200 && response.type === 'basic') {
+          var clone = response.clone();
+          caches.open(CACHE).then(function(cache) { cache.put(e.request, clone); });
         }
-        var clone = response.clone();
-        caches.open(CACHE).then(function(cache) { cache.put(e.request, clone); });
         return response;
+      }).catch(function() {
+        return cached;
       });
+      return cached || network;
     })
   );
 });

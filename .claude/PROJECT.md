@@ -134,10 +134,17 @@ splash → setup → handoff → reveal → playing → vote → turn_recap → 
 | Sensations & Insolite (4) | Couleurs · Matières · Phobies · Géographie |
 | Lifestyle (2) | Mode · Nature |
 
-- `kid_safe = true` : paire incluse en Mode Enfant (~520 paires)
-- `kid_safe = false` : paire exclue en Mode Enfant (alcool, horreur, violence, sujets adultes)
+- `kid_safe = true` : paire incluse en Mode Enfant — **614 paires sur 39 catégories**
+- `kid_safe = false` : paire exclue en Mode Enfant (alcool, horreur, violence, sujets adultes) — 130 paires
+
+`Cocktails` (0/12), `Vins` (0/10) et `Phobies` (0/12) n'ont **aucune** paire kid-safe : ces catégories sont affichées barrées et non sélectionnables quand le Mode Enfant est actif.
 
 Anti-répétition : `S.used` trace les **indices originaux DB** déjà tirés. Quand le pool filtré est épuisé, `S.used` est réinitialisé sur ce pool uniquement.
+
+**Cascade de repli de `PP()`** (le Mode Enfant n'est jamais contourné) :
+1. pool = `kids` ∩ `cats`
+2. si vide → pool = `kids` seul (le filtre catégories saute, pas le filtre enfant)
+3. si vide → DB entière (inatteignable : 614 paires kid-safe)
 
 ### Fonctions clés
 
@@ -151,9 +158,14 @@ Anti-répétition : `S.used` trace les **indices originaux DB** déjà tirés. Q
 | `checkEnd()` | Vérifie les conditions de victoire et distribue les points |
 | `mwGuess(ok)` | Gère la tentative de devine de Mr. White |
 | `fullReset()` | Remet à zéro en conservant toutes les options (pc, uc, mw, cat, nm, timer, skipvote, night, kids, cats) |
-| `PP()` | Pioche une paire non-utilisée, filtrée par `S.kids` et `S.cats` |
-| `allCats()` | Retourne le tableau trié de toutes les catégories présentes dans DB |
-| `TCat(c)` | Toggle une catégorie dans `S.cats` (null = toutes actives) |
+| `PP()` | Pioche une paire non-utilisée, filtrée par `S.kids` et `S.cats` (repli en cascade) |
+| `allCats()` | Catégories triées présentes dans DB — mémoïsé dans `_allCats` |
+| `catCount(c)` | Paires jouables dans la catégorie `c`, Mode Enfant appliqué |
+| `poolSize()` | Taille du pool avec les filtres courants (affiché dans le setup) |
+| `TCat(c)` | Toggle une catégorie dans `S.cats` (null = toutes actives) — refuse les catégories à 0 paire |
+| `saveOpts()` | Persiste pc/uc/mw/cat/timer/skipvote/night/kids/cats/nm dans `localStorage['uc_opts']` |
+| `loadOpts()` | Restaure et **valide** les options au démarrage (types, bornes, catégories obsolètes) |
+| `resetOpts()` | Efface `uc_opts` et remet toutes les options par défaut |
 | `startTimer()` | Lance le countdown (setInterval, met à jour `#tdisp` directement) |
 | `stopTimer()` | Arrête le countdown proprement |
 | `recordTurn(elim)` | Enregistre le tour dans `S.hist` |
@@ -193,6 +205,9 @@ Anti-répétition : `S.used` trace les **indices originaux DB** déjà tirés. Q
 | D3 | — | "Bit/Octet" remplacé par "Mot de passe/Code PIN" |
 | D4 | — | Flags `kid_safe` corrigés pour Applis (YouTube, Spotify, Netflix, Google Maps → `true`) |
 | D5 | — | Vins obscurs (Sancerre/Pouilly-Fumé, Chablis/Meursault) remplacés par des paires accessibles |
+| 5 | — | **Mode Enfant contournable** : le repli de `PP()` sur pool vide repiochait dans la DB entière. En ne gardant que Cocktails/Vins/Phobies (0 paire kid-safe) avec le Mode Enfant actif, des mots adultes étaient servis. Repli désormais en cascade sur le pool kid-safe. |
+| 6 | — | **`sw.js` figé** : `CACHE` jamais bumpé + stratégie cache-first stricte → les installations PWA ne recevaient plus aucune mise à jour. Passage en stale-while-revalidate + `cache:'reload'` à l'install. |
+| 7 | — | Libellé Mode Enfant faux (« ~520 paires sur 40 catégories » → 614 sur 39) |
 
 ### Améliorations UX
 
@@ -214,8 +229,12 @@ Anti-répétition : `S.used` trace les **indices originaux DB** déjà tirés. Q
 | I4 | — | Bouton "↺ Tout décocher" dans l'ordre de parole |
 | I5 | — | Bouton "↺ Relancer" quand le timer est expiré |
 | I6 | — | `showConfirm()` — modal personnalisée remplaçant `confirm()` natif (PWA compatible) |
-| I11 | — | Timer : animation pulsante `.timer-disp.urgent` sous 30s restantes |
+| I11 | — | Timer : animation pulsante `.timer-disp.urgent` sous 10s restantes |
 | I13 | — | Animations CSS entrée : `.hline` slide-in, `.icon-big/.icon-med` pop |
+| I15 | — | Options persistantes (`uc_opts`) + bouton « Réinitialiser les options » |
+| I16 | — | Compteur de paires par catégorie et taille du pool dans le setup ; alerte pool < 25 |
+| I17 | — | `navigator.share()` pour le partage natif mobile (presse-papiers en secours) |
+| I18 | — | `aria-label` + `aria-pressed` sur tous les toggles ; `allCats()` mémoïsé |
 
 ### Nouvelles fonctionnalités
 
@@ -279,7 +298,18 @@ La largeur de la progress bar passe par `element.style.setProperty('--pbar-w', .
 
 ### localStorage
 - `uc_lb` : Hall of Fame `{nom: {name, pts, games, wins:{civil, uc, mrwhite}}}`
+- `uc_opts` : options persistées `{pc, uc, mw, cat, timer, skipvote, night, kids, cats, nm}`
+  Écrit à chaque rendu du setup et au lancement d'une partie ; relu au boot via `loadOpts()`.
+  `loadOpts()` valide chaque champ (type, bornes, catégories encore présentes dans DB) pour
+  qu'un `localStorage` corrompu ou obsolète ne casse pas le démarrage.
 - Clé prévue : `uc_custom` pour les mots personnalisés (Feature G)
+
+### Service worker — déploiement
+`sw.js` est en **stale-while-revalidate** : le cache répond immédiatement (rapide + offline)
+et une requête réseau rafraîchit l'entrée en arrière-plan. Le rechargement suivant sert la
+nouvelle version, **sans dépendre d'un bump manuel de `CACHE`**.
+Bumper `CACHE` (`uc-game-vN`) reste recommandé à chaque déploiement pour purger d'un coup
+les anciennes entrées via le handler `activate`.
 
 ### Audio
 `AudioContext` créé lazily au premier appel (respect de la politique navigateur).

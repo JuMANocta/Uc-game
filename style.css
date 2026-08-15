@@ -165,8 +165,12 @@ input[type=text]::placeholder { color: rgba(255,255,255,0.2); }
 .cats-sum { display: flex; align-items: center; }
 .cats-count { font-size: 10px; color: rgba(5,217,232,0.6); margin-left: 8px; }
 .cats-grid { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
-.cat-tog { font-family: 'Orbitron', sans-serif; font-size: 9px; padding: 4px 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; letter-spacing: 1px; }
+.cat-tog { display: inline-flex; align-items: center; gap: 5px; font-family: 'Orbitron', sans-serif; font-size: 9px; padding: 4px 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; letter-spacing: 1px; }
 .cat-tog.on { background: rgba(5,217,232,0.12); border-color: rgba(5,217,232,0.4); color: #05d9e8; }
+.cat-tog.na { opacity: 0.3; cursor: not-allowed; text-decoration: line-through; }
+.cat-n { font-size: 8px; opacity: 0.55; }
+.cats-note { font-size: 11px; color: rgba(255,255,255,0.35); margin: 8px 0 0; text-align: left; }
+.cats-warn { font-size: 11px; color: #ffb300; margin: 6px 0 0; text-align: left; }
 .btn.mini { padding: 5px 12px; font-size: 10px; }
 .mt4 { margin-top: 4px; }
 .mt6 { margin-top: 6px; }

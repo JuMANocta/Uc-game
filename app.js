@@ -59,9 +59,22 @@ function MUC(){return Math.max(1,S.pc-(S.mw?2:1))}
 function WW(){var u=Math.min(S.uc,MUC());return S.mw&&S.pc>=4&&(S.pc-u)>=2}
 function CC(){return S.pc-Math.min(S.uc,MUC())-(WW()?1:0)}
 function BAL(){return Math.max(1,Math.floor(S.pc/3)-(S.mw?1:0))}
-function PP(){var pool=DB.reduce(function(a,e,i){if(S.kids&&!e[3])return a;if(S.cats&&S.cats.indexOf(e[2])===-1)return a;a.push(i);return a},[]);if(!pool.length)pool=DB.map(function(_,i){return i});var av=pool.filter(function(i){return S.used.indexOf(i)===-1});if(!av.length){S.used=[];av=pool}var x=av[Math.floor(Math.random()*av.length)];S.used.push(x);return DB[x]}
-function allCats(){var a=[];DB.forEach(function(e){if(a.indexOf(e[2])===-1)a.push(e[2])});return a.sort()}
-function TCat(c){var all=allCats();if(!S.cats){S.cats=all.filter(function(x){return x!==c})}else{var idx=S.cats.indexOf(c);if(idx!==-1){if(S.cats.length<=1)return;S.cats=S.cats.filter(function(x){return x!==c})}else{S.cats=S.cats.concat([c]);if(S.cats.length===all.length)S.cats=null}}render()}
+// Pioche une paire. Le filtre Mode Enfant n'est JAMAIS contourné :
+// si le filtre catégories vide le pool, on retombe sur le pool kid-safe.
+function PP(){
+var pool=DB.reduce(function(a,e,i){if(S.kids&&!e[3])return a;if(S.cats&&S.cats.indexOf(e[2])===-1)return a;a.push(i);return a},[]);
+if(!pool.length)pool=DB.reduce(function(a,e,i){if(S.kids&&!e[3])return a;a.push(i);return a},[]);
+if(!pool.length)pool=DB.map(function(_,i){return i});
+var av=pool.filter(function(i){return S.used.indexOf(i)===-1});if(!av.length){S.used=[];av=pool}
+var x=av[Math.floor(Math.random()*av.length)];S.used.push(x);return DB[x]}
+
+var _allCats=null;
+function allCats(){if(_allCats)return _allCats;var a=[];DB.forEach(function(e){if(a.indexOf(e[2])===-1)a.push(e[2])});_allCats=a.sort();return _allCats}
+// Paires jouables dans une catégorie, Mode Enfant appliqué
+function catCount(c){return DB.reduce(function(n,e){return e[2]!==c||(S.kids&&!e[3])?n:n+1},0)}
+// Taille du pool réel avec les filtres courants
+function poolSize(){return DB.reduce(function(n,e){if(S.kids&&!e[3])return n;if(S.cats&&S.cats.indexOf(e[2])===-1)return n;return n+1},0)}
+function TCat(c){if(!catCount(c))return;var all=allCats();if(!S.cats){S.cats=all.filter(function(x){return x!==c})}else{var idx=S.cats.indexOf(c);if(idx!==-1){if(S.cats.length<=1)return;S.cats=S.cats.filter(function(x){return x!==c})}else{S.cats=S.cats.concat([c]);if(S.cats.length===all.length)S.cats=null}}render()}
 
 function SS(){var s=Object.keys(S.sc).map(function(k){return{id:+k,pts:S.sc[k]}}).sort(function(a,b){return b.pts-a.pts});return s}
 function CSC(){var s=SS();if(!s.length)return"";return '<div class="score-compact">'+s.map(function(x,i){return '<span class="sc-item'+(i===0?" first":"")+'">'+N(x.id)+" "+x.pts+"pts</span>"}).join("")+"</div>"}
@@ -110,6 +123,23 @@ Object.keys(S.sc).forEach(function(id){var nm=(S.nm[id]||"Joueur "+id).trim();if
 localStorage.setItem("uc_lb",JSON.stringify(lb))}catch(e){}}
 function getLB(){try{return JSON.parse(localStorage.getItem("uc_lb")||"{}")}catch(e){return{}}}
 function clearLB(){try{localStorage.removeItem("uc_lb")}catch(e){}}
+
+// Persistance des options entre les sessions (uc_opts)
+function saveOpts(){try{localStorage.setItem("uc_opts",JSON.stringify({pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,timer:S.timer,skipvote:S.skipvote,night:S.night,kids:S.kids,cats:S.cats,nm:S.nm}))}catch(e){}}
+function loadOpts(){
+try{var o=JSON.parse(localStorage.getItem("uc_opts")||"null");if(!o||typeof o!=="object")return;
+if(typeof o.pc==="number")S.pc=Math.max(3,Math.min(20,o.pc|0));
+if(typeof o.uc==="number")S.uc=Math.max(1,o.uc|0);
+if(typeof o.mw==="boolean")S.mw=o.mw;
+if(typeof o.cat==="boolean")S.cat=o.cat;
+if([0,60,120,180,300].indexOf(o.timer)!==-1)S.timer=o.timer;
+if(typeof o.skipvote==="boolean")S.skipvote=o.skipvote;
+if(typeof o.night==="boolean")S.night=o.night;
+if(typeof o.kids==="boolean")S.kids=o.kids;
+if(Array.isArray(o.cats)){var valid=o.cats.filter(function(c){return allCats().indexOf(c)!==-1});S.cats=(!valid.length||valid.length===allCats().length)?null:valid}
+if(o.nm&&typeof o.nm==="object"&&!Array.isArray(o.nm))S.nm=o.nm;
+S.uc=Math.min(S.uc,MUC())}catch(e){}}
+function clearOpts(){try{localStorage.removeItem("uc_opts")}catch(e){}}
 function FLB(){
 var lb=getLB();var en=Object.values(lb).sort(function(a,b){return b.pts-a.pts});
 if(!en.length)return'<p class="color-dim3 fs12 tc mb8">Aucune partie enregistrée.</p>';
@@ -121,6 +151,7 @@ var ic=S.gr.winner==="civil"?"👤":S.gr.winner==="uc"?"🕵️":"🤍";
 var lines=[ic+" "+S.gr.msg,"Mots : "+S.pair[0]+" / "+S.pair[1]+(S.cat?" ("+S.ct+")":""),S.turn+" tours — scores :"];
 SS().forEach(function(x){lines.push("  "+N(x.id)+" : "+x.pts+" pt"+(x.pts>1?"s":""))});
 var txt=lines.join("\n");
+if(navigator.share){navigator.share({title:"UNDERCOVER — Night City",text:txt}).catch(function(){});return}
 if(navigator.clipboard&&navigator.clipboard.writeText){
   navigator.clipboard.writeText(txt).then(function(){
     var btn=document.getElementById("share-btn");
@@ -155,6 +186,7 @@ app.innerHTML='<div class="hline"></div>'+
 '<div class="fline"></div>';return}
 
 if(p==="setup"){
+saveOpts();
 var uc=Math.min(S.uc,MUC());var nh="";
 for(var i=1;i<=S.pc;i++)nh+='<input type="text" id="n'+i+'" placeholder="Joueur '+i+'" value="'+(S.nm[i]||"")+'" maxlength="20" oninput="S.nm['+i+']=this.value.slice(0,20)">';
 app.innerHTML='<div class="hline"></div><div class="mb20">'+G("UNDERCOVER","orb fs28 fw900 ls4 color-cyan text-shadow-cyan")+'<p class="subtitle-red">// NIGHT CITY EDITION</p></div>'+
@@ -167,26 +199,31 @@ app.innerHTML='<div class="hline"></div><div class="mb20">'+G("UNDERCOVER","orb 
 
 '<div class="setup-section"><label class="lbl"><span class="lbl-a">04</span> OPTIONS</label><div class="opt-group">'+
 
-'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">Mr. White</span><span class="opt-desc">Rôle sans mot — doit deviner le mot civil</span></div><button class="tog '+(S.mw?"on":"")+'" onclick="S.mw=!S.mw;S.uc=Math.min(BAL(),MUC());render()"><span class="dot"></span></button></div>'+
+'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">Mr. White</span><span class="opt-desc">Rôle sans mot — doit deviner le mot civil</span></div><button class="tog '+(S.mw?"on":"")+'" aria-label="Mr. White" aria-pressed="'+(S.mw?"true":"false")+'" onclick="S.mw=!S.mw;S.uc=Math.min(BAL(),MUC());render()"><span class="dot"></span></button></div>'+
 
-'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">Afficher la catégorie</span><span class="opt-desc">Révèle la thématique du mot pendant le tour</span></div><button class="tog '+(S.cat?"on":"")+'" onclick="S.cat=!S.cat;render()"><span class="dot"></span></button></div>'+
+'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">Afficher la catégorie</span><span class="opt-desc">Révèle la thématique du mot pendant le tour</span></div><button class="tog '+(S.cat?"on":"")+'" aria-label="Afficher la catégorie" aria-pressed="'+(S.cat?"true":"false")+'" onclick="S.cat=!S.cat;render()"><span class="dot"></span></button></div>'+
 
 '<div class="opt-row opt-col"><div class="opt-lbl"><span class="opt-title">⏱ Timer de débat</span><span class="opt-desc">Durée maximale de discussion par tour</span></div><div class="timer-grid">'+[0,60,120,180,300].map(function(v){var l=v===0?"Off":Math.floor(v/60)+"min";return'<button class="timer-preset'+(S.timer===v?" active":"")+'" onclick="S.timer='+v+';render()">'+l+'</button>'}).join("")+'</div></div>'+
 
-'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">Vote nul</span><span class="opt-desc">Permet de passer un tour sans élimination</span></div><button class="tog '+(S.skipvote?"on":"")+'" onclick="S.skipvote=!S.skipvote;render()"><span class="dot"></span></button></div>'+
+'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">Vote nul</span><span class="opt-desc">Permet de passer un tour sans élimination</span></div><button class="tog '+(S.skipvote?"on":"")+'" aria-label="Vote nul" aria-pressed="'+(S.skipvote?"true":"false")+'" onclick="S.skipvote=!S.skipvote;render()"><span class="dot"></span></button></div>'+
 
-'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">🌙 Mode nuit</span><span class="opt-desc">Masque les rôles et le compteur pendant le débat</span></div><button class="tog '+(S.night?"on":"")+'" onclick="S.night=!S.night;render()"><span class="dot"></span></button></div>'+
-'<div class="opt-row last"><div class="opt-lbl"><span class="opt-title">🧒 Mode Enfant</span><span class="opt-desc">~520 paires adaptées sur 40 catégories — exclut alcool, horreur, contenu adulte</span></div><button class="tog '+(S.kids?"on":"")+'" onclick="S.kids=!S.kids;render()"><span class="dot"></span></button></div>'+
+'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">🌙 Mode nuit</span><span class="opt-desc">Masque les rôles et le compteur pendant le débat</span></div><button class="tog '+(S.night?"on":"")+'" aria-label="Mode nuit" aria-pressed="'+(S.night?"true":"false")+'" onclick="S.night=!S.night;render()"><span class="dot"></span></button></div>'+
+'<div class="opt-row last"><div class="opt-lbl"><span class="opt-title">🧒 Mode Enfant</span><span class="opt-desc">614 paires adaptées sur 39 catégories — exclut alcool, horreur, contenu adulte</span></div><button class="tog '+(S.kids?"on":"")+'" aria-label="Mode Enfant" aria-pressed="'+(S.kids?"true":"false")+'" onclick="S.kids=!S.kids;render()"><span class="dot"></span></button></div>'+
 
 '</div></div>'+
 
-'<div class="setup-section"><details class="cats-details"><summary class="lbl cats-sum"><span class="lbl-a">05</span> CATÉGORIES <span class="cats-count">'+(S.cats?S.cats.length:allCats().length)+'/'+allCats().length+'</span></summary>'+
-(S.cats?'<button class="btn ghost mini mb6" onclick="S.cats=null;render()">Tout activer</button>':'')+
-'<div class="cats-grid">'+allCats().map(function(c){var on=!S.cats||S.cats.indexOf(c)!==-1;return'<button class="cat-tog'+(on?" on":"")+'" onclick="TCat(\''+c+'\')">'+ c+'</button>'}).join("")+'</div></details></div>'+
+'<div class="setup-section"><details class="cats-details"><summary class="lbl cats-sum"><span class="lbl-a">05</span> CATÉGORIES <span class="cats-count">'+poolSize()+' paires</span></summary>'+
+(S.cats?'<button class="btn ghost mini mb6" onclick="S.cats=null;render()">↺ Tout activer</button>':'')+
+'<div class="cats-grid">'+allCats().map(function(c){var n=catCount(c);var on=n>0&&(!S.cats||S.cats.indexOf(c)!==-1);
+return'<button class="cat-tog'+(on?" on":"")+(n?"":" na")+'" aria-pressed="'+(on?"true":"false")+'" onclick="TCat(\''+c+'\')">'+c+'<span class="cat-n">'+n+'</span></button>'}).join("")+'</div>'+
+(S.kids?'<p class="cats-note">🧒 Mode Enfant actif — les catégories à 0 paire sont indisponibles.</p>':'')+
+(poolSize()<25?'<p class="cats-warn">⚠ Pool réduit ('+poolSize()+' paires) — les mots se répéteront sur une longue partie.</p>':'')+
+'</details></div>'+
 
 (S.err?'<p class="err-msg">⚠ '+S.err+'</p>':'')+
 '<button class="btn" onclick="startSession()">▶ LANCER LA PARTIE</button>'+
 '<details class="hist-details mt6"><summary class="orb fs10 color-gold ls2">🏆 HALL OF FAME</summary>'+FLB()+(Object.keys(getLB()).length?'<button class="btn ghost" onclick="showConfirm(\'Effacer tout le Hall of Fame ?\',function(){clearLB();render()})">🗑 Effacer le classement</button>':'')+'</details>'+
+'<button class="btn-abandon" onclick="showConfirm(\'Réinitialiser toutes les options et les noms ?\',resetOpts)">↺ Réinitialiser les options</button>'+
 '<div class="fline"></div>';return}
 
 var cp=S.tp[S.ro[S.ri]];
@@ -309,7 +346,7 @@ function startSession(){
 for(var i=1;i<=S.pc;i++){var el=document.getElementById("n"+i);if(el)S.nm[i]=el.value}
 for(var i=1;i<=S.pc;i++){if(!S.nm[i]||!S.nm[i].trim())S.nm[i]="Joueur "+i}
 var seen={};for(var i=1;i<=S.pc;i++){var k=S.nm[i].trim().toLowerCase();if(seen[k]){S.err="\""+S.nm[i]+"\" est utilisé deux fois.";render();return}seen[k]=true}
-S.err="";
+S.err="";saveOpts();
 var uc=Math.min(S.uc,MUC());var aw=WW();var r=[];
 for(var j=0;j<uc;j++)r.push("undercover");
 if(aw)r.push("mrwhite");
@@ -357,4 +394,7 @@ render()}
 
 function fullReset(){stopTimer();S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:S.timer,tid:null,trem:0,skipvote:S.skipvote,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:S.night,kids:S.kids,cats:S.cats,spoken:[]};render()}
 
+function resetOpts(){clearOpts();stopTimer();S={phase:"setup",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:false,kids:false,cats:null,spoken:[]};render()}
+
+loadOpts();
 render();
