@@ -390,7 +390,7 @@ function hostHello(cid, msg) {
     S.net.seats[si].connId = cid;
     S.net.seats[si].connected = true;
     S.net.seats[si].lastSeen = Date.now();
-    NET.send(cid, { v: PROTO_V, t: "welcome", token: S.net.seats[si].token, playerId: si + 1, roomCode: S.net.code, state: snapshot() });
+    NET.send(cid, { v: PROTO_V, t: "welcome", build: (typeof BUILD === "string" ? BUILD : ""), token: S.net.seats[si].token, playerId: si + 1, roomCode: S.net.code, state: snapshot() });
     // Il revient en pleine partie : on lui renvoie immédiatement son mot et
     // l'état du timer, sinon il resterait devant un écran vide.
     if (S.phase !== "lobby" && S.alive.indexOf(si + 1) !== -1) {
@@ -410,7 +410,7 @@ function hostHello(cid, msg) {
   var tok = newToken();
   S.net.seats.push({ token: tok, name: name, connId: cid, connected: true, isHost: false, lastSeen: Date.now() });
   syncRoster();
-  NET.send(cid, { v: PROTO_V, t: "welcome", token: tok, playerId: S.net.seats.length, roomCode: S.net.code, state: snapshot() });
+  NET.send(cid, { v: PROTO_V, t: "welcome", build: (typeof BUILD === "string" ? BUILD : ""), token: tok, playerId: S.net.seats.length, roomCode: S.net.code, state: snapshot() });
   SND.ping(); VIB(20);
   render();
 }

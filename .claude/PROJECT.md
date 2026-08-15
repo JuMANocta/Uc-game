@@ -353,6 +353,14 @@ Le contenu insiste sur les deux points qui perdent les nouveaux joueurs : **on i
 
 Masquer la paire à chaque fin de tour préserve l'incertitude sur son propre rôle : la révéler apprendrait à un Undercover survivant qu'il **est** l'intrus, dès le tour 2. La fin de partie affiche de toute façon `ALLW()` — toutes les paires jouées, tour par tour, côté hôte comme côté joueurs via `gameOver.allWords`.
 
+### Vérification de version à la connexion
+
+Un joueur qui scanne un QR peut tourner sur une version en cache datant de plusieurs jours. Trois garde-fous :
+
+1. `checkForUpdate()` force `reg.update()` **à chaque connexion** — par code comme par QR. Le navigateur ne consulte le service worker que sporadiquement.
+2. Le `welcome` porte le `BUILD` de l'hôte. Version différente mais protocole identique → bandeau non bloquant nommant la version, la partie reste jouable.
+3. **Protocole différent → écran dédié.** Auparavant `clientOnMsg` faisait un simple `return` sur `msg.v !== PROTO_V` : le joueur restait indéfiniment sur « connexion » sans la moindre explication. Il voit désormais la raison et un bouton pour recharger.
+
 ### Identité des sièges — piège structurel
 
 `playerId = index + 1` dans un tableau. Retirer un siège décale donc **tous les suivants**. Or `playerId` n'était transmis qu'une fois, dans le `welcome` : un client resté connecté gardait un identifiant périmé et se croyait être quelqu'un d'autre — jusqu'à s'afficher éliminé à la place d'un autre, `C.playerId` pilotant aussi l'écran affiché.

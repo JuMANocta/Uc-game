@@ -126,16 +126,34 @@ function clientJoin(code, name) {
 
   if (!isOnline()) { C.screen = "rejected"; C.err = "offline"; C.link = "dead"; render(); return; }
   if (!NET.use("peerjs")) { C.screen = "error"; C.err = "lib"; render(); return; }
+  checkForUpdate();          // le joueur peut arriver avec une version en cache
   requestWake();
   NET.join(C.code, clientHandlers());
   render();
 }
 
 function clientOnMsg(msg) {
-  if (!msg || msg.v !== PROTO_V) return;
+  if (!msg) return;
+  // Un protocole différent = versions incompatibles. Le SIGNALER, au lieu de
+  // laisser le joueur devant un écran de connexion qui ne finira jamais : c'est
+  // ce que faisait le simple `return` d'avant.
+  if (msg.v !== PROTO_V) {
+    if (msg.t === "welcome" || msg.t === "state") {
+      C.screen = "outdated"; C.link = "dead";
+      stopHeartbeat(); if (C._rtid) { clearTimeout(C._rtid); C._rtid = null; }
+      checkForUpdate(); render();
+    }
+    return;
+  }
   C._lastSeen = Date.now();
 
   if (msg.t === "welcome") {
+    // Même protocole mais version différente : rien de bloquant, mais on le dit
+    // et on force une vérification — l'écart finira par poser problème.
+    if (msg.build && typeof BUILD === "string" && msg.build !== BUILD) {
+      checkForUpdate();
+      showUpdateBanner("⚠ L'hôte utilise une autre version (" + msg.build + ")");
+    }
     C.token = msg.token; C.playerId = msg.playerId; C.code = msg.roomCode;
     C.snap = msg.state; C.link = "online";
     adoptRoster(); syncClientScreen();
@@ -462,6 +480,19 @@ function renderClient() {
     return;
   }
 
+  if (s === "outdated") {
+    app.innerHTML = '<div class="hline"></div>' +
+      '<div class="icon-big">⬇</div>' +
+      '<h2 class="orb fs17 fw700 color-red m8-0">' + G("VERSION INCOMPATIBLE") + "</h2>" +
+      '<p class="color-dim6 fs14 lh15 mb14">Ton application est plus ancienne que celle de l\'hôte : ' +
+      'elles ne parlent pas le même protocole.</p>' +
+      '<p class="color-dim fs13 mb14">Recharge la page pour récupérer la dernière version, puis rescanne le QR.</p>' +
+      '<button class="btn glow" onclick="location.reload()">↻ RECHARGER</button>' +
+      '<p class="build-stamp">build ' + BUILD + '</p>' +
+      '<div class="fline"></div>';
+    return;
+  }
+
   if (s === "mw") {
     var sent = C.snap.mw && C.snap.mw.guess;
     app.innerHTML = '<div class="hline"></div>' + linkPill() +
@@ -631,7 +662,7 @@ function bootFromHash() {
     C.token = sv.token; C.playerId = sv.playerId;
     C.name = sv.name || ""; C.secret = sv.secret || null;
     C.screen = "connecting"; C.link = "connecting"; C._retries = 0;
-    if (NET.use("peerjs")) { requestWake(); NET.join(C.code, clientHandlers()); }
+    if (NET.use("peerjs")) { checkForUpdate(); requestWake(); NET.join(C.code, clientHandlers()); }
     return true;
   }
   if (sv && sv.code === C.code) C.name = sv.name || "";

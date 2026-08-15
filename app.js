@@ -55,7 +55,7 @@ var DB=[
 
 // Estampille affichée sur l'accueil : permet de vérifier d'un coup d'oeil
 // quelle version le navigateur sert réellement (cache du service worker).
-var BUILD="v15-2026.08.15";
+var BUILD="v16-2026.08.15";
 var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}

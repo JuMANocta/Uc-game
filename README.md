@@ -118,7 +118,7 @@ Les paires jouées ne se répètent pas avant épuisement complet du pool (ou du
 - **Règles en jeu** — bouton « ? » flottant sur tous les écrans, hôte comme joueurs : rappel du principe, du déroulé et surtout du fait que **les rôles ne changent jamais alors que les mots changent à chaque tour**
 - **Splash screen** — boot log animé au premier chargement
 - **Bouton Abandonner** — disponible pendant le débat (avec confirmation modale)
-- **PWA** — installable sur mobile via un bouton dédié, **bannière de mise à jour** quand une nouvelle version est prête, détection du hors-ligne
+- **PWA** — installable sur mobile via un bouton dédié, **bannière de mise à jour** quand une nouvelle version est prête, **vérification forcée à chaque connexion à une salle** et alerte si l'hôte tourne sur une autre version, détection du hors-ligne
   | Mode | Hors ligne |
   |---|---|
   | Un seul téléphone | ✅ complet, les 816 paires sont embarquées |
