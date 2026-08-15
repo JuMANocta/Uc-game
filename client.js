@@ -118,6 +118,7 @@ function clientJoin(code, name) {
   S.mode = "client";
   C.code = String(code || "").toUpperCase().trim();
   C.name = cleanName(name);
+  setMyName(C.name);          // mémorisé pour les prochaines parties
   C.screen = "connecting";
   C.link = "connecting";
   C.err = null;
@@ -165,6 +166,16 @@ function clientOnMsg(msg) {
     if (msg.action === "start") clientTimerStart(msg.remaining);
     else clientTimerStop();
     render();
+    return;
+  }
+  // L'hôte a renuméroté les sièges : on adopte SON identifiant, jamais celui
+  // qu'on avait mis en cache. C.playerId pilote l'écran affiché, un décalage
+  // faisait croire au joueur qu'il était quelqu'un d'autre.
+  if (msg.t === "seat") {
+    if (typeof msg.playerId === "number" && msg.playerId > 0) {
+      C.playerId = msg.playerId;
+      saveClientSave(); syncClientScreen(); render();
+    }
     return;
   }
   if (msg.t === "buzzed") { showPingToast(msg.from, msg.to, msg.emoji, msg.pub); return; }
@@ -395,7 +406,7 @@ function renderClient() {
       '<div class="setup-section"><label class="lbl"><span class="lbl-a">01</span> CODE DE LA PARTIE</label>' +
       '<input type="text" id="jcode" class="code-input" maxlength="6" autocapitalize="characters" autocomplete="off" placeholder="XK7P2M" value="' + (C.code || "") + '"></div>' +
       '<div class="setup-section"><label class="lbl"><span class="lbl-a">02</span> TON PSEUDO</label>' +
-      '<input type="text" id="jname" maxlength="20" placeholder="Ton prénom" value="' + (C.name || "") + '"></div>' +
+      '<input type="text" id="jname" maxlength="20" placeholder="Ton prénom" value="' + (C.name || myName() || "") + '"></div>' +
       (C.err ? '<p class="err-msg">⚠ ' + (REJECT_MSG[C.err] || C.err) + "</p>" : "") +
       '<button class="btn glow" onclick="var c=document.getElementById(\'jcode\').value,n=document.getElementById(\'jname\').value;if(!c.trim()||!n.trim()){C.err=\'Code et pseudo requis.\';render();return}clientJoin(c,n)">▶ REJOINDRE</button>' +
       '<button class="btn ghost" onclick="S.mode=\'solo\';location.hash=\'\';S.phase=\'splash\';render()">← Retour</button>' +

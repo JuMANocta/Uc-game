@@ -55,7 +55,7 @@ var DB=[
 
 // Estampille affichée sur l'accueil : permet de vérifier d'un coup d'oeil
 // quelle version le navigateur sert réellement (cache du service worker).
-var BUILD="v14-2026.08.15";
+var BUILD="v15-2026.08.15";
 var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}
@@ -146,6 +146,13 @@ Object.keys(S.sc).forEach(function(id){var nm=(S.nm[id]||"Joueur "+id).trim();if
 localStorage.setItem("uc_lb",JSON.stringify(lb))}catch(e){}}
 function getLB(){try{return JSON.parse(localStorage.getItem("uc_lb")||"{}")}catch(e){return{}}}
 function clearLB(){try{localStorage.removeItem("uc_lb")}catch(e){}}
+
+// « Mon nom sur cet appareil » — durable et indépendant de toute partie.
+// À ne pas confondre avec S.nm, qui est le roster de la partie COURANTE : en
+// solo il contient les noms des autres joueurs, d'où l'hôte qui héritait du
+// nom de son prédécesseur.
+function myName(){try{return String(JSON.parse(localStorage.getItem("uc_me")||"null")||"").slice(0,20)}catch(e){return""}}
+function setMyName(n){try{var v=cleanName(n);if(v)localStorage.setItem("uc_me",JSON.stringify(v))}catch(e){}}
 
 // Persistance des options entre les sessions (uc_opts)
 // pc et nm ne sont persistés qu'en mode solo : en mode hôte ils sont dictés par
@@ -928,7 +935,7 @@ checkEnd(pl)}
 function renameHost(v){
 var n=cleanName(v);
 S.nm[1]=n;
-if(S.net&&S.net.seats[0]&&S.net.seats[0].isHost)S.net.seats[0].name=n;
+if(S.net&&S.net.seats[0]&&S.net.seats[0].isHost){S.net.seats[0].name=n;setMyName(n)}
 render()}
 
 function hostClue(){

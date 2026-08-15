@@ -353,6 +353,23 @@ Le contenu insiste sur les deux points qui perdent les nouveaux joueurs : **on i
 
 Masquer la paire à chaque fin de tour préserve l'incertitude sur son propre rôle : la révéler apprendrait à un Undercover survivant qu'il **est** l'intrus, dès le tour 2. La fin de partie affiche de toute façon `ALLW()` — toutes les paires jouées, tour par tour, côté hôte comme côté joueurs via `gameOver.allWords`.
 
+### Identité des sièges — piège structurel
+
+`playerId = index + 1` dans un tableau. Retirer un siège décale donc **tous les suivants**. Or `playerId` n'était transmis qu'une fois, dans le `welcome` : un client resté connecté gardait un identifiant périmé et se croyait être quelqu'un d'autre — jusqu'à s'afficher éliminé à la place d'un autre, `C.playerId` pilotant aussi l'écran affiché.
+
+`pushSeatIds()` renvoie à chaque client son identifiant faisant autorité, et **doit être appelé après toute mutation du tableau des sièges**. La reconnexion, elle, était déjà correcte : `hostHello` recalcule `playerId` depuis le token.
+
+Les votes et indices n'ont jamais été affectés : l'hôte les attribue via `seatByConn`, jamais via l'identifiant annoncé par le client.
+
+### Noms — deux notions distinctes
+
+| Clé | Portée |
+|---|---|
+| `S.nm` | Roster de la partie **courante** — en solo il contient les noms des autres joueurs |
+| `uc_me` | **Mon nom sur cet appareil** — durable, indépendant de toute partie |
+
+L'hôte tirait son nom de `S.nm[1]`, c'est-à-dire « le premier de la liste » et non « moi » : il héritait donc du nom d'un ancien hôte ou d'un ami. Il lit désormais `uc_me`, qui alimente aussi le pré-remplissage du pseudo à la connexion.
+
 ### Pings (`S.pingOn`, `S.pingGap`)
 
 Fenêtre flottante sur le modèle des règles, hors de `#app` : elle survit aux rediffusions d'état. Un tap = un ping envoyé, sans étape intermédiaire.

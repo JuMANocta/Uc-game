@@ -299,7 +299,7 @@ function hostStart() {
   if (!NET.use("peerjs")) { S.net.status = "error"; S.net.err = "lib"; render(); return; }
 
   if (S.hostPlays) {
-    S.net.seats.push({ token: "HOST", name: cleanName(S.nm[1] || "Hôte"), connId: null, connected: true, isHost: true });
+    S.net.seats.push({ token: "HOST", name: cleanName(myName() || "Hôte"), connId: null, connected: true, isHost: true });
   }
   syncRoster();
 
@@ -421,6 +421,7 @@ function hostOnClose(cid) {
   if (si === -1) return;
   if (S.phase === "lobby") {
     S.net.seats.splice(si, 1);   // parti avant le début : on libère le siège
+    pushSeatIds();               // les suivants ont reculé d'un cran
   } else {
     S.net.seats[si].connected = false;   // en partie : le siège est conservé
     S.net.seats[si].connId = null;
@@ -515,13 +516,31 @@ function hostPing(from, to, emoji, pub) {
   render();
 }
 
+// ══════════════════════════════════════════════════════════════
+// IDENTITÉ DES SIÈGES
+// ══════════════════════════════════════════════════════════════
+// Les sièges sont un tableau ordonné (playerId = index + 1). Retirer un siège
+// décale donc TOUS les suivants. Or playerId n'était transmis qu'une fois, dans
+// le welcome : un client resté connecté gardait un identifiant périmé et se
+// croyait être quelqu'un d'autre — jusqu'à s'afficher éliminé à la place d'un
+// autre, puisque C.playerId pilote aussi l'écran affiché.
+//
+// À appeler après TOUTE mutation du tableau des sièges.
+function pushSeatIds() {
+  if (S.mode !== "host" || !S.net) return;
+  S.net.seats.forEach(function (s, i) {
+    if (s.isHost || !s.connId) return;
+    NET.send(s.connId, { v: PROTO_V, t: "seat", playerId: i + 1 });
+  });
+}
+
 function kickPlayer(pid) {
   if (!S.net) return;
   var s = S.net.seats[pid - 1];
   if (!s || s.isHost) return;
   if (s.connId) NET.send(s.connId, { v: PROTO_V, t: "reject", reason: "kicked" });
   if (s.connId) NET.kick(s.connId);
-  if (S.phase === "lobby") S.net.seats.splice(pid - 1, 1);
+  if (S.phase === "lobby") { S.net.seats.splice(pid - 1, 1); pushSeatIds(); }
   else { s.connected = false; s.connId = null; s.kicked = true; }
   syncRoster();
   render();
