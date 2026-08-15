@@ -55,14 +55,14 @@ var DB=[
 
 // Estampille affichée sur l'accueil : permet de vérifier d'un coup d'oeil
 // quelle version le navigateur sert réellement (cache du service worker).
-var BUILD="v8-2026.08.15";
+var BUILD="v9-2026.08.15";
 var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}
 
 var S={phase:"splash",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:false,kids:false,cats:null,spoken:[],
 // Multi-appareils — "solo" = un seul téléphone (défaut), "host" = cet appareil arbitre, "client" = joueur distant
-mode:"solo",net:null,votes:{},round:0,tiebreak:"revote",hostPlays:true,revealVoters:false,revealWords:false,writeClues:false,clues:{},fault:null};
+mode:"solo",net:null,votes:{},round:0,tiebreak:"revote",hostPlays:true,revealVoters:false,revealWords:false,writeClues:false,faultCat:true,clues:{},fault:null};
 
 function N(id){return S.nm[id]||("Joueur "+id)}
 function MUC(){return Math.max(1,S.pc-(S.mw?2:1))}
@@ -240,7 +240,7 @@ ov.innerHTML='<div class="rules-box">'+
 '<ul class="rules-ul">'+
 '<li><b>Trop précis</b> → l\'Undercover comprend le mot des civils et te copie</li>'+
 '<li><b>Trop vague</b> → on te prend pour l\'intrus et tu sautes</li>'+
-'<li>Ne prononce <b>jamais</b> ton propre mot'+(wc?' — tu serais <b class="color-red">éliminé sur-le-champ</b>':'')+'</li>'+
+'<li>Ne prononce <b>jamais</b> ton propre mot'+(wc?' — tu serais <b class="color-red">éliminé sur-le-champ</b>':'')+'</li>'+(wc&&S.faultCat&&!S.cat?'<li>Et ne lâche pas non plus <b>la catégorie</b> : elle est cachée, donc secrète — <b class="color-red">même sanction</b></li>':'')+
 '<li>Dire le mot que tu <i>soupçonnes</i> chez les autres est autorisé : c\'est même un bon coup</li>'+
 '</ul>'+
 
@@ -412,6 +412,7 @@ app.innerHTML='<div class="hline"></div><div class="mb20">'+G("UNDERCOVER","orb 
 '<div class="opt-row"><div class="opt-lbl"><span class="opt-title">🌙 Mode nuit</span><span class="opt-desc">Masque les rôles et le compteur pendant le débat</span></div><button class="tog '+(S.night?"on":"")+'" aria-label="Mode nuit" aria-pressed="'+(S.night?"true":"false")+'" onclick="S.night=!S.night;render()"><span class="dot"></span></button></div>'+
 '<div class="opt-row"><div class="opt-lbl"><span class="opt-title">🔍 Révéler les mots chaque tour</span><span class="opt-desc">Sinon ils restent secrets jusqu\'à la fin — un Undercover survivant ignore alors qu\'il est l\'intrus</span></div><button class="tog '+(S.revealWords?"on":"")+'" aria-label="Révéler les mots chaque tour" aria-pressed="'+(S.revealWords?"true":"false")+'" onclick="S.revealWords=!S.revealWords;render()"><span class="dot"></span></button></div>'+
 (S.mode==="host"?'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">✍️ Indices écrits</span><span class="opt-desc">Chacun tape son indice — prononcer son propre mot élimine sur-le-champ</span></div><button class="tog '+(S.writeClues?"on":"")+'" aria-label="Indices écrits" aria-pressed="'+(S.writeClues?"true":"false")+'" onclick="S.writeClues=!S.writeClues;render()"><span class="dot"></span></button></div>':'')+
+(S.mode==="host"&&S.writeClues?'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">🏷 Catégorie interdite</span><span class="opt-desc">'+(S.cat?"Sans effet tant que la catégorie est affichée à tous":"Écrire la catégorie élimine aussi — elle est cachée, donc secrète")+'</span></div><button class="tog '+(S.faultCat?"on":"")+'" aria-label="Catégorie interdite" aria-pressed="'+(S.faultCat?"true":"false")+'" onclick="S.faultCat=!S.faultCat;render()"><span class="dot"></span></button></div>':'')+
 (S.mode==="host"?'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">👁 Vote à découvert</span><span class="opt-desc">Au dépouillement, montre qui a voté pour qui</span></div><button class="tog '+(S.revealVoters?"on":"")+'" aria-label="Vote à découvert" aria-pressed="'+(S.revealVoters?"true":"false")+'" onclick="S.revealVoters=!S.revealVoters;render()"><span class="dot"></span></button></div>':'')+
 '<div class="opt-row last"><div class="opt-lbl"><span class="opt-title">🧒 Mode Enfant</span><span class="opt-desc">691 paires adaptées sur 45 catégories — exclut alcool, horreur, contenu adulte</span></div><button class="tog '+(S.kids?"on":"")+'" aria-label="Mode Enfant" aria-pressed="'+(S.kids?"true":"false")+'" onclick="S.kids=!S.kids;render()"><span class="dot"></span></button></div>'+
 
@@ -602,8 +603,8 @@ CSC()+
 if(S.fault){var fp=S.players.filter(function(x){return x.id===S.fault.id})[0];
 app.innerHTML='<div class="hline"></div><span class="tag">FIN DU TOUR '+S.turn+'</span>'+
 '<div class="icon-med">🤐</div>'+
-'<h2 class="orb fs18 fw700 color-red m8-0">'+G("MOT PRONONCÉ !")+'</h2>'+
-'<p class="color-dim6 fs14 lh15 mb6"><strong class="color-white">'+N(S.fault.id)+'</strong> a écrit «&nbsp;'+S.fault.clue+'&nbsp;»<br>et a lâché son propre mot.</p>'+
+'<h2 class="orb fs18 fw700 color-red m8-0">'+G(S.fault.kind==="cat"?"CATÉGORIE LÂCHÉE !":"MOT PRONONCÉ !")+'</h2>'+
+'<p class="color-dim6 fs14 lh15 mb6"><strong class="color-white">'+N(S.fault.id)+'</strong> a écrit «&nbsp;'+S.fault.clue+'&nbsp;»<br>'+(S.fault.kind==="cat"?'et a lâché la catégorie.':'et a lâché son propre mot.')+'</p>'+
 '<p class="color-dim6 fs14 mb6">Il était '+(fp.role==="civil"?"👤 Civil":fp.role==="undercover"?"🕵️ Undercover":"🤍 Mr. White")+' — éliminé sur-le-champ.</p>'+
 (S.cat?'<div class="cat-badge mt12">'+S.ct+'</div>':"")+(S.revealWords?WR():'<p class="color-dim3 fs12 mb8">Les mots restent secrets jusqu\'à la fin de la partie.</p>')+
 '<p class="orb fs10 color-dim3 ls2 mb0">'+bl+' IMPOSTEUR'+(bl>1?"S":"")+" RESTANT"+(bl>1?"S":"")+"</p>"+CSC()+
@@ -708,14 +709,26 @@ return String(s||"").toLowerCase()
  .normalize("NFD").replace(/[̀-ͯ]/g,"")
  .replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim()}
 
+// Formes acceptées d'un mot : le français ne se contente pas d'un -s final.
+// « Animaux » doit se déclencher sur « animal », sans quoi la règle rate le cas
+// le plus courant — les catégories sont presque toutes au pluriel alors qu'on
+// écrit spontanément au singulier.
+function wordForms(w){
+var f=[w];
+if(/eaux$/.test(w))f.push(w.replace(/eaux$/,"eau"));
+else if(/aux$/.test(w))f.push(w.replace(/aux$/,"al"));
+if(/s$/.test(w))f.push(w.replace(/s$/,""));
+if(/x$/.test(w))f.push(w.replace(/x$/,""));
+return f}
+
 // Le mot doit apparaître ENTIER : "chat" ne doit pas déclencher sur "château".
 function saysWord(clue,word){
 var w=normWord(word),c=normWord(clue);
 if(!w||!c)return false;
-var esc=w.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
-// singulier et pluriel dans les deux sens
-var base=esc.replace(/s$/,"");
-return new RegExp("(^| )"+base+"s?( |$)").test(c)}
+return wordForms(w).some(function(f){
+if(!f)return false;
+var esc=f.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");
+return new RegExp("(^| )"+esc+"[sx]?( |$)").test(c)})}
 
 function submitClue(pid,text){
 if(S.phase!=="playing"||!S.writeClues)return;
@@ -723,8 +736,13 @@ if(S.alive.indexOf(pid)===-1)return;
 var t=String(text||"").replace(/[<>&"]/g,"").slice(0,60).trim();
 if(!t)return;
 var tp=S.tp.filter(function(x){return x.id===pid})[0];
-// Mr. White n'a pas de mot : il ne peut pas commettre la faute.
-if(tp&&tp.word&&saysWord(t,tp.word)){clueFault(pid,tp.word,t);return}
+// Mr. White n'a pas de mot : il ne peut pas commettre CETTE faute.
+if(tp&&tp.word&&saysWord(t,tp.word)){clueFault(pid,tp.word,t,"word");return}
+// La catégorie n'est un secret que si elle n'est PAS affichée : quand le badge
+// la montre à tout le monde, la répéter ne fuite rien et ne peut pas être
+// sanctionné. Elle lie en revanche TOUS les joueurs, Mr. White compris — c'est
+// une information partagée, pas un mot personnel.
+if(S.faultCat&&!S.cat&&S.ct&&saysWord(t,S.ct)){clueFault(pid,S.ct,t,"cat");return}
 S.clues[pid]=t;
 if(S.spoken.indexOf(pid)===-1)S.spoken.push(pid);
 SND.click();
@@ -732,13 +750,13 @@ render()}
 
 // La faute suit exactement le même chemin qu'une élimination par vote :
 // checkEnd() distribue les points et décide de la fin de partie.
-function clueFault(pid,word,text){
+function clueFault(pid,word,text,kind){
 var pl=S.players.filter(function(p){return p.id===pid})[0];
 if(!pl)return;
 stopTimer();
 S.alive=S.alive.filter(function(x){return x!==pid});
 S.elim.push(pid);
-S.fault={id:pid,word:word,clue:text};
+S.fault={id:pid,word:word,clue:text,kind:kind||"word"};
 S.clues[pid]=text;
 SND.elim();VIB([120,60,120,60,200]);
 checkEnd(pl)}
@@ -864,7 +882,7 @@ render()}
 // devant survivre à une nouvelle partie doit être reporté ici explicitement —
 // en particulier mode/net, sinon "nouvelle partie" déconnecterait tout le monde.
 function fullReset(){stopTimer();S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:S.timer,tid:null,trem:0,skipvote:S.skipvote,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:S.night,kids:S.kids,cats:S.cats,spoken:[],
-mode:S.mode,net:S.net,votes:{},round:0,tiebreak:S.tiebreak,hostPlays:S.hostPlays,revealVoters:S.revealVoters,revealWords:S.revealWords,writeClues:S.writeClues,clues:{},fault:null};
+mode:S.mode,net:S.net,votes:{},round:0,tiebreak:S.tiebreak,hostPlays:S.hostPlays,revealVoters:S.revealVoters,revealWords:S.revealWords,writeClues:S.writeClues,faultCat:S.faultCat,clues:{},fault:null};
 if(S.mode==="host")S.phase="lobby";
 render()}
 

@@ -325,6 +325,10 @@ Chacun tape son indice ; `S.clues = {playerId: texte}` est remis à zéro chaque
 
 `saysWord(indice, mot)` normalise casse, accents et ponctuation, puis exige le mot **entier** : « chat » ne se déclenche ni sur « château », ni sur « achat », ni sur « chatons », mais bien sur « des chats ». Pluriel toléré dans les deux sens.
 
+**Faute de catégorie** (`S.faultCat`) — écrire la catégorie élimine aussi, mais **uniquement quand elle n'est pas affichée**. Quand le badge la montre à toute la table, la répéter ne fuite rien : sanctionner reviendrait à éliminer quelqu'un pour avoir recopié son propre écran. Contrairement au mot, elle lie **tous** les joueurs, Mr. White compris — c'est une information partagée, pas un secret personnel.
+
+`wordForms()` gère les pluriels français au-delà du simple `-s` : « Animaux » se déclenche sur « animal », `-eaux/-eau`, `-x`. Sans quoi la règle ratait le cas le plus fréquent, les catégories étant presque toutes au pluriel alors qu'on écrit spontanément au singulier.
+
 Seul **son propre** mot est fautif : un civil qui prononce le mot Undercover fait une déduction légitime, pas une faute. Mr. White n'ayant pas de mot ne peut jamais être sanctionné.
 
 **Aucun avertissement local avant l'envoi** — prévenir « ton indice contient ton mot » rendrait la règle décorative, plus personne ne se ferait prendre. C'est délibéré, et c'est pourquoi l'option est désactivable.

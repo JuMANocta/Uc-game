@@ -101,7 +101,7 @@ function snapshot() {
     // de ce qui a été dit. La faute l'est aussi, la sanction doit être visible.
     writeClues: !!S.writeClues,
     clues: S.writeClues ? JSON.parse(JSON.stringify(S.clues || {})) : {},
-    fault: S.fault ? { id: S.fault.id, word: S.fault.word, clue: S.fault.clue } : null,
+    fault: S.fault ? { id: S.fault.id, word: S.fault.word, clue: S.fault.clue, kind: S.fault.kind } : null,
     scores: S.sc,
     opts: { cat: S.cat, night: S.night, skipvote: S.skipvote, timer: S.timer },
     // votedIds dit QUI a voté, jamais POUR QUI — c'est ce qui permet
