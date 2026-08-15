@@ -275,6 +275,16 @@ function hostOnMsg(cid, msg) {
   if (!S.net.seats[si].connected) { S.net.seats[si].connected = true; render(); }
 
   if (msg.t === "ping") { NET.send(cid, { v: PROTO_V, t: "pong" }); return; }
+  // Chacun se coche lui-même quand il a fini de parler — l'hôte peut toujours
+  // le faire à sa place depuis son écran.
+  if (msg.t === "spoke") {
+    var pid = si + 1;
+    var k = S.spoken.indexOf(pid);
+    if (msg.on === false) { if (k !== -1) S.spoken.splice(k, 1); }
+    else if (k === -1) S.spoken.push(pid);
+    render();
+    return;
+  }
   if (msg.t === "set_name" && S.phase === "lobby") {
     var n = cleanName(msg.name);
     if (!nameTaken(n) || n === S.net.seats[si].name) { S.net.seats[si].name = n; syncRoster(); render(); }
@@ -291,6 +301,12 @@ function hostHello(cid, msg) {
     S.net.seats[si].connected = true;
     S.net.seats[si].lastSeen = Date.now();
     NET.send(cid, { v: PROTO_V, t: "welcome", token: S.net.seats[si].token, playerId: si + 1, roomCode: S.net.code, state: snapshot() });
+    // Il revient en pleine partie : on lui renvoie immédiatement son mot et
+    // l'état du timer, sinon il resterait devant un écran vide.
+    if (S.phase !== "lobby" && S.alive.indexOf(si + 1) !== -1) {
+      sendSecretTo(si + 1);
+      if (S.timer && S.trem > 0) NET.send(cid, { v: PROTO_V, t: "timer", action: "start", remaining: S.trem });
+    }
     render();
     return;
   }
@@ -321,6 +337,32 @@ function hostOnClose(cid) {
   }
   syncRoster();
   render();
+}
+
+// ══════════════════════════════════════════════════════════════
+// MOTS SECRETS — envoi CIBLÉ, jamais diffusé
+// ══════════════════════════════════════════════════════════════
+// On n'envoie QUE `word` et `isMrWhite` — jamais `role`. Dire à un joueur
+// qu'il est "undercover" lui révélerait son camp, ce que l'écran de révélation
+// mono-téléphone se garde bien de faire : il montre un mot, point.
+function sendSecretTo(pid) {
+  if (S.mode !== "host" || !S.net) return;
+  var seat = S.net.seats[pid - 1];
+  if (!seat || seat.isHost || !seat.connId) return;
+  var t = S.tp.filter(function (x) { return x.id === pid; })[0];
+  if (!t) return;
+  NET.send(seat.connId, {
+    v: PROTO_V, t: "secret",
+    turn: S.turn,
+    word: t.word,                       // null pour Mr. White
+    isMrWhite: t.role === "mrwhite",
+    category: S.cat ? S.ct : null
+  });
+}
+
+function sendSecrets() {
+  if (S.mode !== "host" || !S.net) return;
+  S.tp.forEach(function (t) { sendSecretTo(t.id); });
 }
 
 function kickPlayer(pid) {
@@ -367,6 +409,15 @@ function releaseWake() {
   _wake = null;
 }
 function wakeSupported() { return !!(navigator.wakeLock && navigator.wakeLock.request); }
+
+// Le timer n'est PAS mis dans le snapshot : il changerait chaque seconde et
+// ferait rediffuser l'état en boucle. On envoie le départ/arrêt, et chaque
+// client fait tourner son propre décompte — insensible au décalage d'horloge
+// entre appareils, contrairement à une date de fin absolue.
+function broadcastTimer(action, rem) {
+  if (S.mode !== "host" || !S.net || !S.timer) return;
+  NET.broadcast({ v: PROTO_V, t: "timer", action: action, remaining: rem || 0 });
+}
 
 // ══════════════════════════════════════════════════════════════
 // VISIBILITÉ — le moment critique du jeu

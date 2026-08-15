@@ -311,3 +311,8 @@ input[type=text]::placeholder { color: rgba(255,255,255,0.2); }
 /* Barre de progression indéterminée (ouverture de salle, connexion) */
 .pbar-fill.indet { width: 35%; animation: indet 1.1s ease-in-out infinite; }
 @keyframes indet { 0% { margin-left: -35%; } 100% { margin-left: 100%; } }
+
+/* Mot secret masqué par défaut : un regard par-dessus l'épaule ne suffit pas */
+.word-hide { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; padding: 26px 0; background: rgba(5,217,232,0.04); border: 1px dashed rgba(5,217,232,0.3); color: #05d9e8; cursor: pointer; font-family: 'Rajdhani', sans-serif; }
+.word-open { padding: 18px 0; cursor: pointer; }
+.speak-item.mine { border-color: rgba(5,217,232,0.45); background: rgba(5,217,232,0.07); }

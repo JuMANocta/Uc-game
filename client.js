@@ -157,7 +157,43 @@ function clientOnMsg(msg) {
     C.wordShown = false; saveClientSave(); requestWake(); render();
     return;
   }
+  if (msg.t === "timer") {
+    if (msg.action === "start") clientTimerStart(msg.remaining);
+    else clientTimerStop();
+    render();
+    return;
+  }
   if (msg.t === "pong") { C.link = "online"; return; }
+}
+
+// Décompte local, démarré à la réception : seule la latence (~50 ms) joue,
+// pas le décalage d'horloge entre les téléphones.
+function clientTimerStop() {
+  if (C.timer && C.timer.tid) { clearInterval(C.timer.tid); C.timer.tid = null; }
+}
+function clientTimerStart(rem) {
+  clientTimerStop();
+  C.timer = C.timer || {};
+  C.timer.rem = rem || 0;
+  if (!C.timer.rem) return;
+  C.timer.tid = setInterval(function () {
+    C.timer.rem--;
+    var el = document.getElementById("ctdisp");
+    if (!el) return;                       // pas à l'écran : on continue de compter
+    if (C.timer.rem <= 0) {
+      clientTimerStop(); C.timer.rem = 0;
+      el.className = "timer-disp done"; el.textContent = "VOTEZ !";
+      SND.alarm(); VIB([100, 60, 100, 60, 100]);
+      return;
+    }
+    el.textContent = TF(C.timer.rem);
+    el.className = "timer-disp" + (C.timer.rem <= 10 ? " urgent" : "");
+  }, 1000);
+}
+
+function clientSpoke() {
+  var mine = C.snap && C.snap.spoken.indexOf(C.playerId) !== -1;
+  NET.toHost({ v: PROTO_V, t: "spoke", on: !mine });
 }
 
 // Fait suivre l'écran client à la phase annoncée par l'hôte.
@@ -277,13 +313,75 @@ function renderClient() {
     return;
   }
 
-  // Écrans de jeu (word / vote / recap / over / dead) — implémentés en P3-P5.
+  if (s === "word") return renderClientWord();
+
+  if (s === "dead") {
+    app.innerHTML = '<div class="hline"></div>' + linkPill() +
+      '<span class="tag">TOUR ' + (C.snap ? C.snap.turn : "?") + "</span>" +
+      '<div class="icon-big">💀</div>' +
+      '<h2 class="orb fs18 fw700 color-red m8-0">' + G("ÉLIMINÉ") + "</h2>" +
+      '<p class="color-dim6 fs14 lh15 mb14">Tu es hors jeu — mais tu peux suivre la partie.</p>' +
+      speakBoard(true) + rosterList() +
+      '<button class="btn ghost" onclick="showConfirm(\'Quitter la partie ?\',clientLeave)">✕ Quitter</button>' +
+      '<div class="fline"></div>';
+    return;
+  }
+
+  // Écrans vote / recap / fin — P4 et P5.
   app.innerHTML = '<div class="hline"></div>' + linkPill() +
     '<div class="icon-big">🎮</div>' +
     '<h2 class="orb fs16 fw700 color-cyan m8-0">EN JEU</h2>' +
     '<p class="color-dim fs13 mb16">Écran « ' + s + ' » — à venir.</p>' +
     rosterList() +
     '<button class="btn ghost" onclick="showConfirm(\'Quitter la partie ?\',clientLeave)">✕ Quitter</button>' +
+    '<div class="fline"></div>';
+}
+
+// Ordre de parole partagé, avec le joueur courant mis en avant.
+function speakBoard(readonly) {
+  if (!C.snap || !C.snap.speakOrder || !C.snap.speakOrder.length) return "";
+  var spoken = C.snap.spoken || [];
+  return '<div class="speak-order mb6">' + C.snap.speakOrder.map(function (id, rank) {
+    var done = spoken.indexOf(id) !== -1;
+    var me = id === C.playerId;
+    return '<div class="speak-item' + (done ? " spoke" : "") + (me ? " mine" : "") + '">' +
+      '<span class="speak-num orb">' + (done ? "✓" : (rank + 1)) + "</span>" +
+      '<span class="speak-name">' + (S.nm[id] || ("Joueur " + id)) + (me ? " (toi)" : "") + "</span></div>";
+  }).join("") + "</div>";
+}
+
+function renderClientWord() {
+  var sec = C.secret;
+  var cat = sec && sec.category;
+  var mine = C.snap && C.snap.spoken.indexOf(C.playerId) !== -1;
+
+  // Le mot est masqué tant qu'on n'a pas tapé : un regard par-dessus l'épaule
+  // ne doit pas suffire à le lire.
+  var card = !sec
+    ? '<div class="icon-big">⌛</div><p class="color-dim fs13">En attente du mot…</p>'
+    : !C.wordShown
+      ? '<button class="word-hide" onclick="C.wordShown=true;SND.ping();VIB(40);render()">' +
+        '<span class="icon-med">🔒</span><span class="orb fs13 fw700 color-cyan ls2">APPUIE POUR VOIR TON MOT</span></button>'
+      : sec.isMrWhite
+        ? '<div class="word-open" onclick="C.wordShown=false;render()">' +
+          '<p class="orb color-dim4 fs11 ls3 mb10">TON RÔLE :</p>' +
+          G("MR. WHITE", "orb fs24 fw900 color-white text-shadow-white flicker") +
+          '<p class="color-dim4 fs13 mt14 lh15">Pas de mot. Bluff et essaie de deviner le mot civil !</p>' +
+          '<p class="orb fs9 color-dim3 ls2 mt8">TAPE POUR MASQUER</p></div>'
+        : '<div class="word-open" onclick="C.wordShown=false;render()">' +
+          '<p class="orb color-dim4 fs11 ls3 mb10">TON MOT EST :</p>' +
+          G(sec.word, "orb fs24 fw900 color-white text-shadow-cyan flicker") +
+          '<p class="orb fs9 color-dim3 ls2 mt8">TAPE POUR MASQUER</p></div>';
+
+  app.innerHTML = '<div class="hline"></div>' + linkPill() +
+    '<div class="flex flex-between mb10"><span class="tag">TOUR ' + (C.snap ? C.snap.turn : "?") + '</span>' +
+    '<span class="tag">' + (C.snap ? C.snap.roster.filter(function (r) { return r.alive; }).length : "?") + ' EN JEU</span></div>' +
+    (cat ? '<div class="cat-badge">' + cat + "</div>" : "") +
+    '<div class="m12-0">' + card + "</div>" +
+    (C.timer && C.timer.rem ? '<div id="ctdisp" class="timer-disp' + (C.timer.rem <= 10 ? " urgent" : "") + '">' + TF(C.timer.rem) + "</div>" : "") +
+    speakBoard() +
+    '<button class="btn' + (mine ? " ghost" : "") + '" onclick="clientSpoke()">' + (mine ? "↺ J'ai encore à dire" : "✓ J'AI PARLÉ") + "</button>" +
+    '<button class="btn-abandon" onclick="showConfirm(\'Quitter la partie ?\',clientLeave)">✕ Quitter</button>' +
     '<div class="fline"></div>';
 }
 

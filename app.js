@@ -83,10 +83,11 @@ function CSC(){var s=SS();if(!s.length)return"";return '<div class="score-compac
 function FSC(){var s=SS();var m=["🥇","🥈","🥉"];return '<div class="score-full">'+s.map(function(x,i){var mc=i<3?["color-gold","color-dim7","color-red"][i]:"color-dim";return '<div class="sf-row'+(i===0?" first":"")+'"><div class="flex items-center gap10"><span class="orb fs14 fw900 min-w24 '+mc+'">'+(m[i]||"#"+(i+1))+'</span><span class="fs16 fw700">'+N(x.id)+'</span></div><span class="orb fs16 fw900 color-cyan">'+x.pts+"</span></div>"}).join("")+"</div>"}
 function WR(){return '<div class="words-row"><div class="word-card civ"><span class="wl">MOT CIVIL</span><span class="wv">'+S.pair[0]+'</span></div><div class="word-card uc"><span class="wl">MOT UC</span><span class="wv">'+S.pair[1]+"</span></div></div>"}
 
-function stopTimer(){if(S.tid){clearInterval(S.tid);S.tid=null}}
+function stopTimer(){if(S.tid){clearInterval(S.tid);S.tid=null;broadcastTimer("stop",0)}}
 function startTimer(){
 stopTimer();if(!S.timer)return;
 S.trem=S.timer;
+broadcastTimer("start",S.timer);
 S.tid=setInterval(function(){
 S.trem--;
 var el=document.getElementById("tdisp");
@@ -317,9 +318,27 @@ var ap=S.players.filter(function(x){return S.alive.indexOf(x.id)!==-1});
 var bad=ap.filter(function(x){return x.role!=="civil"}).length;
 var eh="";
 if(S.elim.length){eh='<div class="mb10"><p class="orb fs10 color-dim3 ls2 mb4">ÉLIMINÉS</p><div class="flex gap4 flex-wrap flex-center">'+S.elim.map(function(id){var pl=S.players.filter(function(x){return x.id===id})[0];return '<span class="chip dead'+((!S.night&&pl.role==="civil")?" civ":"")+'">'+N(id)+(S.night?"":" "+(pl.role==="undercover"?"🕵️":pl.role==="mrwhite"?"🤍":"👤"))+"</span>"}).join("")+"</div></div>"}
+// En multi, l'hôte joue aussi : son mot est derrière un tap, comme sur les
+// téléphones des autres. Et il doit voir qui a décroché.
+var hw="",cs="";
+if(S.mode==="host"){
+var me=S.tp.filter(function(x){return x.id===1})[0];
+if(S.hostPlays&&me){
+hw=!S.wv
+ ?'<button class="word-hide" onclick="S.wv=true;SND.ping();VIB(40);render()"><span class="icon-med">🔒</span><span class="orb fs13 fw700 color-cyan ls2">APPUIE POUR VOIR TON MOT</span></button>'
+ :'<div class="word-open" onclick="S.wv=false;render()">'+(me.role==="mrwhite"
+   ?'<p class="orb color-dim4 fs11 ls3 mb10">TON RÔLE :</p>'+G("MR. WHITE","orb fs22 fw900 color-white text-shadow-white flicker")+'<p class="color-dim4 fs13 mt14 lh15">Pas de mot. Bluff !</p>'
+   :'<p class="orb color-dim4 fs11 ls3 mb10">TON MOT EST :</p>'+G(me.word,"orb fs22 fw900 color-white text-shadow-cyan flicker"))+
+   '<p class="orb fs9 color-dim3 ls2 mt8">TAPE POUR MASQUER</p></div>';
+hw='<div class="m12-0">'+hw+'</div>';
+}
+var off=S.net.seats.filter(function(s,i){return !s.connected&&S.alive.indexOf(i+1)!==-1});
+if(off.length)cs='<p class="cats-warn">⟳ '+off.map(function(s){return s.name}).join(", ")+(off.length>1?" sont déconnectés":" est déconnecté")+' — la partie continue, ils reviendront d\'eux-mêmes.</p>';
+}
 app.innerHTML='<div class="hline"></div><div class="flex flex-between mb10"><span class="tag">TOUR '+S.turn+'</span><span class="tag">'+S.alive.length+' EN JEU</span></div>'+
 '<h1 class="orb fs18 fw700 color-cyan mb8">'+G("DÉBAT EN COURS")+'</h1>'+
-'<p class="color-dim4 fs13 lh15 mb6">Décrivez votre mot dans l\'ordre, puis votez !</p>'+
+'<p class="color-dim4 fs13 lh15 mb6">'+(S.mode==="host"?'Chacun décrit son mot dans l\'ordre, puis on vote !':'Décrivez votre mot dans l\'ordre, puis votez !')+'</p>'+
+hw+cs+
 '<div class="speak-order mb4">'+S.ro.map(function(i,rank){var sid=S.tp[i].id;var done=S.spoken.indexOf(sid)!==-1;return '<div class="speak-item'+(done?" spoke":"")+'" onclick="var _i=S.spoken.indexOf('+sid+');if(_i===-1)S.spoken.push('+sid+');else S.spoken.splice(_i,1);render()"><span class="speak-num orb">'+(done?"✓":(rank+1))+'</span><span class="speak-name">'+N(sid)+'</span></div>'}).join("")+'</div>'+(S.spoken.length?'<button class="btn ghost mb6" onclick="S.spoken=[];render()">↺ Tout décocher</button>':'')+
 eh+
 '<div class="flex gap8 mb10 flex-center">'+(S.night?'<div class="imposteur-box night"><span class="orb fs11 color-dim4 ls2">MODE NUIT</span></div>':'<div class="imposteur-box"><span class="orb fs18 fw900">'+bad+'</span><span class="orb fs10 color-dim5 ls2">IMPOSTEUR'+(bad>1?"S":"")+'<br>RESTANT'+(bad>1?"S":"")+'</span></div>')+(S.timer?'<div id="tdisp" class="timer-disp'+(S.trem<=10&&S.trem>0?" urgent":S.trem===0?" done":"")+'">'+( S.trem===0?"VOTEZ !":TF(S.trem))+'</div>':'')+'</div>'+
@@ -428,6 +447,9 @@ S.ro=shuffle(S.tp.map(function(_,i){return i}));
 // les phases handoff/reveal (passage du téléphone) n'ont plus lieu d'être.
 S.ri=0;S.wv=false;S.vt=null;S.spoken=[];S.votes={};S.round=0;S.turn++;
 S.phase=(S.mode==="host")?"playing":"handoff";
+// Les secrets partent AVANT le render : le snapshot diffusé annonce déjà
+// la phase playing, chacun doit avoir son mot en arrivant dessus.
+if(S.mode==="host")sendSecrets();
 render();
 if(S.mode==="host"){requestWake();startTimer()}}
 
