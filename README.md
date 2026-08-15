@@ -158,7 +158,7 @@ uc-game/
 ├── manifest.json      # PWA manifest
 ├── sw.js              # Service worker (stale-while-revalidate)
 ├── vendor/
-│   ├── peerjs.min.js  # PeerJS 1.5.4 (MIT)
+│   ├── peerjs.min.js  # PeerJS 1.5.5 (MIT)
 │   └── qrcode.js      # qrcode-generator 1.4.4 (MIT)
 └── icons/
     └── icon.svg       # Icône PWA
@@ -174,7 +174,9 @@ Toute la logique de jeu ne parle qu'à la façade `NET` ; `net-peerjs.js` est le
 
 **Confidentialité** — un client ne reçoit que `word` et `isMrWhite`, jamais son `role` : lui dire qu'il est « undercover » lui révélerait son camp, ce que l'écran de révélation mono-téléphone se garde bien de faire. Une seule fonction, `snapshot()`, produit les données diffusées, et n'expose les rôles qu'une fois les joueurs éliminés.
 
-**Limites assumées** — 12 joueurs maximum en multi (l'hôte tient N−1 connexions, c'est lourd sur mobile ; le solo garde 20). Sans serveur TURN, un NAT symétrique — fréquent chez les opérateurs mobiles — peut empêcher la connexion : sur un WiFi commun, ça passe. Si le téléphone de l'hôte meurt définitivement, la partie est perdue : il n'y a pas de migration d'hôte, car répliquer la table des rôles sur un appareil de secours détruirait la confidentialité.
+**Limites assumées** — 12 joueurs maximum en multi (l'hôte tient N−1 connexions, c'est lourd sur mobile ; le solo garde 20). Si le téléphone de l'hôte meurt définitivement, la partie est perdue : il n'y a pas de migration d'hôte, car répliquer la table des rôles sur un appareil de secours détruirait la confidentialité.
+
+**Traversée de NAT** — PeerJS 1.5 embarque par défaut un STUN Google **et deux relais TURN** (`eu-0`/`us-0.turn.peerjs.com`). Les réseaux mobiles à NAT symétrique, qui bloqueraient une connexion purement STUN, passent donc par ces relais sans configuration. Ce sont des serveurs publics gratuits, sans garantie de disponibilité : pour une fiabilité contractuelle, fournir ses propres `iceServers`.
 
 ---
 

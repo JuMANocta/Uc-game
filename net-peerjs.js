@@ -24,13 +24,17 @@ var PeerAdapter = (function () {
   // PeerJS (90 Ko) n'est chargé qu'au moment où l'utilisateur choisit le mode
   // multi-appareils : le mode solo ne paie rien. Le fichier est malgré tout
   // précaché par le service worker pour fonctionner en PWA installée.
+  function hasPeer() { return typeof window.Peer === "function"; }
+
   function loadLib(cb) {
-    if (typeof Peer === "function") { cb(true); return; }
+    if (hasPeer()) { cb(true); return; }
     _status = "loading";
     var s = document.createElement("script");
     s.src = "vendor/peerjs.min.js";
     s.async = true;
-    s.onload = function () { cb(typeof Peer === "function"); };
+    // onload peut se déclencher sur une page d'erreur 404 servie en 200 :
+    // on revérifie que le global existe vraiment avant de continuer.
+    s.onload = function () { cb(hasPeer()); };
     s.onerror = function () { cb(false); };
     document.head.appendChild(s);
   }
@@ -38,10 +42,26 @@ var PeerAdapter = (function () {
   // Détruire ET reconstruire à chaque tentative. Réutiliser un objet Peer mort
   // ne reconnecte JAMAIS, silencieusement — piège classique de PeerJS.
   function killPeer() {
+    clearWatch();
     if (_peer) { try { _peer.destroy(); } catch (e) {} }
     _peer = null;
     _hostConn = null;
     _conns = {};
+  }
+
+  // PeerJS peut rester muet indéfiniment : ni "open" ni "error" quand le broker
+  // est injoignable ou qu'un réseau filtre les WebSockets. Sans ce chien de
+  // garde, l'écran reste bloqué sur « ouverture de la salle » pour toujours.
+  var _watch = null;
+  function clearWatch() { if (_watch) { clearTimeout(_watch); _watch = null; } }
+  function armWatch(ms) {
+    clearWatch();
+    _watch = setTimeout(function () {
+      _watch = null;
+      if (_status === "open") return;
+      _status = "error";
+      if (_h && _h.onError) _h.onError("timeout");
+    }, ms);
   }
 
   function bindConn(conn) {
@@ -78,9 +98,11 @@ var PeerAdapter = (function () {
     killPeer();
     _code = code;
     _status = "opening";
-    _peer = new Peer("ucgame-" + code, { debug: 0 });
+    _peer = new window.Peer("ucgame-" + code, { debug: 0 });
+    armWatch(12000);
 
     _peer.on("open", function () {
+      clearWatch();
       _status = "open";
       if (_h.onOpen) _h.onOpen(code);
     });
@@ -89,6 +111,7 @@ var PeerAdapter = (function () {
       var t = (err && err.type) || "peer";
       // Code déjà pris sur le broker mondial : on en tire un autre.
       if (t === "unavailable-id" && tries < 5) { openHost(newRoomCode(), tries + 1); return; }
+      clearWatch();
       _status = "error";
       if (_h.onError) _h.onError(t);
     });
@@ -111,19 +134,21 @@ var PeerAdapter = (function () {
   function openClient() {
     killPeer();
     _status = "opening";
-    _peer = new Peer(null, { debug: 0 });   // id aléatoire attribué par le broker
+    _peer = new window.Peer(null, { debug: 0 });   // id aléatoire attribué par le broker
+    armWatch(12000);
 
     _peer.on("open", function () {
       var conn = _peer.connect("ucgame-" + _code, { reliable: true });
-      if (!conn) { _status = "error"; if (_h.onError) _h.onError("connect"); return; }
+      if (!conn) { clearWatch(); _status = "error"; if (_h.onError) _h.onError("connect"); return; }
       _hostConn = conn;
-      conn.on("open", function () { _status = "open"; if (_h.onOpen) _h.onOpen(); });
+      conn.on("open", function () { clearWatch(); _status = "open"; if (_h.onOpen) _h.onOpen(); });
       conn.on("data", function (d) { if (d && typeof d === "object" && _h.onMsg) _h.onMsg(d); });
       conn.on("close", function () { _status = "closed"; if (_h.onClose) _h.onClose(); });
       conn.on("error", function () { _status = "closed"; if (_h.onClose) _h.onClose(); });
     });
     _peer.on("error", function (err) {
       var t = (err && err.type) || "peer";
+      clearWatch();
       _status = "error";
       if (_h.onError) _h.onError(t === "peer-unavailable" ? "no-room" : t);
     });
