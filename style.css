@@ -413,3 +413,30 @@ input[type=text]::placeholder { color: rgba(255,255,255,0.48); }
   color: rgba(255,255,255,0.5); font-size: 15px; cursor: pointer; }
 .resume-x:active { color: #ff2a6d; }
 .sb5 { animation-delay: 3.1s; }
+
+/* Pings — bouton flottant, fenêtre, bandeau et badges */
+.ping-fab { position: fixed; right: 14px; bottom: 64px; z-index: 500; width: 42px; height: 42px; border-radius: 50%; cursor: pointer;
+  background: rgba(255,215,0,0.14); border: 1px solid rgba(255,215,0,0.45); color: #ffd700;
+  font-size: 18px; line-height: 1; box-shadow: 0 2px 14px rgba(0,0,0,0.5); }
+.ping-fab:active { transform: scale(0.93); }
+.ping-fab.gone { display: none; }
+.ping-row { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.ping-row.all { border-bottom: 1px solid rgba(255,215,0,0.3); }
+.ping-nm { flex: 1; font-size: 15px; font-weight: 600; }
+.ping-off { font-size: 11px; color: rgba(255,255,255,0.4); }
+.ping-b { width: 40px; height: 36px; background: rgba(5,217,232,0.1); border: 1px solid rgba(5,217,232,0.35);
+  font-size: 17px; cursor: pointer; line-height: 1; }
+.ping-b.sk { background: rgba(255,42,109,0.1); border-color: rgba(255,42,109,0.4); }
+.ping-b:active { transform: scale(0.92); }
+.ping-wait { font-family: 'Orbitron', sans-serif; font-size: 12px; color: rgba(255,255,255,0.4); min-width: 88px; text-align: center; }
+.ping-mode { display: flex; gap: 6px; margin: 12px 0 6px; }
+.ping-tab { flex: 1; padding: 8px; font-size: 12px; cursor: pointer; background: transparent;
+  border: 1px solid rgba(255,255,255,0.12); color: rgba(255,255,255,0.55); font-family: 'Rajdhani', sans-serif; }
+.ping-tab.on { background: rgba(5,217,232,0.14); border-color: rgba(5,217,232,0.45); color: #05d9e8; }
+.ping-badge { font-size: 10px; margin-left: 5px; padding: 1px 4px; background: rgba(5,217,232,0.16); color: #05d9e8; }
+.ping-badge.sk { background: rgba(255,42,109,0.18); color: #ff2a6d; }
+.ping-toast { position: fixed; left: 12px; right: 12px; top: 12px; z-index: 800; padding: 12px 14px; font-size: 14px;
+  background: rgba(5,217,232,0.18); border: 1px solid rgba(5,217,232,0.5); color: #fff;
+  backdrop-filter: blur(8px); text-align: center; animation: slideUp 0.25s ease; }
+.ping-toast.skull { background: rgba(255,42,109,0.2); border-color: rgba(255,42,109,0.55); }
+.ping-priv { font-size: 11px; color: rgba(255,255,255,0.55); }

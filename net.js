@@ -102,11 +102,13 @@ function snapshot() {
     writeClues: !!S.writeClues,
     clues: S.writeClues ? JSON.parse(JSON.stringify(S.clues || {})) : {},
     fault: S.fault ? { id: S.fault.id, word: S.fault.word, clue: S.fault.clue, kind: S.fault.kind } : null,
+    pingTally: S.pingOn ? JSON.parse(JSON.stringify(S.pingTally || {})) : {},
     scores: S.sc,
     // Reprises dans les règles affichées côté joueur : elles doivent décrire la
     // partie réellement en cours, pas une configuration par défaut.
     opts: { cat: S.cat, night: S.night, skipvote: S.skipvote, timer: S.timer,
-            revealWords: !!S.revealWords, writeClues: !!S.writeClues, faultCat: !!S.faultCat },
+            revealWords: !!S.revealWords, writeClues: !!S.writeClues, faultCat: !!S.faultCat,
+            pingOn: !!S.pingOn, pingGap: S.pingGap|0 },
     // votedIds dit QUI a voté, jamais POUR QUI — c'est ce qui permet
     // l'affichage « en attente de Marc, Léa » sans rien divulguer.
     vote: {
@@ -345,6 +347,7 @@ function hostOnMsg(cid, msg) {
     render();
     return;
   }
+  if (msg.t === "buzz") { hostPing(si + 1, msg.to, msg.emoji, msg.pub); return; }
   if (msg.t === "clue") {
     if (msg.turn !== S.turn) return;          // indice d'un tour périmé
     submitClue(si + 1, msg.text);
@@ -450,6 +453,66 @@ function sendSecretTo(pid) {
 function sendSecrets() {
   if (S.mode !== "host" || !S.net) return;
   S.tp.forEach(function (t) { sendSecretTo(t.id); });
+}
+
+// ══════════════════════════════════════════════════════════════
+// PINGS — relayés et arbitrés par l'hôte
+// ══════════════════════════════════════════════════════════════
+// NOM DU MESSAGE : "buzz"/"buzzed", surtout PAS "ping"/"pong" — ces deux-là
+// appartiennent au battement de cœur de la reconnexion, traité en tête de
+// hostOnMsg, qui intercepterait le message avant d'arriver ici.
+// ══════════════════════════════════════════════════════════════
+// Topologie en étoile : les joueurs ne se parlent pas directement. L'hôte
+// valide l'expéditeur par sa CONNEXION, jamais par l'identifiant annoncé —
+// même règle que pour les votes et les indices.
+//
+// Deux portées, deux sens :
+//   to === 0  → public  : « je montre ce que je pense », compté dans pingTally
+//                          et donc visible de toute la table
+//   to  >  0  → privé   : « je te mets la pression », message CIBLÉ, jamais
+//                          dans le snapshot qui est diffusé à tous
+var _pingLast = {};
+
+function pingGapMs() { return S.pingGap > 0 ? S.pingGap : 5000; }
+
+// L'anti-flood vit côté hôte : un client modifié ne peut pas le contourner.
+function pingReady(from) {
+  var last = _pingLast[from] || 0;
+  return Date.now() - last >= pingGapMs();
+}
+
+function hostPing(from, to, emoji, pub) {
+  if (!S.pingOn || !S.net) return;
+  if (emoji !== "bell" && emoji !== "skull") return;
+  to = to | 0;
+  if (to !== 0 && !S.net.seats[to - 1]) return;
+  if (to === from) return;                      // se pinger soi-même n'a aucun sens
+  if (!pingReady(from)) return;                 // trop tôt : ignoré en silence
+  _pingLast[from] = Date.now();
+
+  // Viser tout le monde est public par nature.
+  var isPub = (to === 0) || !!pub;
+
+  if (isPub) {
+    if (to !== 0) {
+      // Le décompte matérialise la pression du groupe et survit au bandeau.
+      S.pingTally = S.pingTally || {};
+      var t = S.pingTally[to] || { bell: 0, skull: 0 };
+      t[emoji] = (t[emoji] || 0) + 1;
+      S.pingTally[to] = t;
+    }
+    NET.broadcast({ v: PROTO_V, t: "buzzed", from: from, to: to, emoji: emoji, pub: true });
+    if (S.mode === "host") showPingToast(from, to, emoji, true);
+    render();
+    return;
+  }
+
+  // Privé : la cible SEULE est servie, par message ciblé — jamais par le
+  // snapshot, qui est diffusé à tout le monde. Même précaution que les mots.
+  var seat = S.net.seats[to - 1];
+  if (to === 1) showPingToast(from, to, emoji, false);
+  else if (seat && seat.connId) NET.send(seat.connId, { v: PROTO_V, t: "buzzed", from: from, to: to, emoji: emoji, pub: false });
+  render();
 }
 
 function kickPlayer(pid) {

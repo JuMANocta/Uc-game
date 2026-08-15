@@ -167,6 +167,7 @@ function clientOnMsg(msg) {
     render();
     return;
   }
+  if (msg.t === "buzzed") { showPingToast(msg.from, msg.to, msg.emoji, msg.pub); return; }
   if (msg.t === "pong") { C.link = "online"; return; }
 }
 
@@ -300,6 +301,7 @@ function renderClientVote() {
                  (id === C.playerId ? " (toi)" : "") + "</span></button>";
         }).join("") +
         (v.skipAllowed ? '<button class="vote-btn skip" onclick="clientVote(-1)"><span>🚫 Personne</span></button>' : "") + "</div>") +
+    cluesBoard() +
     '<button class="btn-abandon" onclick="showConfirm(\'Quitter la partie ?\',clientLeave)">✕ Quitter</button>' +
     '<div class="fline"></div>';
 }
@@ -321,6 +323,7 @@ function renderClientResult() {
     (v.resolved !== null && v.resolved !== undefined
       ? '<p class="color-dim6 fs14 lh15">' + (v.resolved === -1 ? "Personne n'est éliminé." : "<strong class=\"color-white\">" + (S.nm[v.resolved] || "?") + "</strong> est éliminé.") + "</p>"
       : '<p class="color-red fs14 fw600">⚖ Égalité — l\'hôte départage…</p>') +
+    cluesBoard() +
     '<div class="fline"></div>';
   rows.forEach(function (r) {
     var e = document.getElementById("ctb" + (r.target === -1 ? "X" : r.target));
@@ -368,7 +371,7 @@ function rosterList() {
   if (!C.snap || !C.snap.roster) return "";
   return '<div class="flex gap4 flex-wrap flex-center mb10">' + C.snap.roster.map(function (r) {
     return '<span class="chip' + (r.connected ? "" : " off") + (r.id === C.playerId ? " me" : "") + '">' +
-      (r.host ? "👑 " : "") + r.name + (r.id === C.playerId ? " (toi)" : "") + "</span>";
+      (r.host ? "👑 " : "") + r.name + (r.id === C.playerId ? " (toi)" : "") + pingBadge(r.id) + "</span>";
   }).join("") + "</div>";
 }
 
@@ -560,7 +563,7 @@ function speakBoard(readonly) {
     var me = id === C.playerId;
     return '<div class="speak-item' + (done ? " spoke" : "") + (me ? " mine" : "") + '">' +
       '<span class="speak-num orb">' + (done ? "✓" : (rank + 1)) + "</span>" +
-      '<span class="speak-name">' + (S.nm[id] || ("Joueur " + id)) + (me ? " (toi)" : "") + "</span></div>";
+      '<span class="speak-name">' + (S.nm[id] || ("Joueur " + id)) + (me ? " (toi)" : "") + pingBadge(id) + "</span></div>";
   }).join("") + "</div>";
 }
 
