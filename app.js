@@ -55,7 +55,7 @@ var DB=[
 
 // Estampille affichée sur l'accueil : permet de vérifier d'un coup d'oeil
 // quelle version le navigateur sert réellement (cache du service worker).
-var BUILD="v5-2026.08.15";
+var BUILD="v6-2026.08.15";
 var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}
@@ -177,6 +177,78 @@ if(navigator.clipboard&&navigator.clipboard.writeText){
   }).catch(function(){})
 }else{var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);
   var btn=document.getElementById("share-btn");if(btn){btn.textContent="✓ Copié !";setTimeout(function(){if(btn)btn.textContent="📋 Copier le résumé"},2000)}}}
+
+// ══════════════════════════════════════════════════════════════
+// RÈGLES DU JEU — fenêtre flottante, disponible sur tous les écrans
+// ══════════════════════════════════════════════════════════════
+// Le bouton vit hors de #app : il survit donc à tous les rendus, et un joueur
+// qui lit les règles pendant le débat ne les perd pas quand l'état est rediffusé.
+function installRulesButton(){
+if(document.getElementById("rules-fab"))return;
+var b=document.createElement("button");
+b.id="rules-fab";b.className="rules-fab";b.type="button";
+b.setAttribute("aria-label","Règles du jeu");
+b.textContent="?";
+b.onclick=showRules;
+document.body.appendChild(b)}
+
+function closeRules(){var o=document.getElementById("rules-ov");if(o)o.remove()}
+
+function showRules(){
+if(document.getElementById("rules-ov"))return closeRules();
+// L'option indices écrits n'existe qu'en multi : on n'affiche sa règle que
+// si elle est réellement active, côté hôte comme côté joueur.
+var wc=S.writeClues||(typeof C!=="undefined"&&C.snap&&C.snap.writeClues);
+var ov=document.createElement("div");
+ov.id="rules-ov";ov.className="rules-overlay";
+ov.innerHTML='<div class="rules-box">'+
+'<div class="rules-head"><span class="orb fs14 fw900 ls2 color-cyan">RÈGLES DU JEU</span>'+
+'<button class="rules-x" type="button" aria-label="Fermer" onclick="closeRules()">✕</button></div>'+
+'<div class="rules-body">'+
+
+'<h3 class="rules-h">Le principe</h3>'+
+'<p>Chacun reçoit un <b>mot secret</b>. La plupart des joueurs ont le <b>même mot</b> : ce sont les <span class="color-cyan">Civils</span>. Un ou deux ont un mot <b>voisin mais différent</b> : les <span class="color-red">Undercover</span>. Parfois, un joueur n\'a <b>aucun mot</b> : <span class="color-white">Mr. White</span>.</p>'+
+'<p class="rules-key">⚠️ Tu ne sais pas quel rôle tu as. Tu vois seulement ton mot — et rien ne te dit s\'il est celui de la majorité. <b>C\'est peut-être toi l\'intrus sans le savoir.</b></p>'+
+
+'<h3 class="rules-h">Un tour de jeu</h3>'+
+'<ol class="rules-ol">'+
+'<li>Chacun donne <b>un indice</b> sur son mot, dans l\'ordre affiché'+(wc?' (tapé sur ton téléphone)':' (à voix haute)')+'</li>'+
+'<li>On débat librement</li>'+
+'<li>On vote pour éliminer un suspect</li>'+
+'<li>Le rôle de l\'éliminé est révélé</li>'+
+'</ol>'+
+
+'<h3 class="rules-h rules-hot">D\'un tour à l\'autre</h3>'+
+'<p class="rules-key">🔒 <b>Les rôles ne changent JAMAIS de toute la partie.</b> Undercover au premier tour = Undercover jusqu\'à la fin.</p>'+
+'<p class="rules-key">🔄 <b>Les mots, eux, changent à chaque tour.</b> Nouvelle paire, nouvelle catégorie. Ton mot précédent ne sert plus — mais tout ce que tu as appris sur les autres reste valable.</p>'+
+'<p class="rules-dim">C\'est le cœur du jeu : les soupçons s\'accumulent d\'un tour sur l\'autre, alors que le vocabulaire repart de zéro.</p>'+
+
+'<h3 class="rules-h">Bien donner son indice</h3>'+
+'<ul class="rules-ul">'+
+'<li><b>Trop précis</b> → l\'Undercover comprend le mot des civils et te copie</li>'+
+'<li><b>Trop vague</b> → on te prend pour l\'intrus et tu sautes</li>'+
+'<li>Ne prononce <b>jamais</b> ton propre mot'+(wc?' — tu serais <b class="color-red">éliminé sur-le-champ</b>':'')+'</li>'+
+'<li>Dire le mot que tu <i>soupçonnes</i> chez les autres est autorisé : c\'est même un bon coup</li>'+
+'</ul>'+
+
+'<h3 class="rules-h">Gagner</h3>'+
+'<div class="rules-win"><span>👤 Civils</span><span>Éliminer tous les imposteurs</span></div>'+
+'<div class="rules-win"><span>🕵️ Undercover</span><span>Survivre jusqu\'à être aussi nombreux que les autres</span></div>'+
+'<div class="rules-win"><span>🤍 Mr. White</span><span>Survivre avec les Undercover, ou deviner le mot des civils quand il est éliminé</span></div>'+
+
+'<h3 class="rules-h">Mr. White</h3>'+
+'<p>Il n\'a <b>aucun mot</b>. Il doit deviner de quoi on parle rien qu\'en écoutant, puis inventer un indice crédible. Quand il est démasqué, il a droit à <b>une tentative</b> : s\'il trouve le mot des civils, <b>il remporte la partie à lui seul</b>.</p>'+
+
+'<h3 class="rules-h">Points</h3>'+
+'<div class="rules-pt"><span>Éliminer un imposteur</span><span>+1 / civil</span></div>'+
+'<div class="rules-pt"><span>Éliminer le dernier imposteur</span><span>+3 / civil</span></div>'+
+'<div class="rules-pt"><span>Victoire Undercover</span><span>+4 / UC</span></div>'+
+'<div class="rules-pt"><span>Mr. White survit avec les UC</span><span>+2</span></div>'+
+'<div class="rules-pt"><span>Mr. White devine le mot</span><span>+5</span></div>'+
+
+'</div><button class="btn ghost" type="button" onclick="closeRules()">Fermer</button></div>';
+document.body.appendChild(ov);
+ov.onclick=function(e){if(e.target===ov)closeRules()}}
 
 var _modalCb=null;
 function showConfirm(msg,cb){
@@ -734,6 +806,7 @@ else{var ta=document.createElement("textarea");ta.value=txt;document.body.append
 
 loadOpts();
 installLifecycle();
+installRulesButton();
 // Un QR scanné ou un lien partagé (#j=CODE) fait entrer directement en client.
 bootFromHash();
 render();

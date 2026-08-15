@@ -112,6 +112,7 @@ Les paires jouées ne se répètent pas avant épuisement complet du pool (ou du
 - **Historique** — consultable pendant le débat et dans les récapitulatifs
 - **Hall of Fame** — scores cumulés en `localStorage`, top 10 persistant, détail des victoires par rôle (👤 🕵️ 🤍)
 - **Partage** — partage natif du récapitulatif (`navigator.share`), presse-papiers en secours
+- **Règles en jeu** — bouton « ? » flottant sur tous les écrans, hôte comme joueurs : rappel du principe, du déroulé et surtout du fait que **les rôles ne changent jamais alors que les mots changent à chaque tour**
 - **Splash screen** — boot log animé au premier chargement
 - **Bouton Abandonner** — disponible pendant le débat (avec confirmation modale)
 - **PWA** — installable sur mobile, fonctionne hors-ligne sur HTTPS
