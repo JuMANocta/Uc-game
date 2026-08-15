@@ -103,7 +103,10 @@ function snapshot() {
     clues: S.writeClues ? JSON.parse(JSON.stringify(S.clues || {})) : {},
     fault: S.fault ? { id: S.fault.id, word: S.fault.word, clue: S.fault.clue, kind: S.fault.kind } : null,
     scores: S.sc,
-    opts: { cat: S.cat, night: S.night, skipvote: S.skipvote, timer: S.timer },
+    // Reprises dans les règles affichées côté joueur : elles doivent décrire la
+    // partie réellement en cours, pas une configuration par défaut.
+    opts: { cat: S.cat, night: S.night, skipvote: S.skipvote, timer: S.timer,
+            revealWords: !!S.revealWords, writeClues: !!S.writeClues, faultCat: !!S.faultCat },
     // votedIds dit QUI a voté, jamais POUR QUI — c'est ce qui permet
     // l'affichage « en attente de Marc, Léa » sans rien divulguer.
     vote: {

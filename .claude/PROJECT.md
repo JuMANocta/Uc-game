@@ -339,6 +339,8 @@ Seul **son propre** mot est fautif : un civil qui prononce le mot Undercover fai
 
 Fenêtre flottante accessible partout via un bouton « ? » installé **hors de `#app`** : il survit donc à tous les rendus, et un joueur qui lit les règles pendant le débat ne les perd pas quand l'état est rediffusé.
 
+Le texte **décrit la partie réellement en cours** : côté joueur distant il lit `C.snap.opts` (révélation des mots, indices écrits, faute de catégorie, catégorie affichée) et non l'état local, qui n'est pas le sien. La règle de la catégorie est tue quand elle est sans effet — option désactivée, ou catégorie affichée à tous.
+
 Le contenu insiste sur les deux points qui perdent les nouveaux joueurs : **on ignore son propre rôle** (on ne voit qu'un mot), et surtout **les rôles ne changent jamais de la partie alors que les mots changent à chaque tour**. La règle des indices écrits n'apparaît que si l'option est active.
 
 ### Préservation des champs de saisie

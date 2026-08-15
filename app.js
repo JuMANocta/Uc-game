@@ -55,7 +55,7 @@ var DB=[
 
 // Estampille affichée sur l'accueil : permet de vérifier d'un coup d'oeil
 // quelle version le navigateur sert réellement (cache du service worker).
-var BUILD="v9-2026.08.15";
+var BUILD="v10-2026.08.15";
 var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}
@@ -210,7 +210,12 @@ function showRules(){
 if(document.getElementById("rules-ov"))return closeRules();
 // L'option indices écrits n'existe qu'en multi : on n'affiche sa règle que
 // si elle est réellement active, côté hôte comme côté joueur.
-var wc=S.writeClues||(typeof C!=="undefined"&&C.snap&&C.snap.writeClues);
+var snapOpts=(typeof C!=="undefined"&&C.snap&&C.snap.opts)||null;
+var isCli=S.mode==="client"&&snapOpts;
+var wc=isCli?!!snapOpts.writeClues:!!S.writeClues;
+var rw=isCli?!!snapOpts.revealWords:!!S.revealWords;
+var showCat=isCli?!!snapOpts.cat:!!S.cat;
+var fc=isCli?!!snapOpts.faultCat:!!S.faultCat;
 var ov=document.createElement("div");
 ov.id="rules-ov";ov.className="rules-overlay";
 ov.innerHTML='<div class="rules-box">'+
@@ -234,13 +239,17 @@ ov.innerHTML='<div class="rules-box">'+
 '<p class="rules-key">🔒 <b>Les rôles ne changent JAMAIS de toute la partie.</b> Undercover au premier tour = Undercover jusqu\'à la fin.</p>'+
 '<p class="rules-key">🔄 <b>Les mots, eux, changent à chaque tour.</b> Nouvelle paire, nouvelle catégorie. Ton mot précédent ne sert plus — mais tout ce que tu as appris sur les autres reste valable.</p>'+
 '<p class="rules-dim">C\'est le cœur du jeu : les soupçons s\'accumulent d\'un tour sur l\'autre, alors que le vocabulaire repart de zéro.</p>'+
+(rw
+ ?'<p>À la fin de chaque tour, <b>les deux mots sont dévoilés</b> : tu découvres donc lequel était celui de la majorité — et si le tien en faisait partie.</p>'
+ :'<p>Les mots <b>restent secrets jusqu\'à la fin de la partie</b>. Même après une élimination, tu ne sauras pas si le tien était celui de la majorité : le doute sur ton propre rôle t\'accompagne jusqu\'au bout.</p>')+
+'<p class="rules-dim">Dans les deux cas, l\'écran final récapitule <b>tous les mots de tous les tours</b>.</p>'+
 
 '<p class="rules-dim">Le mode « chacun son téléphone » a besoin d\'Internet pour relier les appareils, même côte à côte. Le mode « un seul téléphone » fonctionne hors ligne.</p>'+
 '<h3 class="rules-h">Bien donner son indice</h3>'+
 '<ul class="rules-ul">'+
 '<li><b>Trop précis</b> → l\'Undercover comprend le mot des civils et te copie</li>'+
 '<li><b>Trop vague</b> → on te prend pour l\'intrus et tu sautes</li>'+
-'<li>Ne prononce <b>jamais</b> ton propre mot'+(wc?' — tu serais <b class="color-red">éliminé sur-le-champ</b>':'')+'</li>'+(wc&&S.faultCat&&!S.cat?'<li>Et ne lâche pas non plus <b>la catégorie</b> : elle est cachée, donc secrète — <b class="color-red">même sanction</b></li>':'')+
+'<li>Ne prononce <b>jamais</b> ton propre mot'+(wc?' — tu serais <b class="color-red">éliminé sur-le-champ</b>':'')+'</li>'+(wc&&fc&&!showCat?'<li>Et ne lâche pas non plus <b>la catégorie</b> : elle est cachée, donc secrète — <b class="color-red">même sanction</b></li>':'')+
 '<li>Dire le mot que tu <i>soupçonnes</i> chez les autres est autorisé : c\'est même un bon coup</li>'+
 '</ul>'+
 
