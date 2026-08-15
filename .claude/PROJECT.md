@@ -326,6 +326,14 @@ Enveloppe `{v:1, t:<type>, …}`.
 - `uc_net_host` : `{code, seats, S (complet moins tid/net), savedAt}` — throttlé à 1/s, purgé après 6 h
 - `uc_net_client` : `{code, token, playerId, name, secret}`
 
+### CSP — piège de déploiement confirmé en production
+
+Une CSP restrictive bloque `wss://0.peerjs.com` **sans que le jeu puisse s'en apercevoir** : le navigateur coupe la connexion au niveau du WebSocket, PeerJS ne reçoit ni `open` ni `error`, et l'écran reste figé sur « ouverture de la salle ». Seule la console signale la violation.
+
+Directives requises : `connect-src https://0.peerjs.com wss://0.peerjs.com stun: turn:`, plus `style-src-elem https://fonts.googleapis.com` et `font-src https://fonts.gstatic.com` pour les polices. Voir le README pour l'exemple nginx complet.
+
+`diag.html` écoute `securitypolicyviolation` et nomme la directive fautive — c'est le seul moyen de diagnostiquer ce cas depuis le navigateur du joueur.
+
 ### Limites assumées
 
 - **HTTPS obligatoire** (WebRTC) — bouton désactivé avec explication sinon.

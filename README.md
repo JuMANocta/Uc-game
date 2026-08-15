@@ -166,6 +166,40 @@ uc-game/
 
 **Pas de build, pas de Node, pas de bundler.** Les deux bibliothèques tierces sont commitées dans `vendor/` : un `git pull` suffit à déployer. PeerJS n'est chargé qu'au moment où l'on choisit le multi-appareils, le mode solo ne paie pas ses 90 Ko.
 
+### Content-Security-Policy
+
+Si ton serveur envoie une CSP, elle doit autoriser le serveur d'annuaire PeerJS, **sinon le multi-appareils reste bloqué sur « ouverture de la salle »** — le navigateur coupe la connexion avant que la bibliothèque ne puisse réagir, donc aucune erreur ne remonte au jeu.
+
+| Directive | À autoriser | Pourquoi |
+|---|---|---|
+| `connect-src` | `https://0.peerjs.com wss://0.peerjs.com` | **Indispensable** — signaling PeerJS |
+| `connect-src` | `stun: turn:` | Relais pour les réseaux à NAT symétrique (4G) |
+| `style-src-elem` | `https://fonts.googleapis.com` | Polices Orbitron / Rajdhani |
+| `font-src` | `https://fonts.gstatic.com` | Fichiers de polices |
+| `script-src` | `'unsafe-inline'` | Le jeu utilise des `onclick=` en attribut |
+
+CSP minimale pour le jeu :
+
+```
+default-src 'self';
+script-src 'self' 'unsafe-inline';
+style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com;
+font-src 'self' https://fonts.gstatic.com;
+img-src 'self' data:;
+connect-src 'self' https://0.peerjs.com wss://0.peerjs.com stun: turn:;
+worker-src 'self'; manifest-src 'self';
+```
+
+Le mieux est d'isoler le jeu dans son propre `location`, pour que le reste du site garde sa CSP stricte.
+
+> ⚠️ **Piège nginx** — les `add_header` ne sont **pas hérités** dans un `location` qui déclare les siens : nginx remplace la liste entière au lieu de la compléter. Tous les en-têtes du `server` doivent y être répétés, faute de quoi HSTS et consorts disparaissent silencieusement sur ce chemin.
+
+> **Permissions-Policy** — un `vibrate=()` désactive tout le retour haptique du jeu, qui vibre à chaque transition clé. À retirer pour le chemin du jeu.
+
+> Pour se passer entièrement de Google Fonts, héberger les deux polices en local et retirer les `<link>` correspondants d'`index.html` : seule la ligne `connect-src` reste alors nécessaire.
+
+En cas de doute, ouvrir **`diag.html`** : elle détecte et nomme les violations CSP.
+
 ### Architecture réseau
 
 L'hôte fait autorité : l'état complet vit sur son téléphone, les clients sont des terminaux passifs qui reçoivent des **snapshots complets** (jamais des deltas — la reconnexion emprunte ainsi le même chemin de code que le fonctionnement normal).

@@ -13,6 +13,7 @@ var ASSETS = [
   // Chargé paresseusement par net-peerjs.js, mais précaché malgré tout pour
   // que le multi-appareils fonctionne sur une PWA déjà installée.
   './vendor/peerjs.min.js',
+  './diag.html',
   './manifest.json',
   './icons/icon.svg'
 ];
