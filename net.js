@@ -469,6 +469,22 @@ function releaseWake() {
 }
 function wakeSupported() { return !!(navigator.wakeLock && navigator.wakeLock.request); }
 
+// Un code d'erreur brut ("timeout", "network") n'aide personne : on dit ce qui
+// s'est passé ET quoi faire.
+function netErrLabel(e) {
+  switch (e) {
+    case "lib": return "La bibliothèque réseau n'a pas pu être chargée. Vérifie que le dossier <strong>vendor/</strong> est bien déployé sur le serveur.";
+    case "timeout": return "Le serveur d'annuaire n'a pas répondu en 12 s. Vérifie ta connexion Internet — le multi-appareils en a besoin pour établir la liaison, même entre téléphones côte à côte.";
+    case "network":
+    case "socket-error":
+    case "server-error": return "Connexion au serveur d'annuaire impossible. Ton réseau bloque peut-être les WebSockets (WiFi d'entreprise, VPN, bloqueur de pub).";
+    case "browser-incompatible": return "Ce navigateur ne gère pas WebRTC. Essaie Chrome, Firefox ou Safari à jour.";
+    case "ssl-unavailable": return "Le multi-appareils exige HTTPS.";
+    case "no-room": return "Aucune salle ne porte ce code. Vérifie-le, ou demande à l'hôte de rouvrir la salle.";
+    default: return "Erreur réseau (" + (e || "?") + ").";
+  }
+}
+
 // Le timer n'est PAS mis dans le snapshot : il changerait chaque seconde et
 // ferait rediffuser l'état en boucle. On envoie le départ/arrêt, et chaque
 // client fait tourner son propre décompte — insensible au décalage d'horloge

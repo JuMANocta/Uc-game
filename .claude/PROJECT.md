@@ -280,7 +280,7 @@ Chacun joue sur son propre téléphone. Le choix se fait à l'entrée de l'appli
 | `net-peerjs.js` | Adaptateur WebRTC — **seul fichier mentionnant `Peer`** |
 | `client.js` | État `C` et `renderClient()` — écrans du joueur distant |
 | `qr.js` | `drawQR(canvas, texte)` — peint le QR sans passer par les helpers à `style=""` |
-| `vendor/peerjs.min.js` | PeerJS 1.5.4 (MIT), chargé paresseusement, précaché par le SW |
+| `vendor/peerjs.min.js` | PeerJS 1.5.5 (MIT), chargé paresseusement, précaché par le SW |
 | `vendor/qrcode.js` | qrcode-generator 1.4.4 (MIT) |
 
 ### Principes structurants
@@ -330,7 +330,8 @@ Enveloppe `{v:1, t:<type>, …}`.
 
 - **HTTPS obligatoire** (WebRTC) — bouton désactivé avec explication sinon.
 - **12 joueurs maximum** en multi (l'hôte tient N−1 `RTCPeerConnection`) ; le solo garde 20.
-- **Pas de serveur TURN** : un NAT symétrique (fréquent en 4G) peut empêcher la connexion. Sur WiFi commun, ça passe. C'est le go/no-go à tester sur deux réseaux distincts.
+- **TURN fourni par PeerJS** : la 1.5 embarque `stun.l.google.com` **plus** `turn:eu-0/us-0.turn.peerjs.com` (identifiants `peerjs`/`peerjsp`) dans sa config ICE par défaut. Le NAT symétrique des opérateurs mobiles est donc relayé sans configuration. Serveurs publics gratuits, sans SLA : passer ses propres `iceServers` au constructeur pour s'en affranchir.
+  *(Note : une lecture antérieure de la doc concluait à tort à l'absence de TURN — un `grep` tronqué au premier `]` imbriqué masquait le second bloc `urls:[…]`.)*
 - **Pas de migration d'hôte** : répliquer la table des rôles sur un appareil de secours détruirait la confidentialité. Si l'hôte meurt, la partie est finie.
 - Le broker public `peerjs.com` sert d'annuaire : Internet est requis pour **établir** la liaison.
 

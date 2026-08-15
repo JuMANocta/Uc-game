@@ -197,15 +197,19 @@ app.innerHTML='<div class="hline"></div>'+
 '<p class="boot-line l3">&gt; IMPOSTEURS PRÊTS</p>'+
 '<p class="boot-line l4">&gt; QUI EST L\'UNDERCOVER ?</p>'+
 '</div>'+
+// Les boutons entrent en cascade APRÈS le boot log (sb1 → sb4), jamais avant.
 (function(){var hs=readHostSave(),cs=loadClientSave();return(
-(hs?'<button class="btn gold splash-btn2" onclick="resumeHost()">↻ REPRENDRE LA SALLE '+hs.code+'</button>':'')+
-(!hs&&cs&&cs.token?'<button class="btn gold splash-btn2" onclick="clientResume()">↻ REVENIR DANS LA PARTIE '+cs.code+'</button>':''))})()+
-'<button class="btn splash-btn" onclick="S.mode=\'solo\';S.phase=\'setup\';render()">📱 UN SEUL TÉLÉPHONE</button>'+
+(hs?'<button class="btn gold sb sb1" onclick="resumeHost()">↻ REPRENDRE LA SALLE '+hs.code+'</button>':'')+
+(!hs&&cs&&cs.token?'<button class="btn gold sb sb1" onclick="clientResume()">↻ REVENIR DANS LA PARTIE '+cs.code+'</button>':''))})()+
+'<p class="orb fs10 color-dim3 ls2 sb sb1 mb6">COMMENT JOUEZ-VOUS ?</p>'+
+'<button class="btn sb sb2" onclick="S.mode=\'solo\';S.phase=\'setup\';render()">📱 UN SEUL TÉLÉPHONE</button>'+
+'<p class="mode-hint sb sb2">On se passe l\'appareil — fonctionne hors-ligne</p>'+
 (window.isSecureContext
- ?'<button class="btn ghost splash-btn2" onclick="hostStart()">📡 CHACUN SON TÉLÉPHONE</button>'+
-  '<button class="btn ghost splash-btn2" onclick="S.mode=\'client\';C.screen=\'join\';render()">🔗 Rejoindre avec un code</button>'
- :'<button class="btn ghost splash-btn2" disabled>📡 CHACUN SON TÉLÉPHONE</button>'+
-  '<p class="cats-warn tc">⚠ Le multi-appareils exige HTTPS — indisponible sur cette adresse.</p>')+
+ ?'<button class="btn sb sb3" onclick="hostStart()">📡 CHACUN SON TÉLÉPHONE</button>'+
+  '<p class="mode-hint sb sb3">Chacun voit son mot et vote sur son écran</p>'+
+  '<button class="btn ghost sb sb4" onclick="S.mode=\'client\';C.screen=\'join\';render()">🔗 J\'ai un code, je rejoins</button>'
+ :'<button class="btn sb sb3" disabled>📡 CHACUN SON TÉLÉPHONE</button>'+
+  '<p class="cats-warn tc sb sb3">⚠ Ce mode exige HTTPS — indisponible sur cette adresse.</p>')+
 '<div class="fline"></div>';return}
 
 if(p==="lobby"){
@@ -219,9 +223,13 @@ app.innerHTML='<div class="hline"></div>'+
   '<p class="color-dim fs12 mb8">Scannez le QR ou saisissez ce code</p>'+
   '<button class="btn ghost mini mb10" onclick="shareRoom()">📤 Partager le lien</button>'
  :st==="error"
- ?'<div class="icon-big">⚠</div><p class="err-msg">Impossible d\'ouvrir la salle ('+(S.net.err||"?")+'). Vérifie ta connexion Internet.</p>'+
-  '<button class="btn ghost mb10" onclick="hostStart()">↺ Réessayer</button>'
- :'<div class="icon-big">📡</div><p class="color-dim fs13 mb10">Ouverture de la salle…</p><div class="pbar"><div class="pbar-fill indet"></div></div>')+
+ ?'<div class="icon-big">⚠</div><p class="err-msg">'+netErrLabel(S.net.err)+'</p>'+
+  '<button class="btn mb6" onclick="hostStart()">↺ RÉESSAYER</button>'+
+  '<button class="btn ghost mb10" onclick="closeRoom()">← Revenir à l\'accueil</button>'
+ :'<div class="icon-big">📡</div><p class="color-dim fs13 mb6">Ouverture de la salle…</p>'+
+  '<p class="color-dim3 fs11 mb10">Connexion au serveur d\'annuaire</p>'+
+  '<div class="pbar mb10"><div class="pbar-fill indet"></div></div>'+
+  '<button class="btn ghost mini mb10" onclick="closeRoom()">Annuler</button>')+
 '<p class="orb fs10 color-dim3 ls2 mb6">PARTICIPANTS</p>'+
 '<div class="lobby-list">'+(n?seats.map(function(s,i){
 return '<div class="lobby-row"><span class="dot-conn'+(s.connected?" on":"")+'"></span>'+

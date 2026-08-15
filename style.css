@@ -148,7 +148,16 @@ input[type=text]::placeholder { color: rgba(255,255,255,0.2); }
 .boot-line.l3 { animation-delay: 1.4s; }
 .boot-line.l4 { animation-delay: 1.9s; color: rgba(255,42,109,0.8); }
 @keyframes bootFade { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
-.splash-btn { animation-delay: 2.4s; opacity: 0; animation: bootFade 0.4s 2.4s forwards, pulseCyan 2s 2.8s infinite; }
+/* Cascade des boutons d'accueil : ils entrent APRÈS le boot log (fini à 2.3s),
+   dans l'ordre de lecture. L'ancienne règle faisait apparaître les options
+   secondaires avant le bouton principal. */
+.sb { opacity: 0; animation: bootFade 0.45s forwards; }
+.sb1 { animation-delay: 2.3s; }
+.sb2 { animation-delay: 2.5s; }
+.sb3 { animation-delay: 2.7s; }
+.sb4 { animation-delay: 2.9s; }
+.mode-hint { font-size: 12px; color: rgba(255,255,255,0.3); margin: 3px 0 10px; }
+.btn.gold.sb1 { margin-bottom: 14px; }
 
 /* History */
 .hist-box { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); margin-bottom: 6px; }
@@ -305,7 +314,6 @@ input[type=text]::placeholder { color: rgba(255,255,255,0.2); }
 
 .link-pill { display: inline-block; font-family: 'Orbitron', sans-serif; font-size: 10px; letter-spacing: 2px; padding: 3px 10px; margin-bottom: 6px; background: rgba(255,179,0,0.1); border: 1px solid rgba(255,179,0,0.35); color: #ffb300; }
 
-.splash-btn2 { margin-top: 8px; animation: fadeIn 0.6s ease 0.3s both; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 /* Barre de progression indéterminée (ouverture de salle, connexion) */
