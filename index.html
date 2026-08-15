@@ -21,6 +21,14 @@
   <div class="page">
     <div class="card" id="app"></div>
   </div>
+  <!-- vendor/peerjs.min.js n'est PAS chargé ici : il est injecté à la demande
+       par net-peerjs.js quand l'utilisateur choisit le multi-appareils, pour
+       que le mode solo ne paie pas ses 90 Ko. Il reste précaché par sw.js. -->
+  <script src="vendor/qrcode.js"></script>
+  <script src="qr.js"></script>
+  <script src="net.js"></script>
+  <script src="net-peerjs.js"></script>
+  <script src="client.js"></script>
   <script src="app.js"></script>
   <script>
     if ('serviceWorker' in navigator) {

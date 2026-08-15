@@ -178,6 +178,11 @@ document.body.appendChild(ov)}
 
 // ══════════════════════════════════════════════════════════════
 function render(){
+// Le client a ses propres écrans : il ne connaît pas S.phase du moteur.
+if(S.mode==="client")return renderClient();
+// Diffusion idempotente (no-op si le snapshot n'a pas changé) : évite d'avoir
+// à traquer chaque point de mutation et d'en oublier un.
+pushState();
 var p=S.phase;
 
 if(p==="splash"){
@@ -191,18 +196,56 @@ app.innerHTML='<div class="hline"></div>'+
 '<p class="boot-line l3">&gt; IMPOSTEURS PRÊTS</p>'+
 '<p class="boot-line l4">&gt; QUI EST L\'UNDERCOVER ?</p>'+
 '</div>'+
-'<button class="btn splash-btn" onclick="S.phase=\'setup\';render()">▶ DÉMARRER</button>'+
+'<button class="btn splash-btn" onclick="S.mode=\'solo\';S.phase=\'setup\';render()">📱 UN SEUL TÉLÉPHONE</button>'+
+(window.isSecureContext
+ ?'<button class="btn ghost splash-btn2" onclick="hostStart()">📡 CHACUN SON TÉLÉPHONE</button>'+
+  '<button class="btn ghost splash-btn2" onclick="S.mode=\'client\';C.screen=\'join\';render()">🔗 Rejoindre avec un code</button>'
+ :'<button class="btn ghost splash-btn2" disabled>📡 CHACUN SON TÉLÉPHONE</button>'+
+  '<p class="cats-warn tc">⚠ Le multi-appareils exige HTTPS — indisponible sur cette adresse.</p>')+
 '<div class="fline"></div>';return}
+
+if(p==="lobby"){
+var seats=S.net?S.net.seats:[];var n=seats.length;var ready=n>=3;
+var st=S.net?S.net.status:"opening";
+app.innerHTML='<div class="hline"></div>'+
+'<div class="flex flex-between mb10"><span class="tag">SALLE</span><span class="tag">'+n+'/'+MAX_MULTI+'</span></div>'+
+(st==="open"
+ ?'<div class="qr-box"><canvas id="qrc" class="qr-canvas"></canvas></div>'+
+  '<p class="room-code">'+S.net.code+'</p>'+
+  '<p class="color-dim fs12 mb8">Scannez le QR ou saisissez ce code</p>'+
+  '<button class="btn ghost mini mb10" onclick="shareRoom()">📤 Partager le lien</button>'
+ :st==="error"
+ ?'<div class="icon-big">⚠</div><p class="err-msg">Impossible d\'ouvrir la salle ('+(S.net.err||"?")+'). Vérifie ta connexion Internet.</p>'+
+  '<button class="btn ghost mb10" onclick="hostStart()">↺ Réessayer</button>'
+ :'<div class="icon-big">📡</div><p class="color-dim fs13 mb10">Ouverture de la salle…</p><div class="pbar"><div class="pbar-fill indet"></div></div>')+
+'<p class="orb fs10 color-dim3 ls2 mb6">PARTICIPANTS</p>'+
+'<div class="lobby-list">'+(n?seats.map(function(s,i){
+return '<div class="lobby-row"><span class="dot-conn'+(s.connected?" on":"")+'"></span>'+
+'<span class="fs15 fw600 lobby-nm">'+(s.isHost?"👑 ":"")+s.name+'</span>'+
+(s.isHost?'<span class="orb fs9 color-dim3 ls2">HÔTE</span>':'<button class="kick-btn" onclick="kickPlayer('+(i+1)+')" aria-label="Exclure '+s.name+'">✕</button>')+
+'</div>'}).join(""):'<p class="color-dim3 fs12 tc mb0">Personne pour l\'instant…</p>')+'</div>'+
+(ready?'':'<p class="cats-warn">Il faut au moins 3 joueurs pour lancer.</p>')+
+'<button class="btn glow" onclick="S.phase=\'setup\';render()"'+(ready?"":" disabled")+'>▶ CONFIGURER LA PARTIE</button>'+
+'<button class="btn-abandon" onclick="showConfirm(\'Fermer la salle ? Tous les joueurs seront déconnectés.\',closeRoom)">✕ Fermer la salle</button>'+
+'<div class="fline"></div>';
+if(st==="open"){var cv=document.getElementById("qrc");if(cv)drawQR(cv,joinURL(S.net.code),{size:210})}
+return}
 
 if(p==="setup"){
 saveOpts();
 var uc=Math.min(S.uc,MUC());var nh="";
-for(var i=1;i<=S.pc;i++)nh+='<input type="text" id="n'+i+'" placeholder="Joueur '+i+'" value="'+(S.nm[i]||"")+'" maxlength="20" oninput="S.nm['+i+']=this.value.slice(0,20)">';
+if(S.mode==="solo")for(var i=1;i<=S.pc;i++)nh+='<input type="text" id="n'+i+'" placeholder="Joueur '+i+'" value="'+(S.nm[i]||"")+'" maxlength="20" oninput="S.nm['+i+']=this.value.slice(0,20)">';
 app.innerHTML='<div class="hline"></div><div class="mb20">'+G("UNDERCOVER","orb fs28 fw900 ls4 color-cyan text-shadow-cyan")+'<p class="subtitle-red">// NIGHT CITY EDITION</p></div>'+
 
-'<div class="setup-section"><label class="lbl"><span class="lbl-a">01</span> JOUEURS</label><div class="stepper"><button onclick="CP(-1)">−</button><input type="number" class="val-input" min="3" max="20" value="'+S.pc+'" oninput="S.pc=Math.max(3,Math.min(20,+this.value||3));S.uc=Math.min(BAL(),MUC())" onchange="render()"><button onclick="CP(1)">+</button></div></div>'+
-
-'<div class="setup-section"><label class="lbl"><span class="lbl-a">02</span> NOMS</label><div class="names-grid">'+nh+'</div></div>'+
+// En mode hôte, le nombre de joueurs et les noms sont dictés par le lobby :
+// on affiche le roster en lecture seule au lieu du stepper et des inputs.
+(S.mode==="host"
+ ?'<div class="setup-section"><label class="lbl"><span class="lbl-a">01</span> JOUEURS</label>'+
+  '<div class="flex gap4 flex-wrap flex-center mb6">'+S.net.seats.map(function(s){return '<span class="chip'+(s.connected?"":" off")+'">'+(s.isHost?"👑 ":"")+s.name+'</span>'}).join("")+'</div>'+
+  '<p class="orb fs10 color-dim3 ls2 tc">'+S.pc+' JOUEURS CONNECTÉS</p>'+
+  '<button class="btn ghost mini mt6" onclick="S.phase=\'lobby\';render()">← Retour au lobby</button></div>'
+ :'<div class="setup-section"><label class="lbl"><span class="lbl-a">01</span> JOUEURS</label><div class="stepper"><button onclick="CP(-1)">−</button><input type="number" class="val-input" min="3" max="20" value="'+S.pc+'" oninput="S.pc=Math.max(3,Math.min(20,+this.value||3));S.uc=Math.min(BAL(),MUC())" onchange="render()"><button onclick="CP(1)">+</button></div></div>'+
+  '<div class="setup-section"><label class="lbl"><span class="lbl-a">02</span> NOMS</label><div class="names-grid">'+nh+'</div></div>')+
 
 '<div class="setup-section"><label class="lbl"><span class="lbl-a">03</span> UNDERCOVER</label><input type="range" min="1" max="'+MUC()+'" value="'+uc+'" oninput="S.uc=+this.value;render()"><div class="role-chips"><span class="role-chip uc">🕵️ '+uc+' UC</span><span class="role-chip civ">👤 '+CC()+' civils</span>'+(WW()?'<span class="role-chip mw">🤍 Mr.W</span>':"")+'</div><p class="orb fs10 color-dim3 ls2 mt6 tc">RECOMMANDÉ : '+BAL()+' UC (1/3 des joueurs)</p></div>'+
 
@@ -425,5 +468,15 @@ mode:S.mode,net:S.net,votes:{},round:0,tiebreak:"revote",hostPlays:true,revealVo
 if(S.mode==="host")S.phase="lobby";
 render()}
 
+function shareRoom(){
+if(!S.net||!S.net.code)return;
+var url=joinURL(S.net.code);
+var txt="Rejoins ma partie UNDERCOVER !\nCode : "+S.net.code+"\n"+url;
+if(navigator.share){navigator.share({title:"UNDERCOVER — Night City",text:txt,url:url}).catch(function(){});return}
+if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).catch(function(){})}
+else{var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand("copy")}catch(e){}document.body.removeChild(ta)}}
+
 loadOpts();
+// Un QR scanné ou un lien partagé (#j=CODE) fait entrer directement en client.
+bootFromHash();
 render();

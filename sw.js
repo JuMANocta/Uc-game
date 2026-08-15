@@ -1,10 +1,18 @@
 // Bump CACHE à chaque déploiement pour purger les anciennes versions.
-var CACHE = 'uc-game-v3';
+var CACHE = 'uc-game-v4';
 var ASSETS = [
   './',
   './index.html',
   './app.js',
   './style.css',
+  './net.js',
+  './net-peerjs.js',
+  './client.js',
+  './qr.js',
+  './vendor/qrcode.js',
+  // Chargé paresseusement par net-peerjs.js, mais précaché malgré tout pour
+  // que le multi-appareils fonctionne sur une PWA déjà installée.
+  './vendor/peerjs.min.js',
   './manifest.json',
   './icons/icon.svg'
 ];
