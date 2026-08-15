@@ -11,6 +11,66 @@
 //  · Sans serveur TURN, un NAT symétrique (fréquent chez les opérateurs
 //    mobiles) empêche la connexion. Sur un WiFi commun, ça passe.
 
+// ══════════════════════════════════════════════════════════════
+// CONFIGURATION ICE
+// ══════════════════════════════════════════════════════════════
+// VÉRIFIÉ PAR RÉSOLUTION DNS — ne pas ajouter d'adresse sans la tester :
+//
+//   ✓ stun.l.google.com        74.125.250.129
+//   ✓ stun.cloudflare.com      162.159.207.0
+//   ✗ eu-0.turn.peerjs.com     AUCUN enregistrement
+//   ✗ us-0.turn.peerjs.com     AUCUN enregistrement
+//   ✗ openrelay.metered.ca     AUCUN enregistrement
+//
+// Les deux relais TURN que PeerJS déclare dans sa propre configuration NE
+// RÉSOLVENT PAS. Ils figurent bien dans la bibliothèque, mais aucun relais
+// n'est joignable : derrière un NAT symétrique — CGNAT des opérateurs
+// mobiles, Free Mobile en tête — la connexion ne peut pas aboutir.
+//
+// On ne déclare donc QUE du STUN, qui est vérifié. Déclarer un TURN mort ne
+// sauve personne et retarde la négociation : le navigateur attend chaque
+// serveur injoignable avant de conclure.
+//
+// POUR COUVRIR LA 4G, il faut un vrai TURN — hébergé (coturn) ou souscrit.
+// Il se branche sans toucher au code, via localStorage['uc_ice'] :
+//
+//   localStorage.setItem('uc_ice', JSON.stringify({ iceServers: [
+//     { urls: 'stun:turn.example.fr:3478' },
+//     { urls: ['turn:turn.example.fr:443?transport=tcp',
+//              'turns:turn.example.fr:443'],
+//       username: 'uc', credential: 'secret' }
+//   ]}))
+//
+// Le port 443 en TLS est le seul qui traverse les réseaux les plus filtrants :
+// le trafic y est indistinguable d'une connexion HTTPS.
+// diag.html mesure ce qui passe réellement et propose de renseigner tout ceci.
+var ICE_DEFAULT = {
+  iceServers: [
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun.cloudflare.com:3478" }
+  ]
+};
+
+// Surcharge sans modification du code : c'est ici qu'on branche son TURN.
+function iceConfig() {
+  try {
+    var c = JSON.parse(localStorage.getItem("uc_ice") || "null");
+    if (c && c.iceServers && c.iceServers.length) return c;
+  } catch (e) {}
+  return ICE_DEFAULT;
+}
+
+// Un TURN est-il configuré ? Sans lui, les joueurs en 4G ne pourront pas
+// être joints — l'hôte doit le savoir avant de lancer sa soirée.
+function hasTurn() {
+  var s = iceConfig().iceServers || [];
+  for (var i = 0; i < s.length; i++) {
+    var u = typeof s[i].urls === "string" ? [s[i].urls] : (s[i].urls || []);
+    for (var j = 0; j < u.length; j++) if (/^turns?:/.test(u[j])) return true;
+  }
+  return false;
+}
+
 var PeerAdapter = (function () {
   var _peer = null;        // instance PeerJS courante
   var _conns = {};         // connId opaque -> {conn, open}
@@ -98,7 +158,7 @@ var PeerAdapter = (function () {
     killPeer();
     _code = code;
     _status = "opening";
-    _peer = new window.Peer("ucgame-" + code, { debug: 0 });
+    _peer = new window.Peer("ucgame-" + code, { debug: 0, config: iceConfig() });
     armWatch(12000);
 
     _peer.on("open", function () {
@@ -134,7 +194,7 @@ var PeerAdapter = (function () {
   function openClient() {
     killPeer();
     _status = "opening";
-    _peer = new window.Peer(null, { debug: 0 });   // id aléatoire attribué par le broker
+    _peer = new window.Peer(null, { debug: 0, config: iceConfig() });   // id aléatoire attribué par le broker
     armWatch(12000);
 
     _peer.on("open", function () {

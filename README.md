@@ -221,7 +221,51 @@ Toute la logique de jeu ne parle qu'à la façade `NET` ; `net-peerjs.js` est le
 
 **Limites assumées** — 12 joueurs maximum en multi (l'hôte tient N−1 connexions, c'est lourd sur mobile ; le solo garde 20). Si le téléphone de l'hôte meurt définitivement, la partie est perdue : il n'y a pas de migration d'hôte, car répliquer la table des rôles sur un appareil de secours détruirait la confidentialité.
 
-**Traversée de NAT** — PeerJS 1.5 embarque par défaut un STUN Google **et deux relais TURN** (`eu-0`/`us-0.turn.peerjs.com`). Les réseaux mobiles à NAT symétrique, qui bloqueraient une connexion purement STUN, passent donc par ces relais sans configuration. Ce sont des serveurs publics gratuits, sans garantie de disponibilité : pour une fiabilité contractuelle, fournir ses propres `iceServers`.
+**Traversée de NAT — limite importante.** Vérifié par résolution DNS : les deux relais TURN que PeerJS déclare dans sa propre configuration (`eu-0`/`us-0.turn.peerjs.com`) **ne résolvent pas**. Aucun relais n'est donc joignable par défaut.
+
+Conséquence concrète : derrière un **NAT symétrique** — le CGNAT des opérateurs mobiles, Free Mobile en tête — la connexion ne peut pas aboutir. Sur un WiFi commun, elle passe sans problème.
+
+Seul du STUN vérifié est déclaré (`stun.l.google.com`, `stun.cloudflare.com`). Déclarer un TURN mort ne sauve personne et *retarde* la négociation, le navigateur attendant chaque serveur injoignable.
+
+**Pour couvrir les données mobiles**, il faut un vrai relais — un `coturn` auto-hébergé ou un service souscrit — branché sans toucher au code :
+
+```js
+localStorage.setItem('uc_ice', JSON.stringify({ iceServers: [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: ['turn:turn.example.fr:443?transport=tcp',
+           'turns:turn.example.fr:443'],
+    username: 'uc', credential: 'secret' }
+]}))
+```
+
+Le **port 443 en TLS** est le seul qui traverse les réseaux les plus filtrants : le trafic y est indistinguable d'une connexion HTTPS.
+
+**`diag.html`** mesure ce que le réseau autorise réellement (`host` / `srflx` / `relay`) et propose un formulaire pour renseigner ces identifiants. Le lobby avertit l'hôte quand aucun relais n'est configuré.
+
+### Architecture réseau
+
+L'hôte fait autorité : l'état complet vit sur son téléphone, les clients sont des terminaux passifs qui reçoivent des **snapshots complets** (jamais des deltas — la reconnexion emprunte ainsi le même chemin de code que le fonctionnement normal).
+
+Toute la logique de jeu ne parle qu'à la façade `NET` ; `net-peerjs.js` est le seul fichier qui mentionne PeerJS. Un adaptateur Supabase peut être ajouté sans toucher `app.js` ni `client.js`.
+
+**Confidentialité** — un client ne reçoit que `word` et `isMrWhite`, jamais son `role` : lui dire qu'il est « undercover » lui révélerait son camp, ce que l'écran de révélation mono-téléphone se garde bien de faire. Une seule fonction, `snapshot()`, produit les données diffusées, et n'expose les rôles qu'une fois les joueurs éliminés.
+
+**Limites assumées** — 12 joueurs maximum en multi (l'hôte tient N−1 connexions, c'est lourd sur mobile ; le solo garde 20). Si le téléphone de l'hôte meurt définitivement, la partie est perdue : il n'y a pas de migration d'hôte, car répliquer la table des rôles sur un appareil de secours détruirait la confidentialité.
+
+**Traversée de NAT** — les relais TURN embarqués par PeerJS n'écoutent que sur le **port 3478**, fréquemment filtré sur les réseaux mobiles français (Free Mobile notamment, qui combine CGNAT agressif et blocage des ports non standard). La configuration ICE ajoute donc des relais sur **80, 443 et TLS/443** : un TURN en TLS sur 443 est indistinguable d'une connexion HTTPS, c'est la dernière porte qui reste ouverte.
+
+Ces relais publics sont gratuits et sans garantie. Pour une fiabilité réelle, héberger son propre **coturn** et le déclarer sans toucher au code :
+
+```js
+localStorage.setItem('uc_ice', JSON.stringify({ iceServers: [
+  { urls: 'stun:turn.mondomaine.fr:3478' },
+  { urls: ['turn:turn.mondomaine.fr:443?transport=tcp',
+           'turns:turn.mondomaine.fr:443'],
+    username: 'uc', credential: 'secret' }
+]}))
+```
+
+**`diag.html` teste la traversée de NAT** et indique quels chemins le réseau autorise — `host`, `srflx` (STUN), `relay` (TURN). L'absence de `relay` explique à elle seule un échec en 4G.
 
 ---
 
