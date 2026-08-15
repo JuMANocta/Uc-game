@@ -493,7 +493,8 @@ function renderClient() {
         : '<p class="color-dim6 fs14 mb6"><strong class="color-white">' + (S.nm[r.elimId] || "?") + "</strong> était " + roleLbl + "</p>") +
       (r.category ? '<div class="cat-badge mt12">' + r.category + "</div>" : "") +
       (r.pair ? '<div class="words-row"><div class="word-card civ"><span class="wl">MOT CIVIL</span><span class="wv">' + r.pair[0] +
-                '</span></div><div class="word-card uc"><span class="wl">MOT UC</span><span class="wv">' + r.pair[1] + "</span></div></div>" : "") +
+                '</span></div><div class="word-card uc"><span class="wl">MOT UC</span><span class="wv">' + r.pair[1] + "</span></div></div>"
+              : '<p class="color-dim3 fs12 mb8">Les mots restent secrets jusqu\'à la fin de la partie.</p>') +
       '<p class="orb fs10 color-dim3 ls2 mb0">' + r.impostorsLeft + " IMPOSTEUR" + (r.impostorsLeft > 1 ? "S" : "") +
       " RESTANT" + (r.impostorsLeft > 1 ? "S" : "") + "</p>" +
       '<p class="color-dim fs13 mt12">L\'hôte lance le tour suivant…</p>' +
@@ -520,6 +521,15 @@ function renderClient() {
       (go.category ? '<div class="cat-badge mt8">' + go.category + "</div>" : "") +
       (go.pair ? '<div class="words-row"><div class="word-card civ"><span class="wl">MOT CIVIL</span><span class="wv">' + go.pair[0] +
                  '</span></div><div class="word-card uc"><span class="wl">MOT UC</span><span class="wv">' + go.pair[1] + "</span></div></div>" : "") +
+      (go.allWords && go.allWords.length
+        ? '<p class="orb fs10 color-dim ls2 mt12 mb0">LES MOTS DE LA PARTIE</p><div class="allw">' +
+          go.allWords.map(function (h) {
+            return '<div class="allw-row"><span class="orb fs9 color-dim3 min-w24">T' + h.turn + '</span>' +
+              (h.cat ? '<span class="hist-cat">' + h.cat + '</span>' : '') +
+              '<span class="hist-words"><span class="color-cyan fw600">' + h.pair[0] + '</span>' +
+              '<span class="color-dim3"> / </span><span class="color-red fw600">' + h.pair[1] + '</span></span></div>';
+          }).join("") + '</div>'
+        : "") +
       '<div class="role-grid">' + (go.roles || []).map(function (x) {
         var rc = x.role === "mrwhite" ? "rt-mw" : x.role === "undercover" ? "rt-uc" : "rt-civ";
         return '<div class="role-tile ' + rc + '"><span class="orb fs11 fw700">' + (S.nm[x.id] || "?") + "</span>" +

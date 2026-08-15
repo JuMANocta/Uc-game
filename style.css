@@ -390,3 +390,6 @@ input[type=text]::placeholder { color: rgba(255,255,255,0.2); }
 .upd-btn { background: rgba(5,217,232,0.25); border: 1px solid rgba(5,217,232,0.6); color: #05d9e8;
   font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 700; padding: 7px 12px; cursor: pointer; }
 .upd-x { background: transparent; border: none; color: rgba(255,255,255,0.35); font-size: 15px; cursor: pointer; padding: 4px 6px; }
+.lobby-edit { flex: 1; background: rgba(5,217,232,0.06); border: 1px solid rgba(5,217,232,0.3); color: #fff; font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 600; padding: 5px 8px; min-width: 0; }
+.allw { display: flex; flex-direction: column; gap: 3px; margin: 6px 0 10px; }
+.allw-row { display: flex; gap: 8px; align-items: baseline; text-align: left; font-size: 13px; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }

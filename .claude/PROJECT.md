@@ -337,6 +337,16 @@ Fenêtre flottante accessible partout via un bouton « ? » installé **hors de 
 
 Le contenu insiste sur les deux points qui perdent les nouveaux joueurs : **on ignore son propre rôle** (on ne voit qu'un mot), et surtout **les rôles ne changent jamais de la partie alors que les mots changent à chaque tour**. La règle des indices écrits n'apparaît que si l'option est active.
 
+### Préservation des champs de saisie
+
+`render()` remplace tout `#app` par `innerHTML`, donc chaque champ est détruit et recréé. En multi, l'hôte rediffuse l'état dès qu'un joueur envoie un indice : un joueur en train de taper le sien perdait son texte, son curseur, et sur mobile **son clavier se refermait**.
+
+`render()` encapsule désormais `renderInner()` entre `captureInput()` et `restoreInput()` — id, valeur et sélection du champ actif. Un seul point d'entrée protège l'indice, la proposition de Mr. White, le pseudo, le renommage de l'hôte et les noms du setup.
+
+### Révélation des mots (`S.revealWords`, défaut `false`)
+
+Masquer la paire à chaque fin de tour préserve l'incertitude sur son propre rôle : la révéler apprendrait à un Undercover survivant qu'il **est** l'intrus, dès le tour 2. La fin de partie affiche de toute façon `ALLW()` — toutes les paires jouées, tour par tour, côté hôte comme côté joueurs via `gameOver.allWords`.
+
 ### Règles de vote
 
 - Clôture automatique quand tous les vivants **connectés** ont voté ; bouton manuel toujours présent.

@@ -55,14 +55,14 @@ var DB=[
 
 // Estampille affichée sur l'accueil : permet de vérifier d'un coup d'oeil
 // quelle version le navigateur sert réellement (cache du service worker).
-var BUILD="v7-2026.08.15";
+var BUILD="v8-2026.08.15";
 var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}
 
 var S={phase:"splash",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:false,kids:false,cats:null,spoken:[],
 // Multi-appareils — "solo" = un seul téléphone (défaut), "host" = cet appareil arbitre, "client" = joueur distant
-mode:"solo",net:null,votes:{},round:0,tiebreak:"revote",hostPlays:true,revealVoters:false,writeClues:false,clues:{},fault:null};
+mode:"solo",net:null,votes:{},round:0,tiebreak:"revote",hostPlays:true,revealVoters:false,revealWords:false,writeClues:false,clues:{},fault:null};
 
 function N(id){return S.nm[id]||("Joueur "+id)}
 function MUC(){return Math.max(1,S.pc-(S.mw?2:1))}
@@ -89,6 +89,18 @@ function TCat(c){if(!catCount(c))return;var all=allCats();if(!S.cats){S.cats=all
 function SS(){var s=Object.keys(S.sc).map(function(k){return{id:+k,pts:S.sc[k]}}).sort(function(a,b){return b.pts-a.pts});return s}
 function CSC(){var s=SS();if(!s.length)return"";return '<div class="score-compact">'+s.map(function(x,i){return '<span class="sc-item'+(i===0?" first":"")+'">'+N(x.id)+" "+x.pts+"pts</span>"}).join("")+"</div>"}
 function FSC(){var s=SS();var m=["🥇","🥈","🥉"];return '<div class="score-full">'+s.map(function(x,i){var mc=i<3?["color-gold","color-dim7","color-red"][i]:"color-dim";return '<div class="sf-row'+(i===0?" first":"")+'"><div class="flex items-center gap10"><span class="orb fs14 fw900 min-w24 '+mc+'">'+(m[i]||"#"+(i+1))+'</span><span class="fs16 fw700">'+N(x.id)+'</span></div><span class="orb fs16 fw900 color-cyan">'+x.pts+"</span></div>"}).join("")+"</div>"}
+// Toutes les paires jouées, tour par tour — affiché en fin de partie quelle
+// que soit l'option : c'est le moment où l'on veut revoir ce qui s'est passé.
+function ALLW(){
+if(!S.hist.length)return"";
+return '<p class="orb fs10 color-dim ls2 mt12 mb0">LES MOTS DE LA PARTIE</p><div class="allw">'+
+S.hist.map(function(h){
+return '<div class="allw-row"><span class="orb fs9 color-dim3 min-w24">T'+h.turn+'</span>'+
+(h.cat?'<span class="hist-cat">'+h.cat+'</span>':'')+
+'<span class="hist-words"><span class="color-cyan fw600">'+h.pair[0]+'</span>'+
+'<span class="color-dim3"> / </span><span class="color-red fw600">'+h.pair[1]+'</span></span></div>'
+}).join("")+'</div>'}
+
 function WR(){return '<div class="words-row"><div class="word-card civ"><span class="wl">MOT CIVIL</span><span class="wv">'+S.pair[0]+'</span></div><div class="word-card uc"><span class="wl">MOT UC</span><span class="wv">'+S.pair[1]+"</span></div></div>"}
 
 function stopTimer(){if(S.tid){clearInterval(S.tid);S.tid=null;broadcastTimer("stop",0)}}
@@ -259,7 +271,38 @@ ov.innerHTML='<div class="modal-box"><p class="modal-msg">'+msg+'</p><div class=
 document.body.appendChild(ov)}
 
 // ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
+// PRÉSERVATION DES CHAMPS DE SAISIE
+// ══════════════════════════════════════════════════════════════
+// render() remplace tout #app par innerHTML : chaque champ est donc détruit et
+// recréé. En multi, l'hôte rediffuse l'état dès qu'un joueur envoie un indice —
+// un joueur en train de taper le sien perdait son texte, son curseur, et sur
+// mobile son clavier se refermait. On capture le champ actif avant le rendu et
+// on le restaure après, ce qui protège d'un coup l'indice, la proposition de
+// Mr. White, le pseudo et les noms du setup.
+function captureInput(){
+try{
+var el=document.activeElement;
+if(!el||el.tagName!=="INPUT"||!el.id)return null;
+var k={id:el.id,value:el.value,start:null,end:null};
+try{k.start=el.selectionStart;k.end=el.selectionEnd}catch(e){}   // jette sur type=number
+return k}catch(e){return null}}
+
+function restoreInput(k){
+if(!k)return;
+try{
+var el=document.getElementById(k.id);
+if(!el||el.tagName!=="INPUT")return;
+if(el.value!==k.value)el.value=k.value;
+if(k.start!==null){try{el.setSelectionRange(k.start,k.end)}catch(e){}}
+el.focus()}catch(e){}}
+
 function render(){
+var _k=captureInput();
+renderInner();
+restoreInput(_k)}
+
+function renderInner(){
 // Le client a ses propres écrans : il ne connaît pas S.phase du moteur.
 if(S.mode==="client")return renderClient();
 // Diffusion idempotente (no-op si le snapshot n'a pas changé) : évite d'avoir
@@ -328,7 +371,7 @@ app.innerHTML='<div class="hline"></div>'+
 '<p class="orb fs10 color-dim3 ls2 mb6">PARTICIPANTS</p>'+
 '<div class="lobby-list">'+(n?seats.map(function(s,i){
 return '<div class="lobby-row"><span class="dot-conn'+(s.connected?" on":"")+'"></span>'+
-'<span class="fs15 fw600 lobby-nm">'+(s.isHost?"👑 ":"")+s.name+'</span>'+
+(s.isHost?'<input type="text" id="hostnm" class="lobby-edit" maxlength="20" value="'+s.name+'" aria-label="Ton nom" oninput="renameHost(this.value)">':'<span class="fs15 fw600 lobby-nm">'+s.name+'</span>')+
 (s.isHost?'<span class="orb fs9 color-dim3 ls2">HÔTE</span>':'<button class="kick-btn" onclick="kickPlayer('+(i+1)+')" aria-label="Exclure '+s.name+'">✕</button>')+
 '</div>'}).join(""):'<p class="color-dim3 fs12 tc mb0">Personne pour l\'instant…</p>')+'</div>'+
 (ready?'':'<p class="cats-warn">Il faut au moins 3 joueurs pour lancer.</p>')+
@@ -367,6 +410,7 @@ app.innerHTML='<div class="hline"></div><div class="mb20">'+G("UNDERCOVER","orb 
 '<div class="opt-row"><div class="opt-lbl"><span class="opt-title">Vote nul</span><span class="opt-desc">Permet de passer un tour sans élimination</span></div><button class="tog '+(S.skipvote?"on":"")+'" aria-label="Vote nul" aria-pressed="'+(S.skipvote?"true":"false")+'" onclick="S.skipvote=!S.skipvote;render()"><span class="dot"></span></button></div>'+
 
 '<div class="opt-row"><div class="opt-lbl"><span class="opt-title">🌙 Mode nuit</span><span class="opt-desc">Masque les rôles et le compteur pendant le débat</span></div><button class="tog '+(S.night?"on":"")+'" aria-label="Mode nuit" aria-pressed="'+(S.night?"true":"false")+'" onclick="S.night=!S.night;render()"><span class="dot"></span></button></div>'+
+'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">🔍 Révéler les mots chaque tour</span><span class="opt-desc">Sinon ils restent secrets jusqu\'à la fin — un Undercover survivant ignore alors qu\'il est l\'intrus</span></div><button class="tog '+(S.revealWords?"on":"")+'" aria-label="Révéler les mots chaque tour" aria-pressed="'+(S.revealWords?"true":"false")+'" onclick="S.revealWords=!S.revealWords;render()"><span class="dot"></span></button></div>'+
 (S.mode==="host"?'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">✍️ Indices écrits</span><span class="opt-desc">Chacun tape son indice — prononcer son propre mot élimine sur-le-champ</span></div><button class="tog '+(S.writeClues?"on":"")+'" aria-label="Indices écrits" aria-pressed="'+(S.writeClues?"true":"false")+'" onclick="S.writeClues=!S.writeClues;render()"><span class="dot"></span></button></div>':'')+
 (S.mode==="host"?'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">👁 Vote à découvert</span><span class="opt-desc">Au dépouillement, montre qui a voté pour qui</span></div><button class="tog '+(S.revealVoters?"on":"")+'" aria-label="Vote à découvert" aria-pressed="'+(S.revealVoters?"true":"false")+'" onclick="S.revealVoters=!S.revealVoters;render()"><span class="dot"></span></button></div>':'')+
 '<div class="opt-row last"><div class="opt-lbl"><span class="opt-title">🧒 Mode Enfant</span><span class="opt-desc">691 paires adaptées sur 45 catégories — exclut alcool, horreur, contenu adulte</span></div><button class="tog '+(S.kids?"on":"")+'" aria-label="Mode Enfant" aria-pressed="'+(S.kids?"true":"false")+'" onclick="S.kids=!S.kids;render()"><span class="dot"></span></button></div>'+
@@ -443,11 +487,20 @@ hw=!S.wv
    '<p class="orb fs9 color-dim3 ls2 mt8">TAPE POUR MASQUER</p></div>';
 hw='<div class="m12-0">'+hw+'</div>';
 }
+// L'hôte joue aussi : il doit pouvoir donner son indice, et voir la catégorie
+// — qui n'était affichée que dans la phase reveal, absente en multi.
+if(S.writeClues&&S.hostPlays&&S.alive.indexOf(1)!==-1){
+hw+=(S.clues[1]
+ ?'<p class="color-dim3 fs12 mb6">Ton indice est enregistré.</p>'
+ :'<input type="text" id="hclue" maxlength="60" placeholder="Ton indice…" autocomplete="off">'+
+   '<button class="btn glow mt6" onclick="hostClue()">▶ DONNER MON INDICE</button>');
+}
 var off=S.net.seats.filter(function(s,i){return !s.connected&&S.alive.indexOf(i+1)!==-1});
 if(off.length)cs='<p class="cats-warn">⟳ '+off.map(function(s){return s.name}).join(", ")+(off.length>1?" sont déconnectés":" est déconnecté")+' — la partie continue, ils reviendront d\'eux-mêmes.</p>';
 }
 app.innerHTML='<div class="hline"></div><div class="flex flex-between mb10"><span class="tag">TOUR '+S.turn+'</span><span class="tag">'+S.alive.length+' EN JEU</span></div>'+
 '<h1 class="orb fs18 fw700 color-cyan mb8">'+G("DÉBAT EN COURS")+'</h1>'+
+(S.mode==="host"&&S.cat?'<div class="cat-badge">'+S.ct+'</div>':'')+
 '<p class="color-dim4 fs13 lh15 mb6">'+(S.mode==="host"?'Chacun décrit son mot dans l\'ordre, puis on vote !':'Décrivez votre mot dans l\'ordre, puis votez !')+'</p>'+
 hw+cs+
 '<div class="speak-order mb4">'+S.ro.map(function(i,rank){var sid=S.tp[i].id;var done=S.spoken.indexOf(sid)!==-1;return '<div class="speak-item'+(done?" spoke":"")+'" onclick="var _i=S.spoken.indexOf('+sid+');if(_i===-1)S.spoken.push('+sid+');else S.spoken.splice(_i,1);render()"><span class="speak-num orb">'+(done?"✓":(rank+1))+'</span><span class="speak-name">'+N(sid)+'</span></div>'}).join("")+'</div>'+(S.spoken.length?'<button class="btn ghost mb6" onclick="S.spoken=[];render()">↺ Tout décocher</button>':'')+
@@ -541,7 +594,7 @@ app.innerHTML='<div class="hline"></div><span class="tag">FIN DU TOUR '+S.turn+'
 '<h2 class="orb fs18 fw700 color-dim7 m8-0">'+G("VOTE NUL")+'</h2>'+
 '<p class="color-dim6 fs14 mb6">Personne n\'a été éliminé ce tour.</p>'+
 (S.cat?'<div class="cat-badge mt12">'+S.ct+'</div>':"")+
-WR()+
+(S.revealWords?WR():'<p class="color-dim3 fs12 mb8">Les mots restent secrets jusqu\'à la fin de la partie.</p>')+
 '<p class="orb fs10 color-dim3 ls2 mb0">'+bl+' IMPOSTEUR'+(bl>1?"S":"")+" RESTANT"+(bl>1?"S":"")+"</p>"+
 CSC()+
 (S.hist.length>1?'<details class="hist-details"><summary class="orb fs10 color-dim3 ls2">TOURS PRÉCÉDENTS</summary>'+HIST(S.hist.length-1)+'</details>':'')+
@@ -552,7 +605,7 @@ app.innerHTML='<div class="hline"></div><span class="tag">FIN DU TOUR '+S.turn+'
 '<h2 class="orb fs18 fw700 color-red m8-0">'+G("MOT PRONONCÉ !")+'</h2>'+
 '<p class="color-dim6 fs14 lh15 mb6"><strong class="color-white">'+N(S.fault.id)+'</strong> a écrit «&nbsp;'+S.fault.clue+'&nbsp;»<br>et a lâché son propre mot.</p>'+
 '<p class="color-dim6 fs14 mb6">Il était '+(fp.role==="civil"?"👤 Civil":fp.role==="undercover"?"🕵️ Undercover":"🤍 Mr. White")+' — éliminé sur-le-champ.</p>'+
-(S.cat?'<div class="cat-badge mt12">'+S.ct+'</div>':"")+WR()+
+(S.cat?'<div class="cat-badge mt12">'+S.ct+'</div>':"")+(S.revealWords?WR():'<p class="color-dim3 fs12 mb8">Les mots restent secrets jusqu\'à la fin de la partie.</p>')+
 '<p class="orb fs10 color-dim3 ls2 mb0">'+bl+' IMPOSTEUR'+(bl>1?"S":"")+" RESTANT"+(bl>1?"S":"")+"</p>"+CSC()+
 (S.hist.length>1?'<details class="hist-details"><summary class="orb fs10 color-dim3 ls2">TOURS PRÉCÉDENTS</summary>'+HIST(S.hist.length-1)+'</details>':'')+
 '<button class="btn" onclick="startTurn()">▶ TOUR SUIVANT — NOUVEAUX MOTS</button><div class="fline"></div>';return}
@@ -563,7 +616,7 @@ app.innerHTML='<div class="hline"></div><span class="tag">FIN DU TOUR '+S.turn+'
 '<p class="color-dim6 fs14 mb6"><strong class="color-white">'+N(li)+'</strong> était '+(la.role==="civil"?"👤 Civil":la.role==="undercover"?"🕵️ Undercover":"🤍 Mr. White")+'</p>'+
 (ok?'<p class="color-cyan fs13">+1 pt pour chaque civil survivant</p>':'<p class="color-red fs13">Un innocent éliminé...</p>')+
 (S.cat?'<div class="cat-badge mt12">'+S.ct+'</div>':"")+
-WR()+
+(S.revealWords?WR():'<p class="color-dim3 fs12 mb8">Les mots restent secrets jusqu\'à la fin de la partie.</p>')+
 '<p class="orb fs10 color-dim3 ls2 mb0">'+bl+' IMPOSTEUR'+(bl>1?"S":"")+" RESTANT"+(bl>1?"S":"")+"</p>"+
 CSC()+
 (S.hist.length>1?'<details class="hist-details"><summary class="orb fs10 color-dim3 ls2">TOURS PRÉCÉDENTS</summary>'+HIST(S.hist.length-1)+'</details>':'')+
@@ -580,6 +633,7 @@ app.innerHTML='<div class="hline"></div><div class="icon-big">'+ic+'</div>'+
 '<p class="orb fs10 color-dim3 ls2">'+S.turn+' TOURS JOUÉS</p>'+
 (S.cat?'<div class="cat-badge mt8">'+S.ct+'</div>':"")+
 WR()+
+ALLW()+
 '<div class="role-grid">'+rh+'</div>'+
 '<p class="orb fs10 color-dim ls2 mb0">CLASSEMENT FINAL</p>'+
 FSC()+
@@ -689,6 +743,20 @@ S.clues[pid]=text;
 SND.elim();VIB([120,60,120,60,200]);
 checkEnd(pl)}
 
+// Renommage à la volée : le roster est rediffusé, et la préservation des
+// champs empêche le rendu de vider l'input sous les doigts.
+function renameHost(v){
+var n=cleanName(v);
+S.nm[1]=n;
+if(S.net&&S.net.seats[0]&&S.net.seats[0].isHost)S.net.seats[0].name=n;
+render()}
+
+function hostClue(){
+var el=document.getElementById("hclue");
+if(!el||!el.value.trim())return;
+var t=el.value.trim();el.value="";
+submitClue(1,t)}
+
 function goVote(){
 if(S.mode==="host"){startVote();return}
 stopTimer();S.phase="vote";S.vt=null;render()}
@@ -796,7 +864,7 @@ render()}
 // devant survivre à une nouvelle partie doit être reporté ici explicitement —
 // en particulier mode/net, sinon "nouvelle partie" déconnecterait tout le monde.
 function fullReset(){stopTimer();S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:S.timer,tid:null,trem:0,skipvote:S.skipvote,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:S.night,kids:S.kids,cats:S.cats,spoken:[],
-mode:S.mode,net:S.net,votes:{},round:0,tiebreak:S.tiebreak,hostPlays:S.hostPlays,revealVoters:S.revealVoters,writeClues:S.writeClues,clues:{},fault:null};
+mode:S.mode,net:S.net,votes:{},round:0,tiebreak:S.tiebreak,hostPlays:S.hostPlays,revealVoters:S.revealVoters,revealWords:S.revealWords,writeClues:S.writeClues,clues:{},fault:null};
 if(S.mode==="host")S.phase="lobby";
 render()}
 
