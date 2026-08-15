@@ -3,61 +3,297 @@
 // ══════════════════════════════════════════════════════════════
 
 var DB=[
-["Titanic","Poséidon","Cinéma"],["Star Wars","Star Trek","Cinéma"],["Le Parrain","Scarface","Cinéma"],["Matrix","Inception","Cinéma"],["Jurassic Park","King Kong","Cinéma"],["Avengers","Justice League","Cinéma"],["Shrek","Monstres et Cie","Cinéma"],["Rocky","Creed","Cinéma"],["Alien","Predator","Cinéma"],["Gladiator","Braveheart","Cinéma"],["Avatar","Dune","Cinéma"],["Retour vers le futur","Interstellar","Cinéma"],["Ratatouille","L'Âge de glace","Cinéma"],["Saw","Destination finale","Cinéma"],["Ocean's Eleven","Braquage à l'italienne","Cinéma"],["Conjuring","Insidious","Cinéma"],["Le Roi Lion","Bambi","Cinéma"],["Cendrillon","La Belle au bois dormant","Cinéma"],["Hunger Games","Divergente","Cinéma"],["Indiana Jones","Lara Croft","Cinéma"],
-["Breaking Bad","Narcos","Séries"],["Friends","How I Met Your Mother","Séries"],["The Office","Parks and Recreation","Séries"],["Stranger Things","Dark","Séries"],["La Casa de Papel","Lupin","Séries"],["Walking Dead","The Last of Us","Séries"],["Peaky Blinders","Boardwalk Empire","Séries"],["Black Mirror","Twilight Zone","Séries"],["Better Call Saul","Suits","Séries"],["Grey's Anatomy","Dr House","Séries"],["Vikings","The Last Kingdom","Séries"],["Squid Game","Alice in Borderland","Séries"],["Dexter","You","Séries"],["Lost","Manifest","Séries"],["Seinfeld","Curb Your Enthusiasm","Séries"],["Naruto","Dragon Ball","Séries"],["One Piece","Fairy Tail","Séries"],["South Park","Les Simpson","Séries"],["Rick et Morty","Futurama","Séries"],["Downton Abbey","The Crown","Séries"],
-["Minecraft","Terraria","Jeux vidéo"],["Mario","Sonic","Jeux vidéo"],["PlayStation","Xbox","Jeux vidéo"],["Fortnite","PUBG","Jeux vidéo"],["GTA","Saints Row","Jeux vidéo"],["FIFA","PES","Jeux vidéo"],["Zelda","Genshin Impact","Jeux vidéo"],["Call of Duty","Battlefield","Jeux vidéo"],["League of Legends","Dota 2","Jeux vidéo"],["Dark Souls","Elden Ring","Jeux vidéo"],["Resident Evil","Silent Hill","Jeux vidéo"],["Tetris","Candy Crush","Jeux vidéo"],["Cyberpunk 2077","Deus Ex","Jeux vidéo"],["Animal Crossing","Stardew Valley","Jeux vidéo"],["Among Us","Werewolf Online","Jeux vidéo"],["Mario Kart","Crash Team Racing","Jeux vidéo"],["Pokémon","Digimon","Jeux vidéo"],["God of War","Devil May Cry","Jeux vidéo"],["Sims","Animal Crossing","Jeux vidéo"],["Overwatch","Valorant","Jeux vidéo"],
-["Beyoncé","Rihanna","Musique"],["Eminem","Kanye West","Musique"],["Beatles","Rolling Stones","Musique"],["Daft Punk","Justice","Musique"],["Spotify","Deezer","Musique"],["Guitare","Ukulélé","Musique"],["Jul","PNL","Musique"],["Mozart","Beethoven","Musique"],["AC/DC","Metallica","Musique"],["Piano","Synthétiseur","Musique"],["Rap","Slam","Musique"],["Jazz","Blues","Musique"],["Violon","Violoncelle","Musique"],["Drake","The Weeknd","Musique"],["Oasis","Blur","Musique"],["Woodstock","Coachella","Musique"],["Vinyle","CD","Musique"],["Karaoké","Lip sync","Musique"],["DJ","Beatmaker","Musique"],
-["Pizza","Focaccia","Nourriture"],["Croissant","Pain au chocolat","Nourriture"],["Sushi","Sashimi","Nourriture"],["Crème brûlée","Tiramisu","Nourriture"],["Nutella","Beurre de cacahuète","Nourriture"],["Ketchup","Mayonnaise","Nourriture"],["Baguette","Ciabatta","Nourriture"],["Kebab","Shawarma","Nourriture"],["Coca-Cola","Pepsi","Nourriture"],["Red Bull","Monster","Nourriture"],["Champagne","Prosecco","Nourriture"],["Camembert","Brie","Nourriture"],["Raclette","Fondue","Nourriture"],["Thé","Café","Nourriture"],["Cappuccino","Latte","Nourriture"],["Macaron","Meringue","Nourriture"],["Steak","Entrecôte","Nourriture"],["Pancake","Gaufre","Nourriture"],["Sorbet","Glace","Nourriture"],["Burger","Hot-dog","Nourriture"],["Frites","Potatoes","Nourriture"],["Guacamole","Houmous","Nourriture"],["Naan","Pita","Nourriture"],["Cookie","Brownie","Nourriture"],["Tabasco","Sriracha","Nourriture"],["Mozzarella","Burrata","Nourriture"],["Whisky","Bourbon","Nourriture"],["Rhum","Tequila","Nourriture"],
-["Ronaldo","Messi","Sport"],["Roland-Garros","Wimbledon","Sport"],["Tour de France","Giro d'Italia","Sport"],["PSG","Real Madrid","Sport"],["Boxe","MMA","Sport"],["Ski","Snowboard","Sport"],["Formule 1","MotoGP","Sport"],["Zidane","Platini","Sport"],["Judo","Karaté","Sport"],["Surf","Bodyboard","Sport"],["Marathon","Semi-marathon","Sport"],["Basket","Handball","Sport"],["Yoga","Pilates","Sport"],["Rugby","Football américain","Sport"],["Tennis","Badminton","Sport"],["Ping-pong","Squash","Sport"],["CrossFit","Musculation","Sport"],["Escalade","Alpinisme","Sport"],["Patinage","Roller","Sport"],["Natation","Plongée","Sport"],
-["Tour Eiffel","Big Ben","Culture"],["Mona Lisa","La Jeune Fille à la perle","Culture"],["Colisée","Parthénon","Culture"],["Cléopâtre","Néfertiti","Culture"],["Napoléon","César","Culture"],["Versailles","Buckingham","Culture"],["Pyramides","Sphinx","Culture"],["Statue de la Liberté","Christ Rédempteur","Culture"],["Everest","K2","Culture"],["Amazone","Nil","Culture"],["Louvre","British Museum","Culture"],["Sahara","Gobi","Culture"],["Machu Picchu","Chichen Itza","Culture"],["Venise","Amsterdam","Culture"],["Renaissance","Baroque","Culture"],["Samurai","Gladiateur","Culture"],["Mythologie grecque","Mythologie nordique","Culture"],["Hiéroglyphes","Cunéiforme","Culture"],
-["iPhone","Samsung Galaxy","Tech"],["Google","Bing","Tech"],["Instagram","TikTok","Tech"],["WhatsApp","Telegram","Tech"],["Netflix","Disney+","Tech"],["Windows","macOS","Tech"],["Tesla","BYD","Tech"],["ChatGPT","Claude","Tech"],["Bitcoin","Ethereum","Tech"],["Airbus","Boeing","Tech"],["NASA","SpaceX","Tech"],["Uber","Bolt","Tech"],["Amazon","AliExpress","Tech"],["WiFi","Bluetooth","Tech"],["USB-C","Lightning","Tech"],["VPN","Proxy","Tech"],["Linux","Windows","Tech"],["Photoshop","GIMP","Tech"],["Siri","Alexa","Tech"],["Drone","Satellite","Tech"],
-["Batman","Spider-Man","Personnages"],["Darth Vader","Voldemort","Personnages"],["James Bond","Jason Bourne","Personnages"],["Harry Potter","Percy Jackson","Personnages"],["Astérix","Tintin","Personnages"],["Sherlock Holmes","Hercule Poirot","Personnages"],["Gandalf","Dumbledore","Personnages"],["Naruto","Goku","Personnages"],["Joker","Thanos","Personnages"],["Elsa","Raiponce","Personnages"],["Superman","Captain America","Personnages"],["Wolverine","Deadpool","Personnages"],["Dracula","Frankenstein","Personnages"],["Robin des Bois","Zorro","Personnages"],["Peter Pan","Pinocchio","Personnages"],["Shrek","Fiona","Personnages"],["Mario","Luigi","Personnages"],["Tom","Jerry","Personnages"],["Buzz l'Éclair","Woody","Personnages"],["Sangoku","Vegeta","Personnages"],
-["Nike","Adidas","Marques"],["Zara","H&M","Marques"],["IKEA","Leroy Merlin","Marques"],["Ferrari","Lamborghini","Marques"],["Rolex","Omega","Marques"],["Rolls-Royce","Bentley","Marques"],["Lego","Playmobil","Marques"],["Louis Vuitton","Gucci","Marques"],["McDonald's","Burger King","Marques"],["Chanel","Dior","Marques"],["Porsche","Aston Martin","Marques"],["Ray-Ban","Oakley","Marques"],["Converse","Vans","Marques"],["Lacoste","Ralph Lauren","Marques"],["Apple","Samsung","Marques"],["Audi","BMW","Marques"],["Canon","Nikon","Marques"],["Puma","Reebok","Marques"],["Hermès","Prada","Marques"],["Dyson","Rowenta","Marques"],
-["Chat","Chien","Divers"],["Dentiste","Médecin","Divers"],["Métro","Tramway","Divers"],["Avion","Hélicoptère","Divers"],["Pirate","Viking","Divers"],["Zombie","Vampire","Divers"],["Lune","Soleil","Divers"],["Licorne","Dragon","Divers"],["Escape Game","Laser Game","Divers"],["Piscine","Plage","Divers"],["Samouraï","Ninja","Divers"],["Ange","Démon","Divers"],["Astronaute","Pilote","Divers"],["Parapluie","Imperméable","Divers"],["Château","Manoir","Divers"],["Père Noël","Saint-Nicolas","Divers"],["Sirène","Méduse","Divers"],["Igloo","Tipi","Divers"],["Hamac","Transat","Divers"],["Tatouage","Piercing","Divers"],["Journal","Magazine","Divers"],["Bain","Douche","Divers"],["Valise","Sac à dos","Divers"],["Bougie","Encens","Divers"],["Cheminée","Radiateur","Divers"],["Jumelles","Télescope","Divers"],["Parachute","Deltaplane","Divers"],["Bibliothèque","Librairie","Divers"],["Crayon","Stylo","Divers"],["Horoscope","Tarot","Divers"],["Emoji","Émoticône","Divers"],["Selfie","Portrait","Divers"],["Podcast","Radio","Divers"],["Camping","Glamping","Divers"],["Sorcier","Magicien","Divers"],["Fantôme","Esprit","Divers"],["Loup-garou","Vampire","Divers"],["Sphinx","Minotaure","Divers"],["Cigale","Fourmi","Divers"],["Tortue","Escargot","Divers"]
+["Titanic","Poséidon","Cinéma",false],["Star Wars","Star Trek","Cinéma",true],["Le Parrain","Scarface","Cinéma",false],["Matrix","Inception","Cinéma",false],["Jurassic Park","King Kong","Cinéma",true],["Avengers","Justice League","Cinéma",true],["Shrek","Monstres et Cie","Cinéma",true],["Rocky","Creed","Cinéma",false],["Alien","Predator","Cinéma",false],["Gladiator","Braveheart","Cinéma",false],["Avatar","Dune","Cinéma",true],["Retour vers le futur","Interstellar","Cinéma",true],["Ratatouille","L'Âge de glace","Cinéma",true],["Saw","Destination finale","Cinéma",false],["Ocean's Eleven","Braquage à l'italienne","Cinéma",false],["Conjuring","Insidious","Cinéma",false],["Le Roi Lion","Bambi","Cinéma",true],["Cendrillon","La Belle au bois dormant","Cinéma",true],["Hunger Games","Divergente","Cinéma",false],["Indiana Jones","Lara Croft","Cinéma",true],["Toy Story","Rebelle","Cinéma",true],["Coco","Soul","Cinéma",true],["Le Livre de la Jungle","Tarzan","Cinéma",true],["Harry Potter","Les Animaux Fantastiques","Cinéma",true],["Encanto","Luca","Cinéma",true],["Captain Marvel","Wonder Woman","Cinéma",true],["Pulp Fiction","Reservoir Dogs","Cinéma",false],["Fast & Furious","Mission Impossible","Cinéma",false],["Le Hobbit","Le Seigneur des Anneaux","Cinéma",false],["Parasite","Portrait de la jeune fille en feu","Cinéma",false],
+["Breaking Bad","Narcos","Séries",false],["Friends","How I Met Your Mother","Séries",false],["The Office","Parks and Recreation","Séries",false],["Stranger Things","Dark","Séries",false],["La Casa de Papel","Lupin","Séries",false],["Walking Dead","The Last of Us","Séries",false],["Peaky Blinders","Boardwalk Empire","Séries",false],["Black Mirror","Twilight Zone","Séries",false],["Better Call Saul","Suits","Séries",false],["Grey's Anatomy","Dr House","Séries",false],["Vikings","The Last Kingdom","Séries",false],["Squid Game","Alice in Borderland","Séries",false],["Dexter","You","Séries",false],["Lost","Manifest","Séries",false],["Seinfeld","Curb Your Enthusiasm","Séries",false],["Naruto","Dragon Ball","Séries",true],["One Piece","Fairy Tail","Séries",true],["South Park","Les Simpson","Séries",true],["Rick et Morty","Futurama","Séries",false],["Downton Abbey","The Crown","Séries",false],["Game of Thrones","House of the Dragon","Séries",false],["Wednesday","Sabrina","Séries",true],["Miraculous","Totally Spies","Séries",true],["Bluey","Peppa Pig","Séries",true],["Cobra Kai","Power Rangers","Séries",true],["The Boys","Invincible","Séries",false],["Emily in Paris","Gossip Girl","Séries",false],["Koh-Lanta","The Voice","Séries",false],
+["Minecraft","Terraria","Jeux vidéo",true],["Mario","Sonic","Jeux vidéo",true],["PlayStation","Xbox","Jeux vidéo",true],["Fortnite","PUBG","Jeux vidéo",true],["GTA","Saints Row","Jeux vidéo",false],["FIFA","PES","Jeux vidéo",true],["Zelda","Genshin Impact","Jeux vidéo",true],["Call of Duty","Battlefield","Jeux vidéo",false],["League of Legends","Dota 2","Jeux vidéo",true],["Dark Souls","Elden Ring","Jeux vidéo",false],["Resident Evil","Silent Hill","Jeux vidéo",false],["Tetris","Candy Crush","Jeux vidéo",true],["Cyberpunk 2077","Deus Ex","Jeux vidéo",false],["Animal Crossing","Stardew Valley","Jeux vidéo",true],["Among Us","Werewolf Online","Jeux vidéo",true],["Mario Kart","Crash Team Racing","Jeux vidéo",true],["Pokémon","Digimon","Jeux vidéo",true],["God of War","Devil May Cry","Jeux vidéo",false],["Les Sims","Second Life","Jeux vidéo",true],["Overwatch","Valorant","Jeux vidéo",true],["Crash Bandicoot","Spyro","Jeux vidéo",true],["Roblox","Scratch","Jeux vidéo",true],["Kirby","Yoshi","Jeux vidéo",true],["Clash of Clans","Clash Royale","Jeux vidéo",true],["NBA 2K","Rocket League","Jeux vidéo",true],["Fall Guys","Stumble Guys","Jeux vidéo",true],["Street Fighter","Mortal Kombat","Jeux vidéo",false],["Assassin's Creed","Prince of Persia","Jeux vidéo",false],["Tomb Raider","Uncharted","Jeux vidéo",false],["World of Warcraft","Final Fantasy","Jeux vidéo",false],
+["Beyoncé","Rihanna","Musique",true],["Eminem","Kanye West","Musique",false],["Beatles","Rolling Stones","Musique",true],["Daft Punk","Justice","Musique",true],["Spotify","Deezer","Musique",true],["Guitare","Ukulélé","Musique",true],["Jul","PNL","Musique",false],["Mozart","Beethoven","Musique",true],["AC/DC","Metallica","Musique",false],["Piano","Synthétiseur","Musique",true],["Rap","Slam","Musique",false],["Jazz","Blues","Musique",true],["Violon","Violoncelle","Musique",true],["Drake","The Weeknd","Musique",false],["Oasis","Blur","Musique",false],["Woodstock","Coachella","Musique",false],["Vinyle","CD","Musique",true],["Karaoké","Lip sync","Musique",true],["DJ","Beatmaker","Musique",true],["Taylor Swift","Ariana Grande","Musique",true],["Stromae","Angèle","Musique",true],["Tambour","Batterie","Musique",true],["Flûte","Trompette","Musique",true],["Festival","Concert","Musique",true],["Microphone","Haut-parleur","Musique",true],["Chorale","Gospel","Musique",true],["Michael Jackson","Prince","Musique",false],["Coldplay","Radiohead","Musique",false],
+["Pizza","Focaccia","Nourriture",true],["Croissant","Pain au chocolat","Nourriture",true],["Sushi","Sashimi","Nourriture",true],["Crème brûlée","Tiramisu","Nourriture",true],["Nutella","Beurre de cacahuète","Nourriture",true],["Ketchup","Mayonnaise","Nourriture",true],["Baguette","Ciabatta","Nourriture",true],["Kebab","Shawarma","Nourriture",true],["Coca-Cola","Pepsi","Nourriture",true],["Red Bull","Monster","Nourriture",false],["Champagne","Prosecco","Nourriture",false],["Camembert","Brie","Nourriture",true],["Raclette","Fondue","Nourriture",true],["Thé","Café","Nourriture",true],["Cappuccino","Latte","Nourriture",true],["Macaron","Meringue","Nourriture",true],["Steak","Entrecôte","Nourriture",true],["Pancake","Gaufre","Nourriture",true],["Sorbet","Glace","Nourriture",true],["Burger","Hot-dog","Nourriture",true],["Frites","Potatoes","Nourriture",true],["Guacamole","Houmous","Nourriture",true],["Naan","Pita","Nourriture",true],["Cookie","Brownie","Nourriture",true],["Tabasco","Sriracha","Nourriture",true],["Mozzarella","Burrata","Nourriture",true],["Whisky","Bourbon","Nourriture",false],["Rhum","Tequila","Nourriture",false],["Pâtes","Riz","Nourriture",true],["Chocolat","Bonbon","Nourriture",true],["Fraise","Framboise","Nourriture",true],["Crêpe","Galette","Nourriture",true],["Ananas","Mangue","Nourriture",true],["Tomate","Poivron","Nourriture",true],["Miel","Confiture","Nourriture",true],["Yaourt","Fromage blanc","Nourriture",true],["Tarte","Quiche","Nourriture",true],["Soupe","Potage","Nourriture",true],["Jus d'orange","Limonade","Nourriture",true],["Chips","Popcorn","Nourriture",true],
+["Ronaldo","Messi","Sport",true],["Roland-Garros","Wimbledon","Sport",true],["Tour de France","Giro d'Italia","Sport",true],["PSG","Real Madrid","Sport",true],["Boxe","MMA","Sport",true],["Ski","Snowboard","Sport",true],["Formule 1","MotoGP","Sport",true],["Zidane","Platini","Sport",true],["Judo","Karaté","Sport",true],["Surf","Bodyboard","Sport",true],["Marathon","Semi-marathon","Sport",true],["Basket","Handball","Sport",true],["Yoga","Pilates","Sport",true],["Rugby","Football américain","Sport",true],["Tennis","Badminton","Sport",true],["Ping-pong","Squash","Sport",true],["CrossFit","Musculation","Sport",true],["Escalade","Alpinisme","Sport",true],["Patinage","Roller","Sport",true],["Natation","Plongée","Sport",true],["Volleyball","Beach volley","Sport",true],["Équitation","Polo","Sport",true],["Tir à l'arc","Fléchettes","Sport",true],["Pétanque","Bowling","Sport",true],["Catch","Sumo","Sport",true],["Hockey","Curling","Sport",true],["Golf","Minigolf","Sport",true],["Olympiques","Paralympiques","Sport",true],
+["Tour Eiffel","Big Ben","Culture",true],["Mona Lisa","La Jeune Fille à la perle","Culture",true],["Colisée","Parthénon","Culture",true],["Cléopâtre","Néfertiti","Culture",true],["Napoléon","César","Culture",true],["Versailles","Buckingham","Culture",true],["Pyramides","Sphinx","Culture",true],["Statue de la Liberté","Christ Rédempteur","Culture",true],["Everest","K2","Culture",true],["Amazone","Nil","Culture",true],["Louvre","British Museum","Culture",true],["Sahara","Gobi","Culture",true],["Machu Picchu","Chichen Itza","Culture",true],["Venise","Amsterdam","Culture",true],["Renaissance","Baroque","Culture",true],["Samurai","Gladiateur","Culture",true],["Mythologie grecque","Mythologie nordique","Culture",true],["Hiéroglyphes","Cunéiforme","Culture",true],["Pompéi","Herculanum","Culture",true],["Stonehenge","Carnac","Culture",true],["Antarctique","Arctique","Culture",true],["Moyen Âge","Antiquité","Culture",true],["Château fort","Cathédrale","Culture",true],["Chevalier","Écuyer","Culture",true],["Fossile","Dinosaure","Culture",true],["Continent","Océan","Culture",true],
+["iPhone","Samsung Galaxy","Tech",true],["Google","Bing","Tech",true],["Instagram","TikTok","Tech",true],["WhatsApp","Telegram","Tech",true],["Netflix","Disney+","Tech",true],["Windows","macOS","Tech",true],["Tesla","BYD","Tech",true],["ChatGPT","Claude","Tech",false],["Bitcoin","Ethereum","Tech",false],["Airbus","Boeing","Tech",true],["NASA","SpaceX","Tech",true],["Uber","Bolt","Tech",true],["Amazon","AliExpress","Tech",true],["WiFi","Bluetooth","Tech",true],["USB-C","Lightning","Tech",false],["VPN","Proxy","Tech",false],["Linux","Windows","Tech",false],["Photoshop","GIMP","Tech",true],["Siri","Alexa","Tech",true],["Drone","Satellite","Tech",true],["Android","iOS","Tech",true],["YouTube","Twitch","Tech",true],["Snapchat","BeReal","Tech",true],["iPad","Surface","Tech",true],["Reddit","Twitter","Tech",false],["3D","Réalité virtuelle","Tech",true],["QR Code","Code-barres","Tech",true],["Câble","Sans fil","Tech",true],
+["Batman","Spider-Man","Personnages",true],["Darth Vader","Voldemort","Personnages",true],["James Bond","Jason Bourne","Personnages",false],["Harry Potter","Percy Jackson","Personnages",true],["Astérix","Tintin","Personnages",true],["Sherlock Holmes","Hercule Poirot","Personnages",true],["Gandalf","Dumbledore","Personnages",true],["Naruto","Goku","Personnages",true],["Joker","Thanos","Personnages",true],["Elsa","Raiponce","Personnages",true],["Superman","Captain America","Personnages",true],["Wolverine","Deadpool","Personnages",true],["Dracula","Frankenstein","Personnages",false],["Robin des Bois","Zorro","Personnages",true],["Peter Pan","Pinocchio","Personnages",true],["Shrek","Fiona","Personnages",true],["Mario","Luigi","Personnages",true],["Tom","Jerry","Personnages",true],["Buzz l'Éclair","Woody","Personnages",true],["Sangoku","Vegeta","Personnages",true],["Mickey","Minnie","Personnages",true],["Simba","Mufasa","Personnages",true],["Winnie","Tigrou","Personnages",true],["Scooby-Doo","Shaggy","Personnages",true],["Wonder Woman","Black Widow","Personnages",true],["Loki","Thor","Personnages",true],["Obélix","Idéfix","Personnages",true],["Capitaine Crochet","Long John Silver","Personnages",true],
+["Nike","Adidas","Marques",true],["Zara","H&M","Marques",true],["IKEA","Leroy Merlin","Marques",true],["Ferrari","Lamborghini","Marques",true],["Rolex","Omega","Marques",false],["Rolls-Royce","Bentley","Marques",false],["Lego","Playmobil","Marques",true],["Louis Vuitton","Gucci","Marques",false],["McDonald's","Burger King","Marques",true],["Chanel","Dior","Marques",false],["Porsche","Aston Martin","Marques",true],["Ray-Ban","Oakley","Marques",false],["Converse","Vans","Marques",true],["Lacoste","Ralph Lauren","Marques",false],["Apple","Samsung","Marques",true],["Audi","BMW","Marques",true],["Canon","Nikon","Marques",false],["Puma","Reebok","Marques",true],["Hermès","Prada","Marques",false],["Dyson","Rowenta","Marques",false],["KFC","Subway","Marques",true],["Nintendo","Sega","Marques",true],["Barbie","Bratz","Marques",true],["Chupa Chups","Carambar","Marques",true],["Kinder","Milka","Marques",true],["GoPro","Polaroid","Marques",false],["Nespresso","Senseo","Marques",false],["Harley-Davidson","Indian","Marques",false],
+["Chat","Chien","Divers",true],["Dentiste","Médecin","Divers",true],["Métro","Tramway","Divers",true],["Avion","Hélicoptère","Divers",true],["Pirate","Viking","Divers",true],["Zombie","Vampire","Divers",false],["Lune","Soleil","Divers",true],["Licorne","Dragon","Divers",true],["Escape Game","Laser Game","Divers",true],["Piscine","Plage","Divers",true],["Samouraï","Ninja","Divers",true],["Ange","Démon","Divers",true],["Astronaute","Pilote","Divers",true],["Parapluie","Imperméable","Divers",true],["Château","Manoir","Divers",true],["Père Noël","Saint-Nicolas","Divers",true],["Sirène","Méduse","Divers",true],["Igloo","Tipi","Divers",true],["Hamac","Transat","Divers",true],["Tatouage","Piercing","Divers",false],["Journal","Magazine","Divers",true],["Bain","Douche","Divers",true],["Valise","Sac à dos","Divers",true],["Bougie","Encens","Divers",true],["Cheminée","Radiateur","Divers",true],["Jumelles","Télescope","Divers",true],["Parachute","Deltaplane","Divers",true],["Bibliothèque","Librairie","Divers",true],["Crayon","Stylo","Divers",true],["Horoscope","Tarot","Divers",false],["Emoji","Émoticône","Divers",true],["Selfie","Portrait","Divers",true],["Podcast","Radio","Divers",true],["Camping","Glamping","Divers",true],["Sorcier","Magicien","Divers",true],["Fantôme","Esprit","Divers",true],["Loup-garou","Goule","Divers",false],["Sphinx","Minotaure","Divers",true],["Cigale","Fourmi","Divers",true],["Tortue","Escargot","Divers",true],["Arc-en-ciel","Aurore boréale","Divers",true],["Feu d'artifice","Pétard","Divers",true],["Carnaval","Mardi gras","Divers",true],["Boussole","GPS","Divers",true],["Montre","Réveil","Divers",true],["Drapeau","Banderole","Divers",true],["Carte","Plan","Divers",true],["Clé","Cadenas","Divers",true],["Fusée","Montgolfière","Divers",true],["Robot","Androïde","Divers",true],
+["Lion","Tigre","Animaux",true],["Dauphin","Requin","Animaux",true],["Éléphant","Rhinocéros","Animaux",true],["Aigle","Faucon","Animaux",true],["Loup","Renard","Animaux",true],["Lapin","Lièvre","Animaux",true],["Grenouille","Crapaud","Animaux",true],["Perroquet","Perruche","Animaux",true],["Crabe","Homard","Animaux",true],["Singe","Gorille","Animaux",true],["Zèbre","Girafe","Animaux",true],["Pingouin","Manchot","Animaux",true],["Crocodile","Alligator","Animaux",true],["Koala","Panda","Animaux",true],["Serpent","Lézard","Animaux",true],["Papillon","Libellule","Animaux",true],["Cheval","Âne","Animaux",true],["Vache","Cochon","Animaux",true],["Baleine","Orque","Animaux",true],["Moustique","Guêpe","Animaux",true],
+["Le Petit Chaperon Rouge","Boucles d'Or","Contes",true],["Hansel et Gretel","Le Petit Poucet","Contes",true],["Blanche-Neige","La Belle et la Bête","Contes",true],["Fée Clochette","Fée Marraine","Contes",true],["Géant","Ogre","Contes",true],["Elfe","Lutin","Contes",true],["Baguette magique","Chapeau magique","Contes",true],["Citrouille","Carrosse","Contes",true],["Princesse","Reine","Contes",true],["Chevalier","Paladin","Contes",true],["Troll","Gobelin","Contes",true],["Fée","Nymphe","Contes",true],["Nain","Gnome","Contes",true],["Pégase","Griffon","Contes",true],["Château enchanté","Tour maudite","Contes",true],
+["Tableau","Ardoise","École",true],["Récréation","Cantine","École",true],["Maîtresse","Professeur","École",true],["Cahier","Carnet","École",true],["Règle","Équerre","École",true],["Colle","Ciseaux","École",true],["Récitation","Dictée","École",true],["Rentrée","Vacances","École",true],["Punition","Bons points","École",true],["Cartable","Trousse","École",true],["Directeur","Principal","École",true],["Maternelle","CP","École",true],["Cour","Gymnase","École",true],["Craie","Marqueur","École",true],["Gomme","Taille-crayon","École",true],
+["Brie","Camembert","Fromages",true],["Gouda","Edam","Fromages",true],["Roquefort","Gorgonzola","Fromages",true],["Comté","Gruyère","Fromages",true],["Mozzarella","Burrata","Fromages",true],["Parmesan","Pecorino","Fromages",true],["Cheddar","Mimolette","Fromages",true],["Feta","Halloumi","Fromages",true],["Emmental","Beaufort","Fromages",true],["Reblochon","Raclette","Fromages",true],["Ricotta","Mascarpone","Fromages",true],["Munster","Maroilles","Fromages",true],
+["Cumin","Coriandre","Épices",true],["Cannelle","Cardamome","Épices",true],["Safran","Curcuma","Épices",true],["Paprika","Piment","Épices",true],["Gingembre","Galanga","Épices",true],["Basilic","Origan","Épices",true],["Thym","Romarin","Épices",true],["Aneth","Fenouil","Épices",true],["Vanille","Fève tonka","Épices",true],["Muscade","Macis","Épices",true],["Estragon","Ciboulette","Épices",true],["Sésame","Pavot","Épices",true],
+["Mojito","Caïpirinha","Cocktails",false],["Margarita","Daïquiri","Cocktails",false],["Gin Tonic","Spritz","Cocktails",false],["Cosmopolitan","Sex on the Beach","Cocktails",false],["Piña Colada","Mai Tai","Cocktails",false],["Old Fashioned","Whisky Sour","Cocktails",false],["Negroni","Americano","Cocktails",false],["Bellini","Kir Royal","Cocktails",false],["Sangria","Punch","Cocktails",false],["Manhattan","Rob Roy","Cocktails",false],["Aperol Spritz","Hugo","Cocktails",false],["Long Island","Blue Lagoon","Cocktails",false],
+["Bordeaux","Bourgogne","Vins",false],["Champagne","Crémant","Vins",false],["Prosecco","Cava","Vins",false],["Vin rouge","Vin blanc","Vins",false],["Pinot Noir","Merlot","Vins",false],["Chardonnay","Viognier","Vins",false],["Rosé","Clairet","Vins",false],["Porto","Madère","Vins",false],["Syrah","Grenache","Vins",false],["Alsace","Bourgogne","Vins",false],
+["Brioche","Pain au lait","Petit-déjeuner",true],["Granola","Muesli","Petit-déjeuner",true],["Confiture","Marmelade","Petit-déjeuner",true],["Croissant","Pain au chocolat","Petit-déjeuner",true],["Pancakes","Gaufres","Petit-déjeuner",true],["Corn Flakes","Rice Krispies","Petit-déjeuner",true],["Yaourt","Fromage blanc","Petit-déjeuner",true],["Smoothie","Jus de fruits","Petit-déjeuner",true],["Beurre","Margarine","Petit-déjeuner",true],["Miel","Sirop d'érable","Petit-déjeuner",true],["Café","Thé","Petit-déjeuner",true],["Chocolat chaud","Lait chaud","Petit-déjeuner",true],
+["Kraken","Léviathan","Monstres",false],["Cyclope","Titan","Monstres",true],["Banshee","Valkyrie","Monstres",true],["Wendigo","Yéti","Monstres",false],["Chimère","Manticore","Monstres",false],["Hydre","Gorgone","Monstres",true],["Satyre","Centaure","Monstres",true],["Oni","Tengu","Monstres",true],["Cerbère","Fenrir","Monstres",true],["Kitsune","Tanuki","Monstres",true],["Nessie","Bigfoot","Monstres",true],["Golem","Colosse","Monstres",true],
+["Mars","Vénus","Espace",true],["Comète","Météorite","Espace",true],["Trou noir","Pulsar","Espace",true],["Nébuleuse","Galaxie","Espace",true],["Saturne","Uranus","Espace",true],["Jupiter","Neptune","Espace",true],["Étoile","Planète","Espace",true],["Astéroïde","Météore","Espace",true],["Station spatiale","Navette spatiale","Espace",true],["Big Bang","Supernova","Espace",true],["Lune","Satellite","Espace",true],["Mercure","Pluton","Espace",true],
+["T-Rex","Allosaure","Dinosaures",true],["Diplodocus","Brachiosaure","Dinosaures",true],["Ptérodactyle","Ptéranodon","Dinosaures",true],["Tricératops","Stégosaure","Dinosaures",true],["Vélociraptor","Deinonychus","Dinosaures",true],["Ankylosaure","Pachycéphalosaurus","Dinosaures",true],["Spinosaure","Mégalosaure","Dinosaures",true],["Plésiosaure","Mosasaure","Dinosaures",true],["Archaeopteryx","Microraptor","Dinosaures",true],["Carnotaurus","Cératosaure","Dinosaures",true],["Mammouth","Mégacéros","Dinosaures",true],["Parasaurolophus","Iguanodon","Dinosaures",true],
+["Télékinésie","Téléportation","Superpouvoirs",true],["Invisibilité","Camouflage","Superpouvoirs",true],["Vol","Lévitation","Superpouvoirs",true],["Super force","Super vitesse","Superpouvoirs",true],["Télépathie","Empathie","Superpouvoirs",true],["Régénération","Immortalité","Superpouvoirs",true],["Pyrokinésie","Cryokinésie","Superpouvoirs",true],["Précognition","Clairvoyance","Superpouvoirs",true],["Voyage temporel","Manipulation du temps","Superpouvoirs",true],["Élasticité","Dédoublement","Superpouvoirs",true],["Contrôle de l'eau","Contrôle du vent","Superpouvoirs",true],["Rayon laser","Souffle de glace","Superpouvoirs",true],
+["Sort","Malédiction","Magie",false],["Grimoire","Parchemin","Magie",true],["Alchimie","Sorcellerie","Magie",true],["Potion","Élixir","Magie",true],["Rune","Glyphe","Magie",true],["Enchantement","Envoûtement","Magie",true],["Augure","Oracle","Magie",true],["Transmutation","Métamorphose","Magie",true],["Invocation","Conjuration","Magie",true],["Aura","Halo","Magie",true],["Cristal","Pierre de pouvoir","Magie",true],["Prophétie","Vision","Magie",true],
+["Brosse à dents","Brosse à cheveux","Objets",true],["Coussin","Oreiller","Objets",true],["Tiroir","Placard","Objets",true],["Tasse","Bol","Objets",true],["Fourchette","Cuillère","Objets",true],["Savon","Gel douche","Objets",true],["Rideau","Store","Objets",true],["Aspirateur","Balai","Objets",true],["Frigo","Congélateur","Objets",true],["Canapé","Fauteuil","Objets",true],["Lampe","Lanterne","Objets",true],["Couverture","Plaid","Objets",true],
+["Pompier","Sauveteur","Métiers",true],["Boulanger","Pâtissier","Métiers",true],["Avocat","Juge","Métiers",true],["Photographe","Caméraman","Métiers",true],["Charpentier","Menuisier","Métiers",true],["Plombier","Électricien","Métiers",true],["Infirmier","Aide-soignant","Métiers",true],["Journaliste","Reporter","Métiers",true],["Vétérinaire","Zoologiste","Métiers",true],["Coiffeur","Barbier","Métiers",true],["Gendarme","Policier","Métiers",true],["Cuisinier","Chef","Métiers",true],
+["Pouce","Index","Corps",true],["Mollet","Tibia","Corps",true],["Tempe","Front","Corps",true],["Coude","Genou","Corps",true],["Poignet","Cheville","Corps",true],["Pupille","Iris","Corps",true],["Sourcil","Cil","Corps",true],["Narine","Sinus","Corps",true],["Talon","Plante du pied","Corps",true],["Estomac","Intestin","Corps",true],["Nuque","Cou","Corps",true],["Cuisse","Hanche","Corps",true],
+["Python","Java","Informatique",true],["Bug","Glitch","Informatique",true],["RAM","ROM","Informatique",true],["CPU","GPU","Informatique",true],["Cloud","Serveur","Informatique",true],["HTML","CSS","Informatique",true],["Linux","Windows","Informatique",true],["Wi-Fi","Bluetooth","Informatique",true],["Virus","Malware","Informatique",false],["Algorithme","Programme","Informatique",true],["Mot de passe","Code PIN","Informatique",true],["Pixel","Résolution","Informatique",true],
+["Instagram","TikTok","Applis",false],["YouTube","Twitch","Applis",true],["Twitter","Mastodon","Applis",false],["Facebook","LinkedIn","Applis",false],["Reddit","Discord","Applis",false],["Snapchat","BeReal","Applis",false],["WhatsApp","Telegram","Applis",false],["Spotify","Deezer","Applis",true],["Netflix","Disney+","Applis",true],["Google Maps","Waze","Applis",true],["Pinterest","Tumblr","Applis",false],["PayPal","Lydia","Applis",false],
+["Échecs","Dames","Jeux de société",true],["Scrabble","Boggle","Jeux de société",true],["Risk","Stratego","Jeux de société",true],["Cluedo","Scotland Yard","Jeux de société",true],["Pictionary","Telestrations","Jeux de société",true],["Puissance 4","Morpion","Jeux de société",true],["Jungle Speed","Dobble","Jeux de société",true],["Loups-garous","Mafia","Jeux de société",true],["Catan","Les Aventuriers du Rail","Jeux de société",true],["Uno","Jeu de 7 familles","Jeux de société",true],["Trivial Pursuit","Time's Up","Jeux de société",true],["Monopoly","Bonne Paye","Jeux de société",true],
+["Berline","Break","Voitures",true],["Cabriolet","Roadster","Voitures",true],["SUV","Crossover","Voitures",true],["Coupé","Cabriolet sport","Voitures",true],["Citadine","Compacte","Voitures",true],["Hybride","Électrique","Voitures",true],["Diesel","Essence","Voitures",true],["Renault","Peugeot","Voitures",true],["Toyota","Honda","Voitures",true],["Mustang","Camaro","Voitures",true],["Jeep","Land Rover","Voitures",false],["Formule 1","IndyCar","Voitures",true],
+["😀","😏","Emojis",true],["❤️","💜","Emojis",true],["🌙","🌟","Emojis",true],["🍕","🌮","Emojis",true],["🌹","🌻","Emojis",true],["🔥","💥","Emojis",true],["🎵","🎸","Emojis",true],["🦁","🐻","Emojis",true],["😭","😤","Emojis",true],["👑","💎","Emojis",true],["🚀","✈️","Emojis",true],["🎂","🍰","Emojis",true],
+["Salsa","Rumba","Danse",true],["Breakdance","Hip-hop","Danse",true],["Valse","Tango","Danse",true],["Ballet","Danse contemporaine","Danse",true],["Flamenco","Sévillane","Danse",true],["Samba","Bossa Nova","Danse",true],["Lindy Hop","Charleston","Danse",true],["Popping","Locking","Danse",true],["Zumba","Aérobic","Danse",true],["Claquettes","Gigue","Danse",true],["Disco","Funk","Danse",true],["Mazurka","Polka","Danse",true],
+["Violon","Alto","Instruments",true],["Trompette","Bugle","Instruments",true],["Ukulélé","Guitare","Instruments",true],["Flûte traversière","Flûte à bec","Instruments",true],["Clarinette","Hautbois","Instruments",true],["Accordéon","Bandonéon","Instruments",true],["Xylophone","Marimba","Instruments",true],["Basse","Guitare électrique","Instruments",true],["Djembé","Conga","Instruments",true],["Cor","Trombone","Instruments",true],["Harpe","Luth","Instruments",true],["Orgue","Clavecin","Instruments",true],
+["Cathédrale","Basilique","Architecture",true],["Mosquée","Temple","Architecture",true],["Pagode","Stupa","Architecture",true],["Pyramide","Ziggourat","Architecture",true],["Amphithéâtre","Arène","Architecture",true],["Gratte-ciel","Tour","Architecture",true],["Pont suspendu","Viaduc","Architecture",true],["Villa","Bastide","Architecture",true],["Phare","Tour de guet","Architecture",true],["Forteresse","Citadelle","Architecture",true],["Arc de triomphe","Obélisque","Architecture",true],["Monastère","Abbaye","Architecture",true],
+["Moyen Âge","Antiquité","Époques",true],["Renaissance","Baroque","Époques",true],["Préhistoire","Protohistoire","Époques",true],["Empire romain","Empire grec","Époques",true],["Croisades","Guerre de Cent Ans","Époques",true],["Belle Époque","Années folles","Époques",true],["Guerre froide","Seconde Guerre mondiale","Époques",true],["Âge de pierre","Âge de bronze","Époques",true],["Siècle des Lumières","Romantisme","Époques",true],["Révolution française","Révolution américaine","Époques",true],["Colonisation","Décolonisation","Époques",true],["Années 80","Années 90","Époques",true],
+["Turquoise","Cyan","Couleurs",true],["Bordeaux","Cramoisi","Couleurs",true],["Ocre","Sienne","Couleurs",true],["Lavande","Lilas","Couleurs",true],["Corail","Saumon","Couleurs",true],["Indigo","Violet","Couleurs",true],["Kaki","Olive","Couleurs",true],["Ecru","Ivoire","Couleurs",true],["Vermillon","Écarlate","Couleurs",true],["Azur","Cobalt","Couleurs",true],["Émeraude","Jade","Couleurs",true],["Magenta","Fuchsia","Couleurs",true],
+["Soie","Satin","Matières",true],["Velours","Daim","Matières",true],["Lin","Coton","Matières",true],["Laine","Cachemire","Matières",true],["Denim","Toile","Matières",true],["Dentelle","Broderie","Matières",true],["Cuir","Suède","Matières",true],["Néoprène","Lycra","Matières",true],["Tweed","Flanelle","Matières",true],["Bambou","Chanvre","Matières",true],["Marbre","Granit","Matières",true],["Céramique","Porcelaine","Matières",true],
+["Arachnophobie","Entomophobie","Phobies",false],["Claustrophobie","Agoraphobie","Phobies",false],["Acrophobie","Vertige","Phobies",false],["Peur du noir","Peur du vide","Phobies",false],["Peur du feu","Peur de l'eau","Phobies",false],["Peur des araignées","Peur des serpents","Phobies",false],["Peur du sang","Peur des aiguilles","Phobies",false],["Peur des fantômes","Peur des clowns","Phobies",false],["Peur de l'avion","Peur des tunnels","Phobies",false],["Peur des microbes","Peur de la saleté","Phobies",false],["Peur des chiens","Peur des chats","Phobies",false],["Peur de la mort","Peur du vieillissement","Phobies",false],
+["Tokyo","Séoul","Géographie",true],["Paris","Londres","Géographie",true],["Atlantique","Pacifique","Géographie",true],["Himalaya","Andes","Géographie",true],["Sahara","Gobi","Géographie",true],["Amazone","Nil","Géographie",true],["Australie","Nouvelle-Zélande","Géographie",true],["Barcelone","Madrid","Géographie",true],["New York","Chicago","Géographie",true],["Méditerranée","Mer Rouge","Géographie",true],["Îles Canaries","Îles Baléares","Géographie",true],["Antarctique","Arctique","Géographie",true],["Rio de Janeiro","Buenos Aires","Géographie",true],["Lagos","Le Caire","Géographie",true],["Vancouver","Sydney","Géographie",true],["Fjord","Canyon","Géographie",true],["Steppe","Savane","Géographie",true],["Détroit de Gibraltar","Canal de Suez","Géographie",true],["Cap Horn","Cap Bonne-Espérance","Géographie",true],["Venise","Amsterdam","Géographie",true],
+["😀","😃","Emojis",true],["🐱","🐶","Emojis",true],["🌍","🌎","Emojis",true],["🎄","🎋","Emojis",true],["🦊","🐺","Emojis",true],["🍩","🍪","Emojis",true],["⚽","🏀","Emojis",true],["🌊","🏔️","Emojis",true],
+["Jean","Chino","Mode",true],["Trench","Imperméable","Mode",true],["Sneakers","Mocassins","Mode",true],["Blazer","Veste","Mode",true],["Robe longue","Robe courte","Mode",true],["Chapeau","Casquette","Mode",true],["Écharpe","Foulard","Mode",true],["Sac à dos","Tote bag","Mode",true],["Boots","Bottines","Mode",true],["Lunettes de soleil","Lunettes de vue","Mode",true],["Montre connectée","Montre classique","Mode",true],["Bermuda","Short","Mode",true],
+["Chêne","Châtaignier","Nature",true],["Rivière","Ruisseau","Nature",true],["Falaise","Colline","Nature",true],["Rose","Pivoine","Nature",true],["Tulipe","Narcisse","Nature",true],["Champignon","Truffe","Nature",true],["Mousse","Lichen","Nature",true],["Séquoia","Baobab","Nature",true],["Lavande","Romarin","Nature",true],["Grotte","Caverne","Nature",true],["Marais","Tourbière","Nature",true],["Dune","Berme","Nature",true]
 ];
 
 var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}
 
-var S={phase:"setup",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null};
+var S={phase:"splash",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:false,kids:false,cats:null,spoken:[],
+// Multi-appareils — "solo" = un seul téléphone (défaut), "host" = cet appareil arbitre, "client" = joueur distant
+mode:"solo",net:null,votes:{},round:0,tiebreak:"revote",hostPlays:true,revealVoters:false};
 
 function N(id){return S.nm[id]||("Joueur "+id)}
 function MUC(){return Math.max(1,S.pc-(S.mw?2:1))}
 function WW(){var u=Math.min(S.uc,MUC());return S.mw&&S.pc>=4&&(S.pc-u)>=2}
 function CC(){return S.pc-Math.min(S.uc,MUC())-(WW()?1:0)}
-function PP(){var a=DB.map(function(_,i){return i}).filter(function(i){return S.used.indexOf(i)===-1});if(!a.length){a=DB.map(function(_,i){return i});S.used=[]}var x=a[Math.floor(Math.random()*a.length)];S.used.push(x);return DB[x]}
+function BAL(){return Math.max(1,Math.floor(S.pc/3)-(S.mw?1:0))}
+// Pioche une paire. Le filtre Mode Enfant n'est JAMAIS contourné :
+// si le filtre catégories vide le pool, on retombe sur le pool kid-safe.
+function PP(){
+var pool=DB.reduce(function(a,e,i){if(S.kids&&!e[3])return a;if(S.cats&&S.cats.indexOf(e[2])===-1)return a;a.push(i);return a},[]);
+if(!pool.length)pool=DB.reduce(function(a,e,i){if(S.kids&&!e[3])return a;a.push(i);return a},[]);
+if(!pool.length)pool=DB.map(function(_,i){return i});
+var av=pool.filter(function(i){return S.used.indexOf(i)===-1});if(!av.length){S.used=[];av=pool}
+var x=av[Math.floor(Math.random()*av.length)];S.used.push(x);return DB[x]}
+
+var _allCats=null;
+function allCats(){if(_allCats)return _allCats;var a=[];DB.forEach(function(e){if(a.indexOf(e[2])===-1)a.push(e[2])});_allCats=a.sort();return _allCats}
+// Paires jouables dans une catégorie, Mode Enfant appliqué
+function catCount(c){return DB.reduce(function(n,e){return e[2]!==c||(S.kids&&!e[3])?n:n+1},0)}
+// Taille du pool réel avec les filtres courants
+function poolSize(){return DB.reduce(function(n,e){if(S.kids&&!e[3])return n;if(S.cats&&S.cats.indexOf(e[2])===-1)return n;return n+1},0)}
+function TCat(c){if(!catCount(c))return;var all=allCats();if(!S.cats){S.cats=all.filter(function(x){return x!==c})}else{var idx=S.cats.indexOf(c);if(idx!==-1){if(S.cats.length<=1)return;S.cats=S.cats.filter(function(x){return x!==c})}else{S.cats=S.cats.concat([c]);if(S.cats.length===all.length)S.cats=null}}render()}
 
 function SS(){var s=Object.keys(S.sc).map(function(k){return{id:+k,pts:S.sc[k]}}).sort(function(a,b){return b.pts-a.pts});return s}
 function CSC(){var s=SS();if(!s.length)return"";return '<div class="score-compact">'+s.map(function(x,i){return '<span class="sc-item'+(i===0?" first":"")+'">'+N(x.id)+" "+x.pts+"pts</span>"}).join("")+"</div>"}
 function FSC(){var s=SS();var m=["🥇","🥈","🥉"];return '<div class="score-full">'+s.map(function(x,i){var mc=i<3?["color-gold","color-dim7","color-red"][i]:"color-dim";return '<div class="sf-row'+(i===0?" first":"")+'"><div class="flex items-center gap10"><span class="orb fs14 fw900 min-w24 '+mc+'">'+(m[i]||"#"+(i+1))+'</span><span class="fs16 fw700">'+N(x.id)+'</span></div><span class="orb fs16 fw900 color-cyan">'+x.pts+"</span></div>"}).join("")+"</div>"}
 function WR(){return '<div class="words-row"><div class="word-card civ"><span class="wl">MOT CIVIL</span><span class="wv">'+S.pair[0]+'</span></div><div class="word-card uc"><span class="wl">MOT UC</span><span class="wv">'+S.pair[1]+"</span></div></div>"}
 
+function stopTimer(){if(S.tid){clearInterval(S.tid);S.tid=null;broadcastTimer("stop",0)}}
+function startTimer(){
+stopTimer();if(!S.timer)return;
+S.trem=S.timer;
+broadcastTimer("start",S.timer);
+S.tid=setInterval(function(){
+S.trem--;
+var el=document.getElementById("tdisp");
+if(!el){stopTimer();return}
+if(S.trem<=0){stopTimer();SND.alarm();VIB([100,60,100,60,100]);el.className="timer-disp done";el.textContent="VOTEZ !"}
+else{var m=Math.floor(S.trem/60),s=S.trem%60;el.textContent=(m?""+m+"m ":"")+(s<10?"0":"")+s+"s";el.className="timer-disp"+(S.trem<=10?" urgent":"")}
+},1000)}
+function TF(sec){var m=Math.floor(sec/60),s=sec%60;return(m?""+m+"m ":"")+(s<10?"0":"")+s+"s"}
+
+var AC=null;
+function getAC(){if(!AC)try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}return AC}
+function tone(freq,type,vol,dur,delay){var ac=getAC();if(!ac)return;var o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type=type;o.frequency.value=freq;var t=ac.currentTime+(delay||0);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+0.02);g.gain.exponentialRampToValueAtTime(0.001,t+dur);o.start(t);o.stop(t+dur)}
+var SND={
+  ping:function(){tone(880,"sine",0.25,0.25)},
+  click:function(){tone(440,"square",0.12,0.07)},
+  elim:function(){var ac=getAC();if(!ac)return;var o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type="sawtooth";o.frequency.setValueAtTime(280,ac.currentTime);o.frequency.exponentialRampToValueAtTime(80,ac.currentTime+0.4);g.gain.setValueAtTime(0.35,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.4);o.start();o.stop(ac.currentTime+0.4)},
+  alarm:function(){[0,0.18,0.36].forEach(function(d){tone(880,"square",0.25,0.14,d)})},
+  win:function(w){var f=w==="civil"?[523,659,784,1047]:w==="uc"?[400,330,260,180]:[523,784,1047,784];f.forEach(function(freq,i){tone(freq,"sine",0.28,0.28,i*0.16)})}
+};
+function VIB(p){if(navigator.vibrate)navigator.vibrate(p)}
+
+function recordTurn(elim){S.hist.push({turn:S.turn,cat:S.ct,pair:S.pair.slice(),skipped:S.skipt,elim:elim||null})}
+function HIST(max){
+var h=S.hist.slice(0,max||S.hist.length);
+if(!h.length)return'<p class="color-dim3 fs12 tc mb0">Aucun tour précédent.</p>';
+return'<div class="hist-list">'+h.map(function(e){
+var el=e.skipped?'<span class="color-dim5">🚫 Vote nul</span>':e.elim?'<span class="'+(e.elim.role==="civil"?"color-dim6":"color-red")+'">'+N(e.elim.id)+' '+(e.elim.role==="civil"?"👤":"🕵️")+'</span>':'';
+return'<div class="hist-row"><span class="orb fs9 color-dim3 min-w24">T'+e.turn+'</span>'+(e.cat?'<span class="hist-cat">'+e.cat+'</span>':'')+'<span class="hist-words"><span class="color-cyan fw600">'+e.pair[0]+'</span><span class="color-dim3"> / </span><span class="color-red fw600">'+e.pair[1]+'</span></span>'+el+'</div>'
+}).join('')+'</div>'}
+
+function saveLeaderboard(){
+if(S.lbSaved)return;S.lbSaved=true;
+try{var lb=JSON.parse(localStorage.getItem("uc_lb")||"{}");
+var winner=S.gr?S.gr.winner:null;
+Object.keys(S.sc).forEach(function(id){var nm=(S.nm[id]||"Joueur "+id).trim();if(!lb[nm])lb[nm]={name:nm,pts:0,games:0,wins:{civil:0,uc:0,mrwhite:0}};if(!lb[nm].wins)lb[nm].wins={civil:0,uc:0,mrwhite:0};lb[nm].pts+=S.sc[id];lb[nm].games+=1;var pl=S.players.filter(function(p){return p.id===+id})[0];if(pl&&winner){var isWinner=(pl.role==="civil"&&winner==="civil")||(pl.role==="undercover"&&winner==="uc")||(pl.role==="mrwhite"&&winner==="mrwhite");if(isWinner)lb[nm].wins[winner]=(lb[nm].wins[winner]||0)+1}});
+localStorage.setItem("uc_lb",JSON.stringify(lb))}catch(e){}}
+function getLB(){try{return JSON.parse(localStorage.getItem("uc_lb")||"{}")}catch(e){return{}}}
+function clearLB(){try{localStorage.removeItem("uc_lb")}catch(e){}}
+
+// Persistance des options entre les sessions (uc_opts)
+// pc et nm ne sont persistés qu'en mode solo : en mode hôte ils sont dictés par
+// le lobby réseau et écraseraient les noms de la partie mono-téléphone.
+function saveOpts(){try{
+var o={uc:S.uc,mw:S.mw,cat:S.cat,timer:S.timer,skipvote:S.skipvote,night:S.night,kids:S.kids,cats:S.cats,tiebreak:S.tiebreak};
+if(S.mode==="solo"){o.pc=S.pc;o.nm=S.nm}
+else{var prev=JSON.parse(localStorage.getItem("uc_opts")||"{}");if(prev.pc!==undefined)o.pc=prev.pc;if(prev.nm!==undefined)o.nm=prev.nm}
+localStorage.setItem("uc_opts",JSON.stringify(o))}catch(e){}}
+function loadOpts(){
+try{var o=JSON.parse(localStorage.getItem("uc_opts")||"null");if(!o||typeof o!=="object")return;
+if(typeof o.pc==="number")S.pc=Math.max(3,Math.min(20,o.pc|0));
+if(typeof o.uc==="number")S.uc=Math.max(1,o.uc|0);
+if(typeof o.mw==="boolean")S.mw=o.mw;
+if(typeof o.cat==="boolean")S.cat=o.cat;
+if([0,60,120,180,300].indexOf(o.timer)!==-1)S.timer=o.timer;
+if(typeof o.skipvote==="boolean")S.skipvote=o.skipvote;
+if(typeof o.night==="boolean")S.night=o.night;
+if(typeof o.kids==="boolean")S.kids=o.kids;
+if(["revote","none","random"].indexOf(o.tiebreak)!==-1)S.tiebreak=o.tiebreak;
+if(Array.isArray(o.cats)){var valid=o.cats.filter(function(c){return allCats().indexOf(c)!==-1});S.cats=(!valid.length||valid.length===allCats().length)?null:valid}
+if(o.nm&&typeof o.nm==="object"&&!Array.isArray(o.nm))S.nm=o.nm;
+S.uc=Math.min(S.uc,MUC())}catch(e){}}
+function clearOpts(){try{localStorage.removeItem("uc_opts")}catch(e){}}
+function FLB(){
+var lb=getLB();var en=Object.values(lb).sort(function(a,b){return b.pts-a.pts});
+if(!en.length)return'<p class="color-dim3 fs12 tc mb8">Aucune partie enregistrée.</p>';
+var md=["🥇","🥈","🥉"];
+return'<div class="score-full">'+en.slice(0,10).map(function(e,i){var mc=i<3?["color-gold","color-dim7","color-red"][i]:"color-dim";var w=e.wins||{};var wtags='';if(w.civil)wtags+='<span class="lb-win civ">👤×'+w.civil+'</span>';if(w.uc)wtags+='<span class="lb-win uc">🕵️×'+w.uc+'</span>';if(w.mrwhite)wtags+='<span class="lb-win mw">🤍×'+w.mrwhite+'</span>';return'<div class="sf-row'+(i===0?" first":"")+'"><div class="flex items-center gap10"><span class="orb fs14 fw900 min-w24 '+mc+'">'+(md[i]||"#"+(i+1))+'</span><div class="tl"><span class="fs16 fw700">'+e.name+'</span><div class="flex gap4 mt4">'+wtags+'<span class="color-dim3 fs11">'+e.games+' partie'+(e.games>1?"s":"")+'</span></div></div></div><span class="orb fs16 fw900 color-cyan">'+e.pts+'</span></div>'}).join("")+'</div>'}
+
+function shareResult(){
+var ic=S.gr.winner==="civil"?"👤":S.gr.winner==="uc"?"🕵️":"🤍";
+var lines=[ic+" "+S.gr.msg,"Mots : "+S.pair[0]+" / "+S.pair[1]+(S.cat?" ("+S.ct+")":""),S.turn+" tours — scores :"];
+SS().forEach(function(x){lines.push("  "+N(x.id)+" : "+x.pts+" pt"+(x.pts>1?"s":""))});
+var txt=lines.join("\n");
+if(navigator.share){navigator.share({title:"UNDERCOVER — Night City",text:txt}).catch(function(){});return}
+if(navigator.clipboard&&navigator.clipboard.writeText){
+  navigator.clipboard.writeText(txt).then(function(){
+    var btn=document.getElementById("share-btn");
+    if(btn){btn.textContent="✓ Copié !";setTimeout(function(){if(btn)btn.textContent="📋 Copier le résumé"},2000)}
+  }).catch(function(){})
+}else{var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);
+  var btn=document.getElementById("share-btn");if(btn){btn.textContent="✓ Copié !";setTimeout(function(){if(btn)btn.textContent="📋 Copier le résumé"},2000)}}}
+
+var _modalCb=null;
+function showConfirm(msg,cb){
+_modalCb=cb;
+var ov=document.createElement('div');ov.id='modal-ov';ov.className='modal-overlay';
+ov.innerHTML='<div class="modal-box"><p class="modal-msg">'+msg+'</p><div class="flex gap8"><button class="btn red half" onclick="var c=_modalCb;_modalCb=null;document.getElementById(\'modal-ov\').remove();if(c)c()">CONFIRMER</button><button class="btn ghost half" onclick="_modalCb=null;document.getElementById(\'modal-ov\').remove()">ANNULER</button></div></div>';
+document.body.appendChild(ov)}
+
 // ══════════════════════════════════════════════════════════════
 function render(){
+// Le client a ses propres écrans : il ne connaît pas S.phase du moteur.
+if(S.mode==="client")return renderClient();
+// Diffusion idempotente (no-op si le snapshot n'a pas changé) : évite d'avoir
+// à traquer chaque point de mutation et d'en oublier un.
+pushState();
 var p=S.phase;
 
+if(p==="splash"){
+app.innerHTML='<div class="hline"></div>'+
+'<div class="splash-icon">🕵️</div>'+
+'<div class="mb6">'+G("UNDERCOVER","orb fs44 fw900 ls4 color-cyan text-shadow-cyan")+'</div>'+
+'<p class="subtitle-red mb20">// NIGHT CITY EDITION</p>'+
+'<div class="boot-log">'+
+'<p class="boot-line l1">&gt; SYSTÈME EN LIGNE</p>'+
+'<p class="boot-line l2">&gt; IDENTITÉS MASQUÉES</p>'+
+'<p class="boot-line l3">&gt; IMPOSTEURS PRÊTS</p>'+
+'<p class="boot-line l4">&gt; QUI EST L\'UNDERCOVER ?</p>'+
+'</div>'+
+(function(){var hs=readHostSave(),cs=loadClientSave();return(
+(hs?'<button class="btn gold splash-btn2" onclick="resumeHost()">↻ REPRENDRE LA SALLE '+hs.code+'</button>':'')+
+(!hs&&cs&&cs.token?'<button class="btn gold splash-btn2" onclick="clientResume()">↻ REVENIR DANS LA PARTIE '+cs.code+'</button>':''))})()+
+'<button class="btn splash-btn" onclick="S.mode=\'solo\';S.phase=\'setup\';render()">📱 UN SEUL TÉLÉPHONE</button>'+
+(window.isSecureContext
+ ?'<button class="btn ghost splash-btn2" onclick="hostStart()">📡 CHACUN SON TÉLÉPHONE</button>'+
+  '<button class="btn ghost splash-btn2" onclick="S.mode=\'client\';C.screen=\'join\';render()">🔗 Rejoindre avec un code</button>'
+ :'<button class="btn ghost splash-btn2" disabled>📡 CHACUN SON TÉLÉPHONE</button>'+
+  '<p class="cats-warn tc">⚠ Le multi-appareils exige HTTPS — indisponible sur cette adresse.</p>')+
+'<div class="fline"></div>';return}
+
+if(p==="lobby"){
+var seats=S.net?S.net.seats:[];var n=seats.length;var ready=n>=3;
+var st=S.net?S.net.status:"opening";
+app.innerHTML='<div class="hline"></div>'+
+'<div class="flex flex-between mb10"><span class="tag">SALLE</span><span class="tag">'+n+'/'+MAX_MULTI+'</span></div>'+
+(st==="open"
+ ?'<div class="qr-box"><canvas id="qrc" class="qr-canvas"></canvas></div>'+
+  '<p class="room-code">'+S.net.code+'</p>'+
+  '<p class="color-dim fs12 mb8">Scannez le QR ou saisissez ce code</p>'+
+  '<button class="btn ghost mini mb10" onclick="shareRoom()">📤 Partager le lien</button>'
+ :st==="error"
+ ?'<div class="icon-big">⚠</div><p class="err-msg">Impossible d\'ouvrir la salle ('+(S.net.err||"?")+'). Vérifie ta connexion Internet.</p>'+
+  '<button class="btn ghost mb10" onclick="hostStart()">↺ Réessayer</button>'
+ :'<div class="icon-big">📡</div><p class="color-dim fs13 mb10">Ouverture de la salle…</p><div class="pbar"><div class="pbar-fill indet"></div></div>')+
+'<p class="orb fs10 color-dim3 ls2 mb6">PARTICIPANTS</p>'+
+'<div class="lobby-list">'+(n?seats.map(function(s,i){
+return '<div class="lobby-row"><span class="dot-conn'+(s.connected?" on":"")+'"></span>'+
+'<span class="fs15 fw600 lobby-nm">'+(s.isHost?"👑 ":"")+s.name+'</span>'+
+(s.isHost?'<span class="orb fs9 color-dim3 ls2">HÔTE</span>':'<button class="kick-btn" onclick="kickPlayer('+(i+1)+')" aria-label="Exclure '+s.name+'">✕</button>')+
+'</div>'}).join(""):'<p class="color-dim3 fs12 tc mb0">Personne pour l\'instant…</p>')+'</div>'+
+(ready?'':'<p class="cats-warn">Il faut au moins 3 joueurs pour lancer.</p>')+
+'<button class="btn glow" onclick="S.phase=\'setup\';render()"'+(ready?"":" disabled")+'>▶ CONFIGURER LA PARTIE</button>'+
+'<button class="btn-abandon" onclick="showConfirm(\'Fermer la salle ? Tous les joueurs seront déconnectés.\',closeRoom)">✕ Fermer la salle</button>'+
+'<div class="fline"></div>';
+if(st==="open"){var cv=document.getElementById("qrc");if(cv)drawQR(cv,joinURL(S.net.code),{size:210})}
+return}
+
 if(p==="setup"){
+saveOpts();
 var uc=Math.min(S.uc,MUC());var nh="";
-for(var i=1;i<=S.pc;i++)nh+='<input type="text" id="n'+i+'" placeholder="Joueur '+i+'" value="'+(S.nm[i]||"")+'" oninput="S.nm['+i+']=this.value">';
-app.innerHTML='<div class="hline"></div><div class="mb24">'+G("UNDERCOVER","orb fs28 fw900 ls4 color-cyan text-shadow-cyan")+'<p class="subtitle-red">// NIGHT CITY EDITION</p></div>'+
-'<div class="mb20 tl"><label class="lbl"><span class="lbl-a">01</span> JOUEURS</label><div class="stepper"><button onclick="CP(-1)">−</button><span class="val">'+S.pc+'</span><button onclick="CP(1)">+</button></div></div>'+
-'<div class="mb20 tl"><label class="lbl"><span class="lbl-a">02</span> NOMS</label><div class="names-grid">'+nh+'</div></div>'+
-'<div class="mb20 tl"><label class="lbl"><span class="lbl-a">03</span> UNDERCOVER</label><input type="range" min="1" max="'+MUC()+'" value="'+uc+'" oninput="S.uc=+this.value;render()"><div class="flex items-center flex-center gap6 flex-wrap"><span class="color-cyan fs13 fw600">🕵️ '+uc+' UC</span><span class="color-sep">·</span><span class="color-dim7 fs13">👤 '+CC()+' civils</span>'+(WW()?'<span class="color-sep">·</span><span class="color-red fs13 fw600">🤍 1 Mr.W</span>':"")+'</div></div>'+
-'<div class="mb16 tl"><label class="lbl"><span class="lbl-a">04</span> OPTIONS</label><div class="flex items-center gap14 mb10"><button class="tog '+(S.mw?"on":"")+'" onclick="S.mw=!S.mw;S.uc=Math.min(S.uc,MUC());render()"><span class="dot"></span></button><span class="color-dim8 fs14">Mr. White <span class="color-dim fs12">(pas de mot)</span></span></div><div class="flex items-center gap14"><button class="tog '+(S.cat?"on":"")+'" onclick="S.cat=!S.cat;render()"><span class="dot"></span></button><span class="color-dim8 fs14">Afficher la catégorie</span></div></div>'+
-'<button class="btn" onclick="startSession()">▶ LANCER LA PARTIE</button><div class="fline"></div>';return}
+if(S.mode==="solo")for(var i=1;i<=S.pc;i++)nh+='<input type="text" id="n'+i+'" placeholder="Joueur '+i+'" value="'+(S.nm[i]||"")+'" maxlength="20" oninput="S.nm['+i+']=this.value.slice(0,20)">';
+app.innerHTML='<div class="hline"></div><div class="mb20">'+G("UNDERCOVER","orb fs28 fw900 ls4 color-cyan text-shadow-cyan")+'<p class="subtitle-red">// NIGHT CITY EDITION</p></div>'+
+
+// En mode hôte, le nombre de joueurs et les noms sont dictés par le lobby :
+// on affiche le roster en lecture seule au lieu du stepper et des inputs.
+(S.mode==="host"
+ ?'<div class="setup-section"><label class="lbl"><span class="lbl-a">01</span> JOUEURS</label>'+
+  '<div class="flex gap4 flex-wrap flex-center mb6">'+S.net.seats.map(function(s){return '<span class="chip'+(s.connected?"":" off")+'">'+(s.isHost?"👑 ":"")+s.name+'</span>'}).join("")+'</div>'+
+  '<p class="orb fs10 color-dim3 ls2 tc">'+S.pc+' JOUEURS CONNECTÉS</p>'+
+  '<button class="btn ghost mini mt6" onclick="S.phase=\'lobby\';render()">← Retour au lobby</button></div>'
+ :'<div class="setup-section"><label class="lbl"><span class="lbl-a">01</span> JOUEURS</label><div class="stepper"><button onclick="CP(-1)">−</button><input type="number" class="val-input" min="3" max="20" value="'+S.pc+'" oninput="S.pc=Math.max(3,Math.min(20,+this.value||3));S.uc=Math.min(BAL(),MUC())" onchange="render()"><button onclick="CP(1)">+</button></div></div>'+
+  '<div class="setup-section"><label class="lbl"><span class="lbl-a">02</span> NOMS</label><div class="names-grid">'+nh+'</div></div>')+
+
+'<div class="setup-section"><label class="lbl"><span class="lbl-a">03</span> UNDERCOVER</label><input type="range" min="1" max="'+MUC()+'" value="'+uc+'" oninput="S.uc=+this.value;render()"><div class="role-chips"><span class="role-chip uc">🕵️ '+uc+' UC</span><span class="role-chip civ">👤 '+CC()+' civils</span>'+(WW()?'<span class="role-chip mw">🤍 Mr.W</span>':"")+'</div><p class="orb fs10 color-dim3 ls2 mt6 tc">RECOMMANDÉ : '+BAL()+' UC (1/3 des joueurs)</p></div>'+
+
+'<div class="setup-section"><label class="lbl"><span class="lbl-a">04</span> OPTIONS</label><div class="opt-group">'+
+
+'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">Mr. White</span><span class="opt-desc">Rôle sans mot — doit deviner le mot civil</span></div><button class="tog '+(S.mw?"on":"")+'" aria-label="Mr. White" aria-pressed="'+(S.mw?"true":"false")+'" onclick="S.mw=!S.mw;S.uc=Math.min(BAL(),MUC());render()"><span class="dot"></span></button></div>'+
+
+'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">Afficher la catégorie</span><span class="opt-desc">Révèle la thématique du mot pendant le tour</span></div><button class="tog '+(S.cat?"on":"")+'" aria-label="Afficher la catégorie" aria-pressed="'+(S.cat?"true":"false")+'" onclick="S.cat=!S.cat;render()"><span class="dot"></span></button></div>'+
+
+'<div class="opt-row opt-col"><div class="opt-lbl"><span class="opt-title">⏱ Timer de débat</span><span class="opt-desc">Durée maximale de discussion par tour</span></div><div class="timer-grid">'+[0,60,120,180,300].map(function(v){var l=v===0?"Off":Math.floor(v/60)+"min";return'<button class="timer-preset'+(S.timer===v?" active":"")+'" onclick="S.timer='+v+';render()">'+l+'</button>'}).join("")+'</div></div>'+
+
+'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">Vote nul</span><span class="opt-desc">Permet de passer un tour sans élimination</span></div><button class="tog '+(S.skipvote?"on":"")+'" aria-label="Vote nul" aria-pressed="'+(S.skipvote?"true":"false")+'" onclick="S.skipvote=!S.skipvote;render()"><span class="dot"></span></button></div>'+
+
+'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">🌙 Mode nuit</span><span class="opt-desc">Masque les rôles et le compteur pendant le débat</span></div><button class="tog '+(S.night?"on":"")+'" aria-label="Mode nuit" aria-pressed="'+(S.night?"true":"false")+'" onclick="S.night=!S.night;render()"><span class="dot"></span></button></div>'+
+(S.mode==="host"?'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">👁 Vote à découvert</span><span class="opt-desc">Au dépouillement, montre qui a voté pour qui</span></div><button class="tog '+(S.revealVoters?"on":"")+'" aria-label="Vote à découvert" aria-pressed="'+(S.revealVoters?"true":"false")+'" onclick="S.revealVoters=!S.revealVoters;render()"><span class="dot"></span></button></div>':'')+
+'<div class="opt-row last"><div class="opt-lbl"><span class="opt-title">🧒 Mode Enfant</span><span class="opt-desc">614 paires adaptées sur 39 catégories — exclut alcool, horreur, contenu adulte</span></div><button class="tog '+(S.kids?"on":"")+'" aria-label="Mode Enfant" aria-pressed="'+(S.kids?"true":"false")+'" onclick="S.kids=!S.kids;render()"><span class="dot"></span></button></div>'+
+
+'</div></div>'+
+
+'<div class="setup-section"><details class="cats-details"><summary class="lbl cats-sum"><span class="lbl-a">05</span> CATÉGORIES <span class="cats-count">'+poolSize()+' paires</span></summary>'+
+(S.cats?'<button class="btn ghost mini mb6" onclick="S.cats=null;render()">↺ Tout activer</button>':'')+
+'<div class="cats-grid">'+allCats().map(function(c){var n=catCount(c);var on=n>0&&(!S.cats||S.cats.indexOf(c)!==-1);
+return'<button class="cat-tog'+(on?" on":"")+(n?"":" na")+'" aria-pressed="'+(on?"true":"false")+'" onclick="TCat(\''+c+'\')">'+c+'<span class="cat-n">'+n+'</span></button>'}).join("")+'</div>'+
+(S.kids?'<p class="cats-note">🧒 Mode Enfant actif — les catégories à 0 paire sont indisponibles.</p>':'')+
+(poolSize()<25?'<p class="cats-warn">⚠ Pool réduit ('+poolSize()+' paires) — les mots se répéteront sur une longue partie.</p>':'')+
+'</details></div>'+
+
+(S.err?'<p class="err-msg">⚠ '+S.err+'</p>':'')+
+'<button class="btn" onclick="startSession()">▶ LANCER LA PARTIE</button>'+
+'<details class="hist-details mt6"><summary class="orb fs10 color-gold ls2">🏆 HALL OF FAME</summary>'+FLB()+(Object.keys(getLB()).length?'<button class="btn ghost" onclick="showConfirm(\'Effacer tout le Hall of Fame ?\',function(){clearLB();render()})">🗑 Effacer le classement</button>':'')+'</details>'+
+'<button class="btn-abandon" onclick="showConfirm(\'Réinitialiser toutes les options et les noms ?\',resetOpts)">↺ Réinitialiser les options</button>'+
+'<div class="fline"></div>';return}
 
 var cp=S.tp[S.ro[S.ri]];
 
 if(p==="handoff"){
 app.innerHTML='<div class="hline"></div><div class="flex flex-between mb10"><span class="tag">TOUR '+S.turn+'</span><span class="tag">'+(S.ri+1)+'/'+S.tp.length+'</span></div>'+
 '<div class="pbar"><div class="pbar-fill" id="pf"></div></div>'+
-'<div class="icon-big">📱</div>'+
-'<h2 class="orb fs17 fw700 lh15 color-white m8-0">PASSE LE TÉLÉPHONE À<br><span class="color-cyan">'+N(cp.id)+'</span></h2>'+
+'<div class="icon-big">'+(S.ri===0?'👤':'📱')+'</div>'+
+'<h2 class="orb fs17 fw700 lh15 color-white m8-0">'+(S.ri===0?'C\'EST TON TOUR,<br>':'PASSE LE TÉLÉPHONE À<br>')+'<span class="color-cyan">'+N(cp.id)+'</span></h2>'+
 '<p class="color-dim fs13 mb16">Personne d\'autre ne doit regarder</p>'+
-'<button class="btn glow" onclick="S.phase=\'reveal\';render()">JE SUIS '+N(cp.id).toUpperCase()+'</button>'+
+'<button class="btn glow" onclick="SND.click();VIB(20);S.phase=\'reveal\';render()">JE SUIS '+N(cp.id).toUpperCase()+'</button>'+
 CSC()+'<div class="fline"></div>';
-document.getElementById("pf").style.width=((S.ri+1)/S.tp.length*100)+"%";return}
+document.getElementById("pf").style.setProperty("--pbar-w",((S.ri+1)/S.tp.length*100)+"%");return}
 
 if(p==="reveal"){
 if(!S.wv){
@@ -65,8 +301,8 @@ app.innerHTML='<div class="hline"></div><div class="pbar"><div class="pbar-fill"
 '<div class="icon-big">🔒</div>'+
 '<h2 class="orb fs22 fw700 color-cyan m8-0">'+N(cp.id)+'</h2>'+
 '<p class="color-dim fs13 mb20">Appuie pour découvrir ton mot</p>'+
-'<button class="btn glow" onclick="S.wv=true;render()">👁️ RÉVÉLER</button><div class="fline"></div>';
-document.getElementById("pf").style.width=((S.ri+1)/S.tp.length*100)+"%";
+'<button class="btn glow" onclick="SND.ping();VIB(40);S.wv=true;render()">👁️ RÉVÉLER</button><div class="fline"></div>';
+document.getElementById("pf").style.setProperty("--pbar-w",((S.ri+1)/S.tp.length*100)+"%");
 }else{
 var wa;
 if(cp.role==="mrwhite"){wa='<p class="orb color-dim4 fs11 ls3 mb10">TON RÔLE :</p>'+G("MR. WHITE","orb fs24 fw900 color-white text-shadow-white flicker")+'<p class="color-dim4 fs13 mt14 lh15">Pas de mot. Bluff et essaie de deviner le mot civil !</p>'}
@@ -76,41 +312,126 @@ app.innerHTML='<div class="hline"></div><div class="pbar"><div class="pbar-fill"
 '<div class="m20-0">'+wa+'</div>'+
 '<p class="color-dim2 fs12 mb12">Mémorise bien, puis confirme ↓</p>'+
 '<button class="btn green" onclick="confirmSeen()">✓ C\'EST BON</button><div class="fline"></div>';
-document.getElementById("pf").style.width=((S.ri+1)/S.tp.length*100)+"%"}return}
+document.getElementById("pf").style.setProperty("--pbar-w",((S.ri+1)/S.tp.length*100)+"%")}return}
 
 if(p==="playing"){
 var ap=S.players.filter(function(x){return S.alive.indexOf(x.id)!==-1});
 var bad=ap.filter(function(x){return x.role!=="civil"}).length;
 var eh="";
-if(S.elim.length){eh='<div class="mb10"><p class="orb fs10 color-dim3 ls2 mb4">ÉLIMINÉS</p><div class="flex gap4 flex-wrap flex-center">'+S.elim.map(function(id){var pl=S.players.filter(function(x){return x.id===id})[0];return '<span class="chip dead'+(pl.role==="civil"?" civ":"")+'">'+N(id)+" "+(pl.role==="undercover"?"🕵️":pl.role==="mrwhite"?"🤍":"👤")+"</span>"}).join("")+"</div></div>"}
+if(S.elim.length){eh='<div class="mb10"><p class="orb fs10 color-dim3 ls2 mb4">ÉLIMINÉS</p><div class="flex gap4 flex-wrap flex-center">'+S.elim.map(function(id){var pl=S.players.filter(function(x){return x.id===id})[0];return '<span class="chip dead'+((!S.night&&pl.role==="civil")?" civ":"")+'">'+N(id)+(S.night?"":" "+(pl.role==="undercover"?"🕵️":pl.role==="mrwhite"?"🤍":"👤"))+"</span>"}).join("")+"</div></div>"}
+// En multi, l'hôte joue aussi : son mot est derrière un tap, comme sur les
+// téléphones des autres. Et il doit voir qui a décroché.
+var hw="",cs="";
+if(S.mode==="host"){
+var me=S.tp.filter(function(x){return x.id===1})[0];
+if(S.hostPlays&&me){
+hw=!S.wv
+ ?'<button class="word-hide" onclick="S.wv=true;SND.ping();VIB(40);render()"><span class="icon-med">🔒</span><span class="orb fs13 fw700 color-cyan ls2">APPUIE POUR VOIR TON MOT</span></button>'
+ :'<div class="word-open" onclick="S.wv=false;render()">'+(me.role==="mrwhite"
+   ?'<p class="orb color-dim4 fs11 ls3 mb10">TON RÔLE :</p>'+G("MR. WHITE","orb fs22 fw900 color-white text-shadow-white flicker")+'<p class="color-dim4 fs13 mt14 lh15">Pas de mot. Bluff !</p>'
+   :'<p class="orb color-dim4 fs11 ls3 mb10">TON MOT EST :</p>'+G(me.word,"orb fs22 fw900 color-white text-shadow-cyan flicker"))+
+   '<p class="orb fs9 color-dim3 ls2 mt8">TAPE POUR MASQUER</p></div>';
+hw='<div class="m12-0">'+hw+'</div>';
+}
+var off=S.net.seats.filter(function(s,i){return !s.connected&&S.alive.indexOf(i+1)!==-1});
+if(off.length)cs='<p class="cats-warn">⟳ '+off.map(function(s){return s.name}).join(", ")+(off.length>1?" sont déconnectés":" est déconnecté")+' — la partie continue, ils reviendront d\'eux-mêmes.</p>';
+}
 app.innerHTML='<div class="hline"></div><div class="flex flex-between mb10"><span class="tag">TOUR '+S.turn+'</span><span class="tag">'+S.alive.length+' EN JEU</span></div>'+
 '<h1 class="orb fs18 fw700 color-cyan mb8">'+G("DÉBAT EN COURS")+'</h1>'+
-'<p class="color-dim4 fs13 lh15 mb12">Décrivez votre mot, débattez, puis votez !</p>'+
-'<div class="flex gap5 flex-wrap flex-center mb10">'+ap.map(function(x){return '<span class="chip">'+N(x.id)+"</span>"}).join("")+"</div>"+
+'<p class="color-dim4 fs13 lh15 mb6">'+(S.mode==="host"?'Chacun décrit son mot dans l\'ordre, puis on vote !':'Décrivez votre mot dans l\'ordre, puis votez !')+'</p>'+
+hw+cs+
+'<div class="speak-order mb4">'+S.ro.map(function(i,rank){var sid=S.tp[i].id;var done=S.spoken.indexOf(sid)!==-1;return '<div class="speak-item'+(done?" spoke":"")+'" onclick="var _i=S.spoken.indexOf('+sid+');if(_i===-1)S.spoken.push('+sid+');else S.spoken.splice(_i,1);render()"><span class="speak-num orb">'+(done?"✓":(rank+1))+'</span><span class="speak-name">'+N(sid)+'</span></div>'}).join("")+'</div>'+(S.spoken.length?'<button class="btn ghost mb6" onclick="S.spoken=[];render()">↺ Tout décocher</button>':'')+
 eh+
-'<div class="flex gap8 mb10 flex-center"><div class="imposteur-box"><span class="orb fs18 fw900">'+bad+'</span><span class="orb fs10 color-dim5 ls2">IMPOSTEUR'+(bad>1?"S":"")+'<br>RESTANT'+(bad>1?"S":"")+'</span></div></div>'+
-'<button class="btn red glow" onclick="S.phase=\'vote\';S.vt=null;render()">🗳️ VOTER POUR ÉLIMINER</button>'+
-CSC()+'<div class="fline"></div>';return}
+'<div class="flex gap8 mb10 flex-center">'+(S.night?'<div class="imposteur-box night"><span class="orb fs11 color-dim4 ls2">MODE NUIT</span></div>':'<div class="imposteur-box"><span class="orb fs18 fw900">'+bad+'</span><span class="orb fs10 color-dim5 ls2">IMPOSTEUR'+(bad>1?"S":"")+'<br>RESTANT'+(bad>1?"S":"")+'</span></div>')+(S.timer?'<div id="tdisp" class="timer-disp'+(S.trem<=10&&S.trem>0?" urgent":S.trem===0?" done":"")+'">'+( S.trem===0?"VOTEZ !":TF(S.trem))+'</div>':'')+'</div>'+
+(S.timer&&S.trem===0?'<button class="btn ghost mb6" onclick="startTimer();render()">↺ Relancer ('+TF(S.timer)+')</button>':'')+
+'<button class="btn red glow" onclick="goVote()">🗳️ VOTER POUR ÉLIMINER</button>'+
+(S.hist.length?'<button class="btn ghost mt4" onclick="S.showHist=!S.showHist;render()">📋 Historique ('+S.hist.length+' tour'+(S.hist.length>1?"s":"")+')</button>'+(S.showHist?'<div class="hist-box mt6">'+HIST()+'</div>':''): '')+
+CSC()+
+'<button class="btn-abandon" onclick="showConfirm(\'Abandonner la partie en cours ?\',fullReset)">✕ Abandonner</button>'+
+'<div class="fline"></div>';return}
+
+if(p==="vote"&&S.mode==="host"){
+var cands=S.voteCands||S.alive;
+var exp=votersExpected();
+var waiting=exp.filter(function(id){return S.votes[id]===undefined});
+var nv=Object.keys(S.votes).length;
+var meVotes=S.hostPlays&&S.alive.indexOf(1)!==-1&&S.votes[1]===undefined;
+app.innerHTML='<div class="hline"></div>'+
+'<div class="flex flex-between mb10"><span class="tag">TOUR '+S.turn+'</span><span class="tag">'+nv+'/'+exp.length+' VOTES</span></div>'+
+'<h2 class="orb fs18 fw700 color-red mb6">'+G(S.round?"REVOTE":"VOTE EN COURS")+'</h2>'+
+'<p class="color-dim4 fs13 mb10">'+(S.round?"Égalité — seuls les ex æquo sont candidats.":"Chacun vote en secret sur son téléphone.")+'</p>'+
+(S.round?'<div class="flex gap4 flex-wrap flex-center mb10">'+cands.map(function(id){return '<span class="chip">'+N(id)+'</span>'}).join("")+'</div>':'')+
+'<p class="orb fs10 color-dim3 ls2 mb4">ONT VOTÉ</p>'+
+'<div class="flex gap4 flex-wrap flex-center mb8">'+exp.map(function(id){var v=S.votes[id]!==undefined;
+return '<span class="chip'+(v?" voted":" off")+'">'+(v?"✓ ":"⋯ ")+N(id)+'</span>'}).join("")+'</div>'+
+(waiting.length?'<p class="color-dim fs12 mb8">En attente de '+waiting.map(function(i){return N(i)}).join(", ")+'</p>':'<p class="color-cyan fs13 mb8">Tout le monde a voté.</p>')+
+(meVotes?'<p class="orb fs10 color-dim3 ls2 mb4">TON VOTE</p><div class="flex flex-col gap6 mb10">'+
+ cands.map(function(id){return '<button class="vote-btn" onclick="hostVote('+id+')"><span>'+N(id)+'</span></button>'}).join("")+
+ (S.skipvote&&!S.voteCands?'<button class="vote-btn skip" onclick="hostVote(-1)"><span>🚫 Personne</span></button>':'')+'</div>':'')+
+'<button class="btn red glow" onclick="closeVote()"'+(nv?"":" disabled")+'>CLORE LE VOTE'+(waiting.length?' ('+waiting.length+' manquant'+(waiting.length>1?"s":"")+')':'')+'</button>'+
+'<div class="fline"></div>';return}
+
+if(p==="vote_result"){
+var tl=S.tally;var top=tl.rows.length?tl.rows[0].count:1;
+app.innerHTML='<div class="hline"></div><span class="tag">TOUR '+S.turn+'</span>'+
+'<h2 class="orb fs18 fw700 color-cyan m8-0">'+G("DÉPOUILLEMENT")+'</h2>'+
+(tl.rows.length?'<div class="tally mb8">'+tl.rows.map(function(r){
+return '<div class="tally-row"><span class="tally-nm">'+(r.target===-1?"🚫 Personne":N(r.target))+'</span>'+
+'<div class="tally-bg"><div class="tally-bar" id="tb'+(r.target===-1?"X":r.target)+'"></div></div>'+
+'<span class="orb fs15 fw900 color-cyan min-w24">'+r.count+'</span></div>'+
+(r.voters?'<p class="tally-voters">'+r.voters.map(function(i){return N(i)}).join(", ")+'</p>':'')}).join("")+'</div>'
+:'<p class="color-dim fs13 mb8">Aucun vote exprimé.</p>')+
+(tl.abstentions?'<p class="color-dim3 fs12 mb8">'+tl.abstentions+' abstention'+(tl.abstentions>1?"s":"")+'</p>':'')+
+(tl.resolved!==null
+ ?'<p class="color-dim6 fs14 lh15 mb10">'+(tl.resolved===-1?"Personne n'est éliminé.":'<strong class="color-white">'+N(tl.resolved)+'</strong> est éliminé.')+'</p>'+
+  '<button class="btn red glow" onclick="applyVote('+tl.resolved+')">▶ CONTINUER</button>'
+ :'<p class="color-red fs14 fw600 mb8">⚖ Égalité entre '+tl.tied.map(function(i){return N(i)}).join(", ")+'</p>'+
+  (canRevote()?'<button class="btn glow" onclick="doRevote()">↻ REVOTE ENTRE LES EX ÆQUO</button>':'<p class="cats-warn">Revote déjà utilisé ce tour.</p>')+
+  '<button class="btn ghost" onclick="applyVote(-1)">🚫 Personne n\'est éliminé</button>'+
+  '<button class="btn ghost" onclick="tieRandom()">🎲 Le sort décide</button>')+
+'<div class="fline"></div>';
+tl.rows.forEach(function(r){var e=document.getElementById("tb"+(r.target===-1?"X":r.target));
+if(e)e.style.setProperty("--tw",Math.max(6,Math.round(r.count/top*100))+"%")});
+return}
 
 if(p==="vote"){
 var ap2=S.players.filter(function(x){return S.alive.indexOf(x.id)!==-1});
 app.innerHTML='<div class="hline"></div><h2 class="orb fs18 fw700 color-red mb6">'+G("ÉLIMINATION")+'</h2>'+
 '<p class="color-dim4 fs13 mb16">Qui est éliminé par le vote ?</p>'+
-'<div class="flex flex-col gap6 mb14">'+ap2.map(function(x){return '<button class="vote-btn'+(S.vt===x.id?" sel":"")+'" onclick="S.vt='+x.id+';render()"><span>'+N(x.id)+"</span>"+(S.vt===x.id?'<span class="orb color-red fs12">✕</span>':"")+"</button>"}).join("")+"</div>"+
-'<button class="btn red glow" onclick="doElim()"'+(S.vt?"":" disabled")+'>CONFIRMER</button>'+
+'<div class="flex flex-col gap6 mb14">'+ap2.map(function(x){return '<button class="vote-btn'+(S.vt===x.id?" sel":"")+'" onclick="S.vt='+x.id+';render()"><span>'+N(x.id)+"</span>"+(S.vt===x.id?'<span class="orb color-red fs12">✕</span>':"")+"</button>"}).join("")+(S.skipvote?'<button class="vote-btn skip'+(S.vt===-1?" sel":"")+'" onclick="S.vt=-1;render()"><span>🚫 Personne</span>'+(S.vt===-1?'<span class="orb color-dim5 fs12">○</span>':"")+"</button>":"")+"</div>"+
+'<button class="btn red glow" onclick="doElim()"'+(S.vt!==null?"":" disabled")+'>CONFIRMER</button>'+
 '<button class="btn ghost" onclick="S.vt=null;S.phase=\'playing\';render()">← RETOUR</button><div class="fline"></div>';return}
 
 if(p==="mrwhite_guess"){
 app.innerHTML='<div class="hline"></div><div class="icon-med">🤍</div>'+
 '<h2 class="orb fs18 fw700 color-white m8-0">'+G("MR. WHITE DÉMASQUÉ")+'</h2>'+
 '<p class="color-dim5 fs14 lh15 mb6">'+N(S.vt)+' était Mr. White !</p>'+
-'<p class="color-red fs14 fw600 mb20">Dernière chance : deviner le mot des civils.</p>'+
+'<p class="color-red fs14 fw600 mb12">Dernière chance : deviner le mot des civils.</p>'+
+// En multi, Mr. White tape sa proposition sur SON téléphone : plus besoin
+// que l'hôte arbitre à l'oral ce qui a été dit ou non.
+(S.mode==="host"
+ ?(S.mwGuessText
+   ?'<p class="orb fs11 color-dim4 ls2 mb6">SA PROPOSITION</p>'+G(S.mwGuessText,"orb fs22 fw900 color-white text-shadow-white")+
+    '<p class="color-dim3 fs12 mt8 mb12">Mot civil attendu : <strong class="color-cyan">'+S.pair[0]+'</strong></p>'
+   :'<div class="pbar mb12"><div class="pbar-fill indet"></div></div><p class="color-dim fs13 mb12">Il tape sa proposition sur son téléphone…</p>')
+ :'')+
 '<p class="orb color-dim4 fs10 ls2 mb12">A-T-IL DEVINÉ ?</p>'+
 '<div class="flex gap8"><button class="btn green half" onclick="mwGuess(true)">✓ OUI</button><button class="btn red half" onclick="mwGuess(false)">✕ NON</button></div><div class="fline"></div>';return}
 
 if(p==="turn_recap"){
-var li=S.elim[S.elim.length-1];var la=S.players.filter(function(x){return x.id===li})[0];var ok=la.role!=="civil";
 var bl=S.players.filter(function(x){return S.alive.indexOf(x.id)!==-1&&x.role!=="civil"}).length;
+if(S.skipt){
+app.innerHTML='<div class="hline"></div><span class="tag">FIN DU TOUR '+S.turn+'</span>'+
+'<div class="icon-med">🚫</div>'+
+'<h2 class="orb fs18 fw700 color-dim7 m8-0">'+G("VOTE NUL")+'</h2>'+
+'<p class="color-dim6 fs14 mb6">Personne n\'a été éliminé ce tour.</p>'+
+(S.cat?'<div class="cat-badge mt12">'+S.ct+'</div>':"")+
+WR()+
+'<p class="orb fs10 color-dim3 ls2 mb0">'+bl+' IMPOSTEUR'+(bl>1?"S":"")+" RESTANT"+(bl>1?"S":"")+"</p>"+
+CSC()+
+(S.hist.length>1?'<details class="hist-details"><summary class="orb fs10 color-dim3 ls2">TOURS PRÉCÉDENTS</summary>'+HIST(S.hist.length-1)+'</details>':'')+
+'<button class="btn" onclick="startTurn()">▶ TOUR SUIVANT — NOUVEAUX MOTS</button><div class="fline"></div>';return}
+var li=S.elim[S.elim.length-1];var la=S.players.filter(function(x){return x.id===li})[0];var ok=la.role!=="civil";
 app.innerHTML='<div class="hline"></div><span class="tag">FIN DU TOUR '+S.turn+'</span>'+
 '<div class="icon-med">'+(ok?"🎯":"😬")+'</div>'+
 '<h2 class="orb fs18 fw700 '+(ok?"color-cyan":"color-red")+' m8-0">'+G(ok?"BON CHOIX !":"MAUVAIS CHOIX...")+'</h2>'+
@@ -120,6 +441,7 @@ app.innerHTML='<div class="hline"></div><span class="tag">FIN DU TOUR '+S.turn+'
 WR()+
 '<p class="orb fs10 color-dim3 ls2 mb0">'+bl+' IMPOSTEUR'+(bl>1?"S":"")+" RESTANT"+(bl>1?"S":"")+"</p>"+
 CSC()+
+(S.hist.length>1?'<details class="hist-details"><summary class="orb fs10 color-dim3 ls2">TOURS PRÉCÉDENTS</summary>'+HIST(S.hist.length-1)+'</details>':'')+
 '<button class="btn" onclick="startTurn()">▶ TOUR SUIVANT — NOUVEAUX MOTS</button><div class="fline"></div>';return}
 
 if(p==="game_over"){
@@ -136,16 +458,28 @@ WR()+
 '<div class="role-grid">'+rh+'</div>'+
 '<p class="orb fs10 color-dim ls2 mb0">CLASSEMENT FINAL</p>'+
 FSC()+
+(S.hist.length?'<details class="hist-details"><summary class="orb fs10 color-dim3 ls2">TOUS LES TOURS ('+S.hist.length+')</summary>'+HIST()+'</details>':'')+
+'<details class="hist-details mb8"><summary class="orb fs10 color-gold ls2">🏆 HALL OF FAME</summary>'+FLB()+'<button class="btn ghost" onclick="showConfirm(\'Effacer tout le Hall of Fame ?\',function(){clearLB();render()})">🗑 Effacer le classement</button></details>'+
+'<button id="share-btn" class="btn ghost mb6" onclick="shareResult()">📋 Copier le résumé</button>'+
 '<button class="btn gold" onclick="fullReset()">🏆 NOUVELLE PARTIE</button><div class="fline"></div>';return}
 }
 
 // ══════════════════════════════════════════════════════════════
 // ACTIONS
 // ══════════════════════════════════════════════════════════════
-function CP(d){S.pc=Math.max(3,Math.min(20,S.pc+d));S.uc=Math.min(S.uc,MUC());render()}
+function CP(d){S.pc=Math.max(3,Math.min(20,S.pc+d));S.uc=Math.min(BAL(),MUC());render()}
+
+// Lit les champs de saisie des noms. En mode hôte les noms viennent du
+// réseau (pseudos du lobby), il n'y a pas d'inputs à lire.
+function readNameInputs(){
+if(S.mode!=="solo")return;
+for(var i=1;i<=S.pc;i++){var el=document.getElementById("n"+i);if(el)S.nm[i]=el.value}}
 
 function startSession(){
-for(var i=1;i<=S.pc;i++){var el=document.getElementById("n"+i);if(el)S.nm[i]=el.value}
+readNameInputs();
+for(var i=1;i<=S.pc;i++){if(!S.nm[i]||!S.nm[i].trim())S.nm[i]="Joueur "+i}
+var seen={};for(var i=1;i<=S.pc;i++){var k=S.nm[i].trim().toLowerCase();if(seen[k]){S.err="\""+S.nm[i]+"\" est utilisé deux fois.";render();return}seen[k]=true}
+S.err="";saveOpts();
 var uc=Math.min(S.uc,MUC());var aw=WW();var r=[];
 for(var j=0;j<uc;j++)r.push("undercover");
 if(aw)r.push("mrwhite");
@@ -157,23 +491,121 @@ S.elim=[];S.sc={};S.players.forEach(function(p){S.sc[p.id]=0});
 S.turn=0;S.used=[];S.gr=null;startTurn()}
 
 function startTurn(){
+stopTimer();S.skipt=false;
 var e=PP();var f=Math.random()>0.5;
 S.pair=[f?e[0]:e[1],f?e[1]:e[0]];S.ct=e[2];
 S.tp=S.alive.map(function(id){var p=S.players.filter(function(x){return x.id===id})[0];return{id:p.id,role:p.role,word:p.role==="civil"?S.pair[0]:p.role==="undercover"?S.pair[1]:null}});
 S.ro=shuffle(S.tp.map(function(_,i){return i}));
-S.ri=0;S.wv=false;S.vt=null;S.turn++;S.phase="handoff";render()}
+// En multi-appareils, chacun reçoit son mot sur son propre écran :
+// les phases handoff/reveal (passage du téléphone) n'ont plus lieu d'être.
+S.ri=0;S.wv=false;S.vt=null;S.spoken=[];S.votes={};S.round=0;S.turn++;
+S.phase=(S.mode==="host")?"playing":"handoff";
+// Les secrets partent AVANT le render : le snapshot diffusé annonce déjà
+// la phase playing, chacun doit avoir son mot en arrivant dessus.
+if(S.mode==="host")sendSecrets();
+render();
+if(S.mode==="host"){requestWake();startTimer()}}
 
-function confirmSeen(){S.wv=false;if(S.ri<S.tp.length-1){S.ri++;S.phase="handoff"}else{S.phase="playing"}render()}
+function confirmSeen(){SND.click();VIB(30);S.wv=false;if(S.ri<S.tp.length-1){S.ri++;S.phase="handoff"}else{S.phase="playing";render();startTimer();return}render()}
+
+// ══════════════════════════════════════════════════════════════
+// VOTE SECRET DISTRIBUÉ (mode hôte)
+// ══════════════════════════════════════════════════════════════
+// Quelle que soit l'issue, ce bloc ne fait qu'une chose : poser S.vt et
+// appeler doElim(). Tout l'aval (mrwhite_guess, checkEnd, scores, historique)
+// reste rigoureusement inchangé — le vote distribué n'est qu'un périphérique
+// de saisie sophistiqué pour une variable qui existait déjà.
+
+function goVote(){
+if(S.mode==="host"){startVote();return}
+stopTimer();S.phase="vote";S.vt=null;render()}
+
+// L'hôte joue aussi : son vote passe par le même dépouillement que les autres.
+function hostVote(target){
+S.votes[1]=target;
+if(allVoted())closeVote();else render()}
+
+function startVote(){
+S.phase="vote";S.votes={};S.round=0;S.voteCands=null;S.tally=null;
+stopTimer();render()}
+
+// Un joueur déconnecté ne doit jamais bloquer la table : on n'attend que les
+// vivants effectivement connectés. Le bouton de clôture manuelle reste
+// toujours disponible, parce qu'il y aura toujours un téléphone mort.
+function votersExpected(){
+return S.alive.filter(function(id){
+var s=S.net&&S.net.seats[id-1];
+return s&&s.connected})}
+
+function allVoted(){
+var exp=votersExpected();
+if(!exp.length)return false;
+return exp.every(function(id){return S.votes[id]!==undefined})}
+
+function computeTally(){
+var counts={},voters={};
+Object.keys(S.votes).forEach(function(v){
+var t=S.votes[v];
+counts[t]=(counts[t]||0)+1;
+(voters[t]=voters[t]||[]).push(+v)});
+var max=0;
+for(var k in counts)if(counts[k]>max)max=counts[k];
+var leaders=Object.keys(counts).filter(function(k){return counts[k]===max}).map(Number);
+var rows=Object.keys(counts).map(function(k){
+return{target:+k,count:counts[k],voters:S.revealVoters?voters[k]:null}})
+.sort(function(a,b){return b.count-a.count});
+return{rows:rows,leaders:leaders,max:max,
+abstentions:S.alive.length-Object.keys(S.votes).length}}
+
+function closeVote(){
+if(S.phase!=="vote")return;
+var t=computeTally();
+var resolved=null,tied=null;
+
+if(t.leaders.length===1){resolved=t.leaders[0]}
+else{
+// « Personne » ne gagne jamais une égalité, seulement une majorité franche :
+// sinon un seul abstentionniste forcerait le tour nul.
+var real=t.leaders.filter(function(x){return x!==-1});
+if(real.length===1)resolved=real[0];
+else tied=real.length?real:S.alive.slice()}
+
+S.tally={rows:t.rows,abstentions:t.abstentions,resolved:resolved,tied:tied};
+S.phase="vote_result";
+SND.click();VIB(40);
+render()}
+
+// Applique le résultat : c'est le seul point de sortie vers le moteur existant.
+function applyVote(target){
+S.tally=null;S.voteCands=null;
+S.vt=target;
+doElim()}
+
+// Départage : un seul revote autorisé, puis tour nul — sinon deux joueurs
+// obstinés peuvent faire tourner la partie en rond.
+function canRevote(){return (S.round||0)<1}
+function doRevote(){
+if(!S.tally||!S.tally.tied)return;
+S.voteCands=S.tally.tied.slice();
+S.votes={};S.round=(S.round||0)+1;S.tally=null;
+S.phase="vote";SND.ping();VIB(30);render()}
+function tieRandom(){
+if(!S.tally||!S.tally.tied)return;
+var t=S.tally.tied;
+applyVote(t[Math.floor(Math.random()*t.length)])}
 
 function doElim(){
-if(!S.vt)return;var tid=S.vt;var tg=S.players.filter(function(p){return p.id===tid})[0];
+if(S.vt===null)return;
+if(S.vt===-1){SND.click();VIB(50);S.skipt=true;recordTurn(null);S.phase="turn_recap";render();return}
+SND.elim();VIB([80,40,120]);
+var tid=S.vt;var tg=S.players.filter(function(p){return p.id===tid})[0];
 S.alive=S.alive.filter(function(id){return id!==tid});S.elim.push(tid);
-if(tg.role==="mrwhite"){S.phase="mrwhite_guess";render();return}
+if(tg.role==="mrwhite"){S.phase="mrwhite_guess";S.mwGuessText="";render();return}
 checkEnd(tg)}
 
 function mwGuess(ok){
-if(ok){var mw=S.players.filter(function(p){return p.role==="mrwhite"})[0];S.sc[mw.id]+=5;S.gr={winner:"mrwhite",msg:N(mw.id)+" (Mr. White) a deviné le mot civil !"};S.phase="game_over";render()}
-else{checkEnd(null)}}
+if(ok){var mw=S.players.filter(function(p){return p.role==="mrwhite"})[0];S.sc[mw.id]+=5;S.gr={winner:"mrwhite",msg:N(mw.id)+" (Mr. White) a deviné le mot civil !"};S.phase="game_over";recordTurn({id:mw.id,role:"mrwhite"});saveLeaderboard();SND.win("mrwhite");VIB([100,50,100,50,200]);render()}
+else{var mwp=S.players.filter(function(p){return p.id===S.vt})[0];checkEnd(mwp)}}
 
 function checkEnd(le){
 var ap=S.players.filter(function(p){return S.alive.indexOf(p.id)!==-1});
@@ -183,8 +615,33 @@ var acv=ap.filter(function(p){return p.role==="civil"}).length;
 if(auc===0&&amw===0){ap.filter(function(p){return p.role==="civil"}).forEach(function(p){S.sc[p.id]+=3});S.gr={winner:"civil",msg:"Tous les imposteurs ont été démasqués !"};S.phase="game_over"}
 else if(auc>=acv+amw){ap.filter(function(p){return p.role==="undercover"}).forEach(function(p){S.sc[p.id]+=4});ap.filter(function(p){return p.role==="mrwhite"}).forEach(function(p){S.sc[p.id]+=2});S.gr={winner:"uc",msg:"Les Undercover ont pris le contrôle !"};S.phase="game_over"}
 else{if(le&&le.role!=="civil"){ap.filter(function(p){return p.role==="civil"}).forEach(function(p){S.sc[p.id]+=1})}S.phase="turn_recap"}
+recordTurn(le);
+if(S.phase==="game_over"){saveLeaderboard();SND.win(S.gr.winner);VIB([100,50,100,50,200])}
 render()}
 
-function fullReset(){S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null};render()}
+// ATTENTION : ces deux fonctions réassignent S en entier. Tout nouveau champ
+// devant survivre à une nouvelle partie doit être reporté ici explicitement —
+// en particulier mode/net, sinon "nouvelle partie" déconnecterait tout le monde.
+function fullReset(){stopTimer();S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:S.timer,tid:null,trem:0,skipvote:S.skipvote,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:S.night,kids:S.kids,cats:S.cats,spoken:[],
+mode:S.mode,net:S.net,votes:{},round:0,tiebreak:S.tiebreak,hostPlays:S.hostPlays,revealVoters:S.revealVoters};
+if(S.mode==="host")S.phase="lobby";
+render()}
 
+function resetOpts(){clearOpts();stopTimer();S={phase:"setup",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:false,kids:false,cats:null,spoken:[],
+mode:S.mode,net:S.net,votes:{},round:0,tiebreak:"revote",hostPlays:true,revealVoters:false};
+if(S.mode==="host")S.phase="lobby";
+render()}
+
+function shareRoom(){
+if(!S.net||!S.net.code)return;
+var url=joinURL(S.net.code);
+var txt="Rejoins ma partie UNDERCOVER !\nCode : "+S.net.code+"\n"+url;
+if(navigator.share){navigator.share({title:"UNDERCOVER — Night City",text:txt,url:url}).catch(function(){});return}
+if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).catch(function(){})}
+else{var ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand("copy")}catch(e){}document.body.removeChild(ta)}}
+
+loadOpts();
+installLifecycle();
+// Un QR scanné ou un lien partagé (#j=CODE) fait entrer directement en client.
+bootFromHash();
 render();
