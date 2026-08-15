@@ -166,6 +166,36 @@ uc-game/
 
 **Pas de build, pas de Node, pas de bundler.** Les deux bibliothèques tierces sont commitées dans `vendor/` : un `git pull` suffit à déployer. PeerJS n'est chargé qu'au moment où l'on choisit le multi-appareils, le mode solo ne paie pas ses 90 Ko.
 
+### Content-Security-Policy
+
+Si ton serveur envoie une CSP, elle doit autoriser le serveur d'annuaire PeerJS, **sinon le multi-appareils reste bloqué sur « ouverture de la salle »** — le navigateur coupe la connexion avant que la bibliothèque ne puisse réagir, donc aucune erreur ne remonte au jeu.
+
+| Directive | À autoriser | Pourquoi |
+|---|---|---|
+| `connect-src` | `https://0.peerjs.com wss://0.peerjs.com` | **Indispensable** — signaling PeerJS |
+| `connect-src` | `stun: turn:` | Relais pour les réseaux à NAT symétrique (4G) |
+| `style-src-elem` | `https://fonts.googleapis.com` | Polices Orbitron / Rajdhani |
+| `font-src` | `https://fonts.gstatic.com` | Fichiers de polices |
+| `script-src` | `'unsafe-inline'` | Le jeu utilise des `onclick=` en attribut |
+
+Exemple nginx :
+
+```nginx
+add_header Content-Security-Policy "\
+default-src 'self'; \
+script-src 'self' 'unsafe-inline'; \
+style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; \
+style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com; \
+font-src 'self' https://fonts.gstatic.com; \
+img-src 'self' data:; \
+connect-src 'self' https://0.peerjs.com wss://0.peerjs.com stun: turn:; \
+worker-src 'self'; manifest-src 'self'; base-uri 'self'; frame-ancestors 'none';" always;
+```
+
+> Pour se passer entièrement de Google Fonts, héberger les deux polices en local et retirer les `<link>` correspondants d'`index.html` : seules les deux lignes `connect-src` restent alors nécessaires.
+
+En cas de doute, ouvrir **`diag.html`** : elle détecte et nomme les violations CSP.
+
 ### Architecture réseau
 
 L'hôte fait autorité : l'état complet vit sur son téléphone, les clients sont des terminaux passifs qui reçoivent des **snapshots complets** (jamais des deltas — la reconnexion emprunte ainsi le même chemin de code que le fonctionnement normal).

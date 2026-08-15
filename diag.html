@@ -41,6 +41,32 @@
 
 <script>
 var t0 = Date.now();
+
+// ── Violations CSP ──────────────────────────────────────────────
+// Une CSP qui bloque wss://0.peerjs.com coupe la connexion AVANT que PeerJS
+// ne voie quoi que ce soit : ni "open" ni "error", d'où un écran figé sans
+// message. C'est invisible depuis le jeu, mais le navigateur nous le signale.
+var cspHits = [];
+window.addEventListener('securitypolicyviolation', function (e) {
+  var uri = e.blockedURI || '?';
+  cspHits.push({ uri: uri, dir: e.violatedDirective });
+  log('  ⛔ CSP bloque ' + uri + '  [' + e.violatedDirective + ']');
+
+  if (/peerjs\.com|^wss:|^ws:/.test(uri)) {
+    row('CSP — serveur d\'annuaire', 'BLOQUÉ par ' + e.violatedDirective, 'ko');
+    verdict('<b>Ta Content-Security-Policy bloque le serveur d\'annuaire PeerJS.</b><br>' +
+      'C\'est la cause exacte du blocage sur « ouverture de la salle » : le navigateur coupe la ' +
+      'connexion avant que la bibliothèque ne puisse réagir, donc aucune erreur ne remonte au jeu.' +
+      '<br><br>Directive fautive : <code>' + e.violatedDirective + '</code><br>' +
+      'URL bloquée : <code>' + uri + '</code><br><br>' +
+      'Ajoute à ta <code>connect-src</code> :<br>' +
+      '<code>https://0.peerjs.com wss://0.peerjs.com</code><br><br>' +
+      'Et si des joueurs passent par un relais TURN (réseaux mobiles) :<br>' +
+      '<code>stun: turn:</code>', false);
+  } else if (/fonts\.googleapis|fonts\.gstatic/.test(uri)) {
+    row('CSP — polices', 'bloquées (cosmétique)', 'wait');
+  }
+});
 function ms(){ return String(Date.now()-t0).padStart(5,' ')+' ms  '; }
 function log(s){ var l=document.getElementById('log'); l.textContent += ms()+s+'\n'; l.scrollTop=l.scrollHeight; }
 function row(k,v,cls){
@@ -147,6 +173,9 @@ function openRoom(){
     if(done)return; done=true;
     log('  ✗ AUCUNE réponse après 15 s');
     row('Ouverture de salle','timeout','ko');
+    // Si une violation CSP a déjà été signalée, son verdict est plus précis :
+    // ne pas l'écraser par un diagnostic générique.
+    if (cspHits.some(function(h){ return /peerjs\.com|^wss:/.test(h.uri); })) return;
     verdict('<b>Le serveur d\'annuaire ne répond pas.</b><br>'+
             'Ni succès ni erreur en 15 s — le symptôme exact de ton blocage.<br><br>'+
             'Causes probables, par ordre de fréquence :<br>'+
