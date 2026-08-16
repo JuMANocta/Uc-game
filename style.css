@@ -456,15 +456,21 @@ input[type=text]::placeholder { color: rgba(255,255,255,0.48); }
 .wizz { position: fixed; inset: 0; z-index: 800; display: flex; align-items: center; justify-content: center;
   padding: 20px; pointer-events: none; }
 .wizz-card { animation: wizzZoom 1s cubic-bezier(0.2,0.9,0.3,1) both; }
-.wizz-in { width: min(320px, 82vw); padding: 26px 20px; text-align: center; color: #fff;
-  background: rgba(5,217,232,0.22); border: 2px solid rgba(5,217,232,0.75);
-  box-shadow: 0 0 50px rgba(5,217,232,0.35); backdrop-filter: blur(8px);
+/* Panneau OPAQUE, pas un voile translucide : à 1 s, un message qu'on lit par
+   transparence par-dessus l'écran de jeu se manque. backdrop-filter est écarté
+   au passage — il ne rend rien de fiable sur un élément déjà animé en
+   transform, et coûte cher sur mobile. */
+.wizz-in { width: min(340px, 86vw); padding: 26px 20px; text-align: center; color: #fff;
+  background: linear-gradient(158deg, rgba(9,74,84,0.97), rgba(8,10,26,0.97));
+  border: 2px solid #05d9e8;
+  box-shadow: 0 0 0 4px rgba(5,217,232,0.1), 0 0 60px rgba(5,217,232,0.45), 0 18px 50px rgba(0,0,0,0.6);
   animation: wizzShake 0.5s ease-in-out; }
 .wizz-in b { display: block; font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 900; }
 .wizz-em { font-size: 54px; line-height: 1; margin-bottom: 6px; }
-.wizz-sub { display: block; font-size: 14px; color: rgba(255,255,255,0.75); margin-top: 4px; }
-.wizz.skull .wizz-in { background: rgba(255,42,109,0.24); border-color: rgba(255,42,109,0.8);
-  box-shadow: 0 0 50px rgba(255,42,109,0.4); }
+.wizz-sub { display: block; font-size: 14px; color: rgba(255,255,255,0.75); margin-top: 4px; text-wrap: balance; }
+.wizz.skull .wizz-in { background: linear-gradient(158deg, rgba(94,12,44,0.97), rgba(20,6,18,0.97));
+  border-color: #ff2a6d;
+  box-shadow: 0 0 0 4px rgba(255,42,109,0.1), 0 0 60px rgba(255,42,109,0.45), 0 18px 50px rgba(0,0,0,0.6); }
 
 /* Wizz ultime : le cadre tremble deux fois plus fort, deux fois plus longtemps,
    un flash couvre l'écran et #app tremble aussi (classe posée par app.js). */
