@@ -55,14 +55,14 @@ var DB=[
 
 // Estampille affichée sur l'accueil : permet de vérifier d'un coup d'oeil
 // quelle version le navigateur sert réellement (cache du service worker).
-var BUILD="v20-2026.08.15";
+var BUILD="v21-2026.08.16";
 var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}
 
 var S={phase:"splash",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:false,kids:false,cats:null,spoken:[],
 // Multi-appareils — "solo" = un seul téléphone (défaut), "host" = cet appareil arbitre, "client" = joueur distant
-mode:"solo",net:null,votes:{},round:0,tiebreak:"revote",hostPlays:true,revealVoters:false,revealWords:false,writeClues:false,faultCat:true,clues:{},fault:null,pingOn:true,pingGap:5000,pingTally:{}};
+mode:"solo",net:null,votes:{},round:0,tiebreak:"revote",hostPlays:true,revealVoters:false,revealWords:false,writeClues:false,faultCat:true,clues:{},fault:null,pingOn:true,pingGap:5000,pingMax:false,pingTally:{}};
 
 function N(id){return S.nm[id]||("Joueur "+id)}
 function MUC(){return Math.max(1,S.pc-(S.mw?2:1))}
@@ -159,7 +159,7 @@ function setMyName(n){try{var v=cleanName(n);if(v)localStorage.setItem("uc_me",J
 // le lobby réseau et écraseraient les noms de la partie mono-téléphone.
 function saveOpts(){try{
 var o={uc:S.uc,mw:S.mw,cat:S.cat,timer:S.timer,skipvote:S.skipvote,night:S.night,kids:S.kids,cats:S.cats,tiebreak:S.tiebreak,
-writeClues:S.writeClues,revealWords:S.revealWords,faultCat:S.faultCat,revealVoters:S.revealVoters,pingOn:S.pingOn,pingGap:S.pingGap};
+writeClues:S.writeClues,revealWords:S.revealWords,faultCat:S.faultCat,revealVoters:S.revealVoters,pingOn:S.pingOn,pingGap:S.pingGap,pingMax:S.pingMax};
 if(S.mode==="solo"){o.pc=S.pc;o.nm=S.nm}
 else{var prev=JSON.parse(localStorage.getItem("uc_opts")||"{}");if(prev.pc!==undefined)o.pc=prev.pc;if(prev.nm!==undefined)o.nm=prev.nm}
 localStorage.setItem("uc_opts",JSON.stringify(o))}catch(e){}}
@@ -180,6 +180,7 @@ if(typeof o.faultCat==="boolean")S.faultCat=o.faultCat;
 if(typeof o.revealVoters==="boolean")S.revealVoters=o.revealVoters;
 if(typeof o.pingOn==="boolean")S.pingOn=o.pingOn;
 if([3000,5000,10000].indexOf(o.pingGap)!==-1)S.pingGap=o.pingGap;
+if(typeof o.pingMax==="boolean")S.pingMax=o.pingMax;
 if(Array.isArray(o.cats)){var valid=o.cats.filter(function(c){return allCats().indexOf(c)!==-1});S.cats=(!valid.length||valid.length===allCats().length)?null:valid}
 if(o.nm&&typeof o.nm==="object"&&!Array.isArray(o.nm))S.nm=o.nm;
 S.uc=Math.min(S.uc,MUC())}catch(e){}}
@@ -316,6 +317,12 @@ return !!(C.snap&&C.snap.opts&&C.snap.opts.pingOn)}
 function pingGapCur(){
 if(S.mode==="host")return S.pingGap||5000;
 return (C.snap&&C.snap.opts&&C.snap.opts.pingGap)||5000}
+// Le wizz ultime est arbitré par l'hôte, comme le délai : sinon chacun
+// choisirait à quel point il accepte d'être secoué, et l'option perdrait tout
+// son sel.
+function pingMaxCur(){
+if(S.mode==="host")return !!S.pingMax;
+return !!(C.snap&&C.snap.opts&&C.snap.opts.pingMax)}
 function pingTallyCur(){
 if(S.mode==="host")return S.pingTally||{};
 return (C.snap&&C.snap.pingTally)||{}}
@@ -335,23 +342,39 @@ else NET.toHost({v:PROTO_V,t:"buzz",to:to,emoji:emoji,pub:!!pub});
 SND.click();VIB(15);
 paintPing()}
 
-// ── Bandeau de réception ──────────────────────────────────────
-// Le téléphone est souvent posé : la vibration est le canal principal, avec un
-// motif distinct par symbole. Le bandeau nomme toujours l'expéditeur — un buzz
-// anonyme ouvrirait la porte au harcèlement.
+// ── Réception : le wizz ───────────────────────────────────────
+// Plein écran, au centre, une seconde. Un bandeau discret dans un coin se
+// manquait pendant un débat — or le wizz n'a d'intérêt que s'il coupe la
+// conversation. Il nomme toujours l'expéditeur : un buzz anonyme ouvrirait la
+// porte au harcèlement.
+//
+// DURÉE : 1000 ms, calée sur les animations CSS (wizzZoom). Changer l'une sans
+// l'autre laisse un cadavre à l'écran ou coupe l'animation en plein vol.
+var WIZZ_MS=1000;
 function showPingToast(from,to,emoji,pub){
 var em=emoji==="skull"?"💀":"🔔";
-var who=N(from),me=myPid();
-var txt = to===0 ? em+' <b>'+who+'</b> secoue tout le monde'
-  : to===me ? em+' de <b>'+who+'</b> — pour toi'+(pub?'':' <span class="ping-priv">en privé</span>')
-  : em+' <b>'+who+'</b> → <b>'+N(to)+'</b>';
+var who=N(from),me=myPid(),ultra=pingMaxCur();
+var txt = to===0 ? '<b>'+who+'</b><span class="wizz-sub">secoue toute la table</span>'
+  : to===me ? '<b>'+who+'</b><span class="wizz-sub">te secoue'+(pub?'':' en privé')+'</span>'
+  : '<b>'+who+'</b><span class="wizz-sub">→ '+N(to)+'</span>';
 var old=document.getElementById("ping-toast");if(old)old.remove();
 var t=document.createElement("div");
-t.id="ping-toast";t.className="ping-toast"+(emoji==="skull"?" skull":"");
-t.innerHTML=txt;
+t.id="ping-toast";
+t.className="wizz"+(emoji==="skull"?" skull":"")+(ultra?" ultra":"");
+t.innerHTML='<div class="wizz-card"><div class="wizz-in">'+
+  '<div class="wizz-em">'+em+'</div>'+txt+'</div></div>';
 document.body.appendChild(t);
-setTimeout(function(){var e=document.getElementById("ping-toast");if(e===t)t.remove()},4000);
-if(emoji==="skull"){SND.elim();VIB([70,50,70,50,140])}else{SND.ping();VIB([180])}}
+setTimeout(function(){var e=document.getElementById("ping-toast");if(e===t)t.remove()},WIZZ_MS);
+
+// En mode ultime, c'est la PAGE ENTIÈRE qui tremble : impossible de lire quoi
+// que ce soit pendant une seconde, ce qui est exactement le but.
+if(ultra){
+  var app=document.getElementById("app");
+  if(app){app.classList.add("wizz-shake");
+   setTimeout(function(){app.classList.remove("wizz-shake")},WIZZ_MS)}}
+
+if(emoji==="skull"){SND.elim();VIB(ultra?[60,40,60,40,60,40,60,40,220]:[70,50,70,50,140])}
+else{SND.ping();VIB(ultra?[50,40,50,40,50,40,260]:[180])}}
 
 // ── La fenêtre ────────────────────────────────────────────────
 var _pingPub=true;
@@ -573,6 +596,7 @@ app.innerHTML='<div class="hline"></div><div class="mb20">'+G("UNDERCOVER","orb 
 '<div class="opt-row"><div class="opt-lbl"><span class="opt-title">🌙 Mode nuit</span><span class="opt-desc">Masque les rôles et le compteur pendant le débat</span></div><button class="tog '+(S.night?"on":"")+'" aria-label="Mode nuit" aria-pressed="'+(S.night?"true":"false")+'" onclick="S.night=!S.night;render()"><span class="dot"></span></button></div>'+
 '<div class="opt-row"><div class="opt-lbl"><span class="opt-title">🔍 Révéler les mots chaque tour</span><span class="opt-desc">Sinon ils restent secrets jusqu\'à la fin — un Undercover survivant ignore alors qu\'il est l\'intrus</span></div><button class="tog '+(S.revealWords?"on":"")+'" aria-label="Révéler les mots chaque tour" aria-pressed="'+(S.revealWords?"true":"false")+'" onclick="S.revealWords=!S.revealWords;render()"><span class="dot"></span></button></div>'+
 (S.mode==="host"?'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">🔔 Pings</span><span class="opt-desc">Chacun peut secouer un joueur ou toute la table — 🔔 accélère, 💀 met la pression</span></div><button class="tog '+(S.pingOn?"on":"")+'" aria-label="Pings" aria-pressed="'+(S.pingOn?"true":"false")+'" onclick="S.pingOn=!S.pingOn;render()"><span class="dot"></span></button></div>':'')+
+(S.mode==="host"&&S.pingOn?'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">💥 Wizz ultime</span><span class="opt-desc">Le ping prend tout l\'écran et fait trembler le téléphone — insupportable, et c\'est voulu</span></div><button class="tog '+(S.pingMax?"on":"")+'" aria-label="Wizz ultime" aria-pressed="'+(S.pingMax?"true":"false")+'" onclick="S.pingMax=!S.pingMax;render()"><span class="dot"></span></button></div>':'')+
 (S.mode==="host"&&S.pingOn?'<div class="opt-row opt-col"><div class="opt-lbl"><span class="opt-title">Délai entre deux pings</span><span class="opt-desc">Empêche le matraquage — appliqué par l\'hôte, donc incontournable</span></div><div class="timer-grid">'+[3000,5000,10000].map(function(v){return'<button class="timer-preset'+(S.pingGap===v?" active":"")+'" onclick="S.pingGap='+v+';render()">'+(v/1000)+'s</button>'}).join("")+'</div></div>':'')+
 (S.mode==="host"?'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">✍️ Indices écrits</span><span class="opt-desc">Chacun tape son indice — prononcer son propre mot élimine sur-le-champ</span></div><button class="tog '+(S.writeClues?"on":"")+'" aria-label="Indices écrits" aria-pressed="'+(S.writeClues?"true":"false")+'" onclick="S.writeClues=!S.writeClues;render()"><span class="dot"></span></button></div>':'')+
 (S.mode==="host"&&S.writeClues?'<div class="opt-row"><div class="opt-lbl"><span class="opt-title">🏷 Catégorie interdite</span><span class="opt-desc">'+(S.cat?"Sans effet tant que la catégorie est affichée à tous":"Écrire la catégorie élimine aussi — elle est cachée, donc secrète")+'</span></div><button class="tog '+(S.faultCat?"on":"")+'" aria-label="Catégorie interdite" aria-pressed="'+(S.faultCat?"true":"false")+'" onclick="S.faultCat=!S.faultCat;render()"><span class="dot"></span></button></div>':'')+
@@ -1055,7 +1079,7 @@ render()}
 // devant survivre à une nouvelle partie doit être reporté ici explicitement —
 // en particulier mode/net, sinon "nouvelle partie" déconnecterait tout le monde.
 function fullReset(){stopTimer();S={phase:"setup",pc:S.pc,uc:S.uc,mw:S.mw,cat:S.cat,nm:S.nm,players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:S.timer,tid:null,trem:0,skipvote:S.skipvote,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:S.night,kids:S.kids,cats:S.cats,spoken:[],
-mode:S.mode,net:S.net,votes:{},round:0,tiebreak:S.tiebreak,hostPlays:S.hostPlays,revealVoters:S.revealVoters,revealWords:S.revealWords,writeClues:S.writeClues,faultCat:S.faultCat,clues:{},fault:null,pingOn:S.pingOn,pingGap:S.pingGap,pingTally:{}};
+mode:S.mode,net:S.net,votes:{},round:0,tiebreak:S.tiebreak,hostPlays:S.hostPlays,revealVoters:S.revealVoters,revealWords:S.revealWords,writeClues:S.writeClues,faultCat:S.faultCat,clues:{},fault:null,pingOn:S.pingOn,pingGap:S.pingGap,pingMax:S.pingMax,pingTally:{}};
 if(S.mode==="host")S.phase="lobby";
 render()}
 
@@ -1071,7 +1095,7 @@ showConfirm('Oublier la partie '+(d?d.code:'')+' ?<br>Tu devras rescanner le QR 
  function(){clearClientSave();render()})}
 
 function resetOpts(){clearOpts();stopTimer();S={phase:"setup",pc:6,uc:2,mw:true,cat:true,nm:{},players:[],alive:[],elim:[],sc:{},turn:0,used:[],tp:[],pair:null,ct:"",ro:[],ri:0,wv:false,vt:null,gr:null,err:"",timer:0,tid:null,trem:0,skipvote:false,skipt:false,hist:[],showHist:false,lbSaved:false,showLB:false,night:false,kids:false,cats:null,spoken:[],
-mode:S.mode,net:S.net,votes:{},round:0,tiebreak:"revote",hostPlays:true,revealVoters:false,writeClues:false,clues:{},fault:null};
+mode:S.mode,net:S.net,votes:{},round:0,tiebreak:"revote",hostPlays:true,revealVoters:false,writeClues:false,clues:{},fault:null,pingOn:true,pingGap:5000,pingMax:false,pingTally:{}};
 if(S.mode==="host")S.phase="lobby";
 render()}
 

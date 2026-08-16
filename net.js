@@ -108,7 +108,7 @@ function snapshot() {
     // partie réellement en cours, pas une configuration par défaut.
     opts: { cat: S.cat, night: S.night, skipvote: S.skipvote, timer: S.timer,
             revealWords: !!S.revealWords, writeClues: !!S.writeClues, faultCat: !!S.faultCat,
-            pingOn: !!S.pingOn, pingGap: S.pingGap|0 },
+            pingOn: !!S.pingOn, pingGap: S.pingGap|0, pingMax: !!S.pingMax },
     // votedIds dit QUI a voté, jamais POUR QUI — c'est ce qui permet
     // l'affichage « en attente de Marc, Léa » sans rien divulguer.
     vote: {
@@ -295,6 +295,11 @@ function hostStart() {
   S.mode = "host";
   S.net = { code: null, status: "opening", err: null, seats: [], seq: 0, lastJSON: null };
   S.phase = "lobby";
+  // Les indices écrits sont l'intérêt même du multi-appareils : chacun tape sur
+  // son téléphone, tout le monde lit le tableau. On l'active donc à l'ouverture
+  // de la salle plutôt que d'attendre que l'hôte le découvre dans les options —
+  // il reste libre de le couper à l'écran de configuration.
+  S.writeClues = true;
 
   if (!NET.use("peerjs")) { S.net.status = "error"; S.net.err = "lib"; render(); return; }
 

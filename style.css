@@ -393,14 +393,24 @@ input[type=text]::placeholder { color: rgba(255,255,255,0.48); }
 .rules-pt span:first-child { flex: 1; }
 .rules-pt span:last-child { font-family: 'Orbitron', sans-serif; font-size: 12px; color: #05d9e8; white-space: nowrap; }
 
-/* Bannière de mise à jour PWA */
-.upd-banner { position: fixed; left: 0; right: 0; bottom: 0; z-index: 700; display: flex; align-items: center; gap: 10px;
-  padding: 11px 14px; background: rgba(5,217,232,0.16); border-top: 1px solid rgba(5,217,232,0.5);
-  backdrop-filter: blur(8px); font-size: 13px; color: #fff; animation: slideUp 0.3s ease; }
-.upd-banner span { flex: 1; }
-.upd-btn { background: rgba(5,217,232,0.25); border: 1px solid rgba(5,217,232,0.6); color: #05d9e8;
-  font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 700; padding: 7px 12px; cursor: pointer; }
-.upd-x { background: transparent; border: none; color: rgba(255,255,255,0.62); font-size: 15px; cursor: pointer; padding: 4px 6px; }
+/* Avis de mise à jour PWA — plein écran, centré, un tiers de la hauteur.
+   Au-dessus des règles (600) et du wizz (800) : rien ne doit le recouvrir. */
+.upd-ov { position: fixed; inset: 0; z-index: 900; display: flex; align-items: center; justify-content: center;
+  padding: 20px; background: rgba(0,0,0,0.78); backdrop-filter: blur(6px); animation: fadeModal 0.18s ease; }
+.upd-box { width: min(400px, 90vw); min-height: 33vh; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px; text-align: center; padding: 26px 22px;
+  background: linear-gradient(160deg, rgba(5,217,232,0.16), rgba(13,13,36,0.96));
+  border: 1px solid rgba(5,217,232,0.55); box-shadow: 0 0 40px rgba(5,217,232,0.22);
+  animation: slideUp 0.25s ease; }
+.upd-ic { font-size: 40px; line-height: 1; }
+.upd-msg { font-family: 'Orbitron', sans-serif; font-size: 15px; font-weight: 900; color: #fff; line-height: 1.4; }
+.upd-sub { font-size: 13px; color: rgba(255,255,255,0.6); line-height: 1.45; }
+.upd-btn { width: 100%; margin-top: 8px; background: rgba(5,217,232,0.28); border: 1px solid rgba(5,217,232,0.7);
+  color: #05d9e8; font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 900; letter-spacing: 2px;
+  padding: 14px 12px; cursor: pointer; }
+.upd-btn:active { transform: scale(0.97); }
+.upd-later { background: transparent; border: none; color: rgba(255,255,255,0.5); font-size: 13px;
+  cursor: pointer; padding: 6px 10px; text-decoration: underline; }
 .lobby-edit { flex: 1; background: rgba(5,217,232,0.06); border: 1px solid rgba(5,217,232,0.3); color: #fff; font-family: 'Rajdhani', sans-serif; font-size: 15px; font-weight: 600; padding: 5px 8px; min-width: 0; }
 .allw { display: flex; flex-direction: column; gap: 3px; margin: 6px 0 10px; }
 .allw-row { display: flex; gap: 8px; align-items: baseline; text-align: left; font-size: 13px; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
@@ -435,8 +445,80 @@ input[type=text]::placeholder { color: rgba(255,255,255,0.48); }
 .ping-tab.on { background: rgba(5,217,232,0.14); border-color: rgba(5,217,232,0.45); color: #05d9e8; }
 .ping-badge { font-size: 10px; margin-left: 5px; padding: 1px 4px; background: rgba(5,217,232,0.16); color: #05d9e8; }
 .ping-badge.sk { background: rgba(255,42,109,0.18); color: #ff2a6d; }
-.ping-toast { position: fixed; left: 12px; right: 12px; top: 12px; z-index: 800; padding: 12px 14px; font-size: 14px;
-  background: rgba(5,217,232,0.18); border: 1px solid rgba(5,217,232,0.5); color: #fff;
-  backdrop-filter: blur(8px); text-align: center; animation: slideUp 0.25s ease; }
-.ping-toast.skull { background: rgba(255,42,109,0.2); border-color: rgba(255,42,109,0.55); }
-.ping-priv { font-size: 11px; color: rgba(255,255,255,0.55); }
+
+/* ── Le wizz ────────────────────────────────────────────────────
+   Trois éléments imbriqués parce que trois transformations se superposent :
+   .wizz centre (transform figé), .wizz-card zoome, .wizz-in tremble. Tout
+   empiler sur un seul nœud ferait que la dernière animation déclarée écrase
+   les autres — le tremblement mangerait le zoom.
+   pointer-events:none — le wizz ne doit jamais voler un tap pendant qu'on
+   tape son indice. Durée alignée sur WIZZ_MS (app.js). */
+.wizz { position: fixed; inset: 0; z-index: 800; display: flex; align-items: center; justify-content: center;
+  padding: 20px; pointer-events: none; }
+.wizz-card { animation: wizzZoom 1s cubic-bezier(0.2,0.9,0.3,1) both; }
+/* Panneau OPAQUE, pas un voile translucide : à 1 s, un message qu'on lit par
+   transparence par-dessus l'écran de jeu se manque. backdrop-filter est écarté
+   au passage — il ne rend rien de fiable sur un élément déjà animé en
+   transform, et coûte cher sur mobile.
+
+   TAILLE FIXE. Sans min-height, le cadre suivait son texte : « → Marc » tenait
+   sur une ligne, « te secoue en privé » sur deux, et le panneau changeait de
+   hauteur d'un wizz à l'autre. Le contenu semblait alors décentré, puisqu'il
+   n'était centré que par rapport à un rectangle qui bougeait. On fige donc la
+   hauteur et on centre le contenu dedans : quel que soit le message, c'est
+   toujours la même boîte au même endroit. */
+.wizz-in { width: min(340px, 86vw); min-height: 204px; padding: 24px 20px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+  text-align: center; color: #fff;
+  background: linear-gradient(158deg, rgba(9,74,84,0.97), rgba(8,10,26,0.97));
+  border: 2px solid #05d9e8;
+  box-shadow: 0 0 0 4px rgba(5,217,232,0.1), 0 0 60px rgba(5,217,232,0.45), 0 18px 50px rgba(0,0,0,0.6);
+  animation: wizzShake 0.5s ease-in-out; }
+.wizz-in b { display: block; font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 900;
+  line-height: 1.2; text-wrap: balance; }
+.wizz-em { font-size: 54px; line-height: 1; }
+.wizz-sub { display: block; font-size: 14px; color: rgba(255,255,255,0.75); text-wrap: balance; }
+.wizz.skull .wizz-in { background: linear-gradient(158deg, rgba(94,12,44,0.97), rgba(20,6,18,0.97));
+  border-color: #ff2a6d;
+  box-shadow: 0 0 0 4px rgba(255,42,109,0.1), 0 0 60px rgba(255,42,109,0.45), 0 18px 50px rgba(0,0,0,0.6); }
+
+/* Wizz ultime : le cadre tremble deux fois plus fort, deux fois plus longtemps,
+   un flash couvre l'écran et #app tremble aussi (classe posée par app.js). */
+.wizz.ultra .wizz-in { animation: wizzShakeHard 0.5s ease-in-out 2; }
+.wizz.ultra::before { content: ''; position: absolute; inset: 0;
+  background: rgba(5,217,232,0.2); animation: wizzFlash 0.5s ease-out 2; }
+.wizz.ultra.skull::before { background: rgba(255,42,109,0.22); }
+#app.wizz-shake { animation: wizzShakeHard 0.5s ease-in-out 2; }
+
+@keyframes wizzZoom {
+  0%   { transform: scale(0.2); opacity: 0; }
+  16%  { transform: scale(1.18); opacity: 1; }
+  26%  { transform: scale(1); }
+  84%  { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.7); opacity: 0; }
+}
+@keyframes wizzShake {
+  0%,100% { transform: translate(0,0) rotate(0deg); }
+  20% { transform: translate(-7px,3px) rotate(-1.5deg); }
+  40% { transform: translate(6px,-4px) rotate(1.5deg); }
+  60% { transform: translate(-5px,-3px) rotate(-1deg); }
+  80% { transform: translate(5px,3px) rotate(1deg); }
+}
+@keyframes wizzShakeHard {
+  0%,100% { transform: translate(0,0) rotate(0deg); }
+  10% { transform: translate(-14px,7px) rotate(-3deg); }
+  25% { transform: translate(13px,-9px) rotate(3deg); }
+  40% { transform: translate(-12px,-7px) rotate(-2.5deg); }
+  55% { transform: translate(12px,8px) rotate(2.5deg); }
+  70% { transform: translate(-9px,5px) rotate(-2deg); }
+  85% { transform: translate(8px,-5px) rotate(2deg); }
+}
+@keyframes wizzFlash { from { opacity: 1; } to { opacity: 0; } }
+
+/* Un joueur sujet au mal des transports ou à l'épilepsie photosensible ne doit
+   pas subir le tremblement : il garde l'apparition et le nom, sans la secousse. */
+@media (prefers-reduced-motion: reduce) {
+  .wizz-in, .wizz.ultra .wizz-in, #app.wizz-shake { animation: none; }
+  .wizz.ultra::before { display: none; }
+  .wizz-card { animation-timing-function: ease; }
+}
