@@ -386,9 +386,15 @@ Les votes et indices n'ont jamais été affectés : l'hôte les attribue via `se
 
 L'hôte tirait son nom de `S.nm[1]`, c'est-à-dire « le premier de la liste » et non « moi » : il héritait donc du nom d'un ancien hôte ou d'un ami. Il lit désormais `uc_me`, qui alimente aussi le pré-remplissage du pseudo à la connexion.
 
-### Pings (`S.pingOn`, `S.pingGap`)
+### Pings (`S.pingOn`, `S.pingGap`, `S.pingMax`)
 
 Fenêtre flottante sur le modèle des règles, hors de `#app` : elle survit aux rediffusions d'état. Un tap = un ping envoyé, sans étape intermédiaire.
+
+**Le wizz à la réception** — plein écran, centré, `WIZZ_MS = 1000` ms. Un bandeau discret en haut de l'écran se manquait pendant un débat, or un ping qui ne coupe pas la conversation ne sert à rien.
+
+Trois nœuds imbriqués, `.wizz` › `.wizz-card` › `.wizz-in`, parce que trois transformations se superposent : le centrage (figé), le zoom, le tremblement. Les empiler sur un seul élément ferait que la dernière animation déclarée écrase les autres — le tremblement mangerait le zoom. **`WIZZ_MS` et la durée de `wizzZoom` doivent rester égales** : changer l'une sans l'autre laisse un cadavre à l'écran ou coupe l'animation en plein vol.
+
+`S.pingMax` (« wizz ultime ») ajoute un flash plein écran, double le tremblement et **secoue `#app` lui-même** via une classe posée par `showPingToast()` puis retirée au bout de `WIZZ_MS`. Comme le délai, l'option est **arbitrée par l'hôte** et voyage dans `snapshot().opts` : sinon chacun choisirait à quel point il accepte d'être secoué, et l'option perdrait tout son sel. Un `@media (prefers-reduced-motion)` neutralise le tremblement sans supprimer le message.
 
 **Le nom du message sur le fil est `buzz`/`buzzed`, surtout pas `ping`/`pong`** — ces deux-là appartiennent au battement de cœur de la reconnexion, traité en tête de `hostOnMsg`, qui interceptait le message avant qu'il n'arrive à destination. C'est le premier bug qu'a révélé le banc d'essai.
 
@@ -429,7 +435,7 @@ Fichier dédié : ni logique de jeu, ni transport, uniquement le dialogue avec l
 
 - `isOnline()` — `navigator.onLine` ne prouve pas qu'Internet est joignable, mais quand il répond `false` on est certainement hors ligne. Suffisant pour barrer le multi-appareils **avant** une tentative vouée à l'échec, plutôt que d'attendre les 12 s du chien de garde.
 - `canInstall()` / `doInstall()` — l'événement `beforeinstallprompt` est capturé et neutralisé pour garder la main sur le moment de l'invite.
-- Bannière de mise à jour — le SW appelle `skipWaiting()`, donc la nouvelle version prend la main tout de suite, mais la **page** continue de faire tourner l'ancien code jusqu'au rechargement. D'où une bannière plutôt qu'un rechargement d'autorité, qui couperait une partie en cours.
+- Avis de mise à jour — le SW appelle `skipWaiting()`, donc la nouvelle version prend la main tout de suite, mais la **page** continue de faire tourner l'ancien code jusqu'au rechargement. D'où un avis plutôt qu'un rechargement d'autorité, qui couperait une partie en cours. Il est **plein écran et centré, sur un tiers de la hauteur** : le pied de page est justement la zone qu'on ne regarde jamais sur un téléphone, et le joueur qui rate le message reste sur une version incompatible avec celle de l'hôte — c'est-à-dire le seul cas où l'avis comptait. Le fond n'est pas cliquable, on veut un choix explicite (« Plus tard » compris). `showUpdateBanner(msg)` sert aussi à l'alerte de version divergente émise par `client.js`.
 - L'enregistrement du service worker a quitté `index.html` : plus aucun script inline, donc plus besoin de `script-src 'unsafe-inline'` pour lui.
 
 ### Limites assumées

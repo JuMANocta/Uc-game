@@ -25,20 +25,30 @@ function doInstall() {
   render();
 }
 
-// ── Bannière de mise à jour ───────────────────────────────────
+// ── Avis de mise à jour ───────────────────────────────────────
 // Le service worker appelle skipWaiting() : la nouvelle version prend la main
 // immédiatement, mais la PAGE continue de faire tourner l'ancien code jusqu'au
-// rechargement. D'où cette bannière plutôt qu'un rechargement d'autorité, qui
+// rechargement. D'où cet avis plutôt qu'un rechargement d'autorité, qui
 // couperait une partie en cours.
+//
+// Plein écran et centré, pas un bandeau en pied de page : sur un téléphone, ce
+// bas d'écran est justement la zone qu'on ne regarde jamais, et un joueur qui
+// rate le message reste sur une version incompatible avec celle de l'hôte —
+// c'est-à-dire le seul cas où l'avis comptait vraiment. Le fond n'est pas
+// cliquable : on veut un choix explicite, « Plus tard » compris.
 function showUpdateBanner(msg) {
   if (document.getElementById("upd-banner")) return;
   var b = document.createElement("div");
   b.id = "upd-banner";
-  b.className = "upd-banner";
-  b.innerHTML = '<span>' + (msg || "✨ Nouvelle version disponible") + '</span>' +
-    '<button type="button" class="upd-btn" onclick="location.reload()">Recharger</button>' +
-    '<button type="button" class="upd-x" aria-label="Plus tard" ' +
-    'onclick="document.getElementById(\'upd-banner\').remove()">✕</button>';
+  b.className = "upd-ov";
+  b.innerHTML = '<div class="upd-box" role="alertdialog" aria-label="Mise à jour">' +
+      '<div class="upd-ic">✨</div>' +
+      '<div class="upd-msg">' + (msg || "Nouvelle version disponible") + '</div>' +
+      '<div class="upd-sub">Recharge pour l\'appliquer. Une partie en cours serait interrompue.</div>' +
+      '<button type="button" class="upd-btn" onclick="location.reload()">RECHARGER</button>' +
+      '<button type="button" class="upd-later" ' +
+      'onclick="document.getElementById(\'upd-banner\').remove()">Plus tard</button>' +
+    '</div>';
   document.body.appendChild(b);
 }
 
