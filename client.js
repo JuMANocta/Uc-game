@@ -11,6 +11,7 @@ var C = {
   screen: "join",   // join | connecting | lobby | word | vote | waiting | recap | over | dead | rejected | error
   code: null,
   token: null,
+  joinId: null,     // identité provisoire, le temps que le token existe
   playerId: null,
   name: "",
   link: "offline",  // offline | connecting | online | reconnecting | dead
@@ -27,11 +28,56 @@ function loadClientSave() {
 function saveClientSave() {
   try {
     localStorage.setItem("uc_net_client", JSON.stringify({
-      code: C.code, token: C.token, playerId: C.playerId, name: C.name, secret: C.secret
+      code: C.code, token: C.token, joinId: C.joinId, playerId: C.playerId, name: C.name, secret: C.secret
     }));
   } catch (e) {}
 }
 function clearClientSave() { try { localStorage.removeItem("uc_net_client"); } catch (e) {} }
+
+// ══════════════════════════════════════════════════════════════
+// ASSAINISSEMENT DE CE QUI VIENT DE L'HÔTE
+// ══════════════════════════════════════════════════════════════
+// Tout ce qui arrive par le réseau finit en innerHTML. Un hôte honnête filtre
+// déjà à l'entrée — cleanName(), submitClue() — mais un hôte modifié contrôle
+// le snapshot en entier et exécuterait alors du script chez tous ses joueurs.
+//
+// On assainit à l'ENTRÉE plutôt qu'aux quinze points de rendu : un point de
+// rendu s'oublie au prochain écran ajouté, un goulot d'étranglement non. Même
+// principe que côté hôte, où rien n'entre dans S sans être filtré.
+function esc(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+function escArr(a) { return Array.isArray(a) ? a.map(esc) : a; }
+// null doit rester null : `word` vaut null pour Mr. White et `category` quand
+// la catégorie est masquée. Les transformer en chaîne vide ferait basculer les
+// tests d'existence qui décident de l'écran affiché.
+function escN(s) { return s == null ? null : esc(s); }
+
+function scrubSnap(sn) {
+  if (!sn || typeof sn !== "object") return sn;
+  if (Array.isArray(sn.roster)) sn.roster.forEach(function (r) { if (r) r.name = esc(r.name); });
+  if (sn.clues && typeof sn.clues === "object") {
+    Object.keys(sn.clues).forEach(function (k) { sn.clues[k] = esc(sn.clues[k]); });
+  }
+  if (sn.fault) { sn.fault.word = escN(sn.fault.word); sn.fault.clue = escN(sn.fault.clue); }
+  sn.category = escN(sn.category);
+  if (sn.recap) {
+    sn.recap.category = escN(sn.recap.category);
+    sn.recap.pair = escArr(sn.recap.pair);
+  }
+  if (sn.gameOver) {
+    sn.gameOver.msg = escN(sn.gameOver.msg);
+    sn.gameOver.category = escN(sn.gameOver.category);
+    sn.gameOver.pair = escArr(sn.gameOver.pair);
+    if (Array.isArray(sn.gameOver.allWords)) sn.gameOver.allWords.forEach(function (w) {
+      if (!w) return; w.cat = escN(w.cat); w.pair = escArr(w.pair);
+    });
+  }
+  if (sn.mw) sn.mw.guess = escN(sn.mw.guess);
+  return sn;
+}
 
 // Reprend le roster reçu dans S.nm pour que N() fonctionne côté client.
 function adoptRoster() {
@@ -56,7 +102,7 @@ function clientHandlers() {
   return {
     onOpen: function () {
       C.link = "online"; C._retries = 0; C._lastSeen = Date.now();
-      NET.toHost({ v: PROTO_V, t: "hello", token: C.token, name: C.name });
+      NET.toHost({ v: PROTO_V, t: "hello", token: C.token, joinId: C.joinId, name: C.name });
       startHeartbeat();
       render();
     },
@@ -129,6 +175,13 @@ function clientJoin(code, name) {
   C.token    = resume ? sv.token : null;
   C.playerId = resume ? sv.playerId : null;
   C.secret   = resume ? (sv.secret || null) : null;
+  // Le joinId comble le trou où le token n'existe pas encore : entre le premier
+  // hello et le welcome. Si le canal meurt dans cet intervalle, la tentative
+  // suivante repart sur une nouvelle connexion, avec un token toujours nul — et
+  // créait un second siège chez l'hôte. Tiré une fois par salle, il rend la
+  // jointure rejouable. Secret au même titre que le token : il ne sort jamais
+  // d'ici que dans un hello.
+  C.joinId   = (resume && sv.joinId) ? sv.joinId : newToken();
   C.snap     = null;          // sinon on afficherait l'état de l'ancienne salle
   C.myVote   = null;
   C.wordShown = false;
@@ -176,7 +229,7 @@ function clientOnMsg(msg) {
       showUpdateBanner("⚠ L'hôte utilise une autre version (" + msg.build + ")");
     }
     C.token = msg.token; C.playerId = msg.playerId; C.code = msg.roomCode;
-    C.snap = msg.state; C.link = "online";
+    C.snap = scrubSnap(msg.state); C.link = "online";
     adoptRoster(); syncClientScreen();
     saveClientSave(); SND.ping(); VIB(20); render();
     return;
@@ -185,19 +238,36 @@ function clientOnMsg(msg) {
     C.screen = "rejected"; C.err = msg.reason; C.link = "dead";
     stopHeartbeat();
     if (C._rtid) { clearTimeout(C._rtid); C._rtid = null; }
-    clearClientSave(); NET.destroy(); releaseWake(); render();
+    // « replaced » = le siège a été repris par un AUTRE onglet du même
+    // navigateur, qui partage donc ce uc_net_client. L'effacer ici couperait
+    // l'herbe sous le pied du gagnant : on le laisse intact, seul cet onglet-ci
+    // s'arrête.
+    if (msg.reason !== "replaced") clearClientSave();
+    NET.destroy(); releaseWake(); render();
+    return;
+  }
+  // Le vote du joueur, renvoyé par l'hôte : à l'acquittement d'un vote, après un
+  // retrait, et à chaque reconnexion. C'est la SEULE source de « pour qui ».
+  if (msg.t === "yourvote") {
+    C.myVote = (msg.target === null || msg.target === undefined) ? null : msg.target;
+    render();
     return;
   }
   if (msg.t === "state") {
     var prev = C.snap ? C.snap.phase : null;
-    C.snap = msg.state; C.link = "online";
+    // Nouveau tour ou revote : l'ancien choix n'a plus cours. On l'oublie sans
+    // attendre, sinon le libellé afficherait le vote du scrutin précédent.
+    var pk = C.snap ? (C.snap.turn + ":" + (C.snap.vote ? C.snap.vote.round : 0)) : null;
+    var nk = msg.state.turn + ":" + (msg.state.vote ? msg.state.vote.round : 0);
+    if (pk !== null && pk !== nk) C.myVote = null;
+    C.snap = scrubSnap(msg.state); C.link = "online";
     adoptRoster(); syncClientScreen();
     clientPhaseFX(prev, msg.state.phase);
     render();
     return;
   }
   if (msg.t === "secret") {
-    C.secret = { turn: msg.turn, word: msg.word, isMrWhite: msg.isMrWhite, category: msg.category };
+    C.secret = { turn: msg.turn, word: escN(msg.word), isMrWhite: msg.isMrWhite, category: escN(msg.category) };
     C.wordShown = false; saveClientSave(); requestWake(); render();
     return;
   }
@@ -320,17 +390,29 @@ function clientMwSend() {
 
 function clientVote(target) {
   if (!C.snap) return;
-  C.myVote = target;
+  C.myVote = target;   // provisoire : l'hôte confirmera par `yourvote`
   NET.toHost({ v: PROTO_V, t: "vote", target: target, turn: C.snap.turn, round: (C.snap.vote && C.snap.vote.round) || 0 });
   SND.click(); VIB(30);
   render();
+}
+
+// Retirer son vote est un ACTE, pas un changement d'affichage : l'hôte doit
+// l'enregistrer, sinon la voix reste comptée et le scrutin peut se clore alors
+// que le joueur croit être en train de choisir.
+function clientUnvote() {
+  if (!C.snap) return;
+  NET.toHost({ v: PROTO_V, t: "unvote", turn: C.snap.turn, round: (C.snap.vote && C.snap.vote.round) || 0 });
+  SND.click(); VIB(20);
 }
 
 function renderClientVote() {
   var v = C.snap.vote || {};
   var cands = v.candidates || [];
   var voted = v.votedIds || [];
-  var iVoted = C.myVote !== null && C.myVote !== undefined;
+  // « Ai-je voté ? » se lit dans l'état de l'hôte, jamais dans une variable
+  // locale : C.myVote ne survit ni à un rechargement ni à une reconnexion, et
+  // l'écran mentait alors au joueur dans les deux sens.
+  var iVoted = voted.indexOf(C.playerId) !== -1;
   var waiting = (C.snap.roster || []).filter(function (r) {
     return r.alive && r.connected && voted.indexOf(r.id) === -1;
   });
@@ -342,8 +424,9 @@ function renderClientVote() {
     '<p class="color-dim4 fs13 mb12">' + (v.round ? "Égalité — départage entre les ex æquo." : "Ton vote est secret.") + "</p>" +
     (iVoted
       ? '<div class="icon-med">🗳️</div><p class="color-cyan fs15 fw600 mb6">Tu as voté ' +
-        (C.myVote === -1 ? "« personne »" : "pour <strong>" + (S.nm[C.myVote] || "?") + "</strong>") + "</p>" +
-        '<button class="btn ghost mb10" onclick="C.myVote=null;render()">↺ Changer mon vote</button>' +
+        (C.myVote === null || C.myVote === undefined ? "— on attend la confirmation…"
+          : C.myVote === -1 ? "« personne »" : "pour <strong>" + (S.nm[C.myVote] || "?") + "</strong>") + "</p>" +
+        '<button class="btn ghost mb10" onclick="clientUnvote()">↺ Changer mon vote</button>' +
         (waiting.length ? '<p class="color-dim fs12">En attente de ' + waiting.map(function (r) { return r.name; }).join(", ") + "</p>"
                         : '<p class="color-cyan fs13">Tout le monde a voté — dépouillement…</p>')
       : '<div class="flex flex-col gap6 mb10">' + cands.map(function (id) {
@@ -401,6 +484,7 @@ function clientResume() {
   if (!sv || !sv.code || !sv.token) return false;
   S.mode = "client";
   C.code = sv.code; C.token = sv.token; C.playerId = sv.playerId;
+  C.joinId = sv.joinId || null;
   C.name = sv.name || ""; C.secret = sv.secret || null;
   C.screen = "connecting"; C.link = "connecting"; C._retries = 0;
   if (!NET.use("peerjs")) { C.screen = "error"; C.err = "lib"; render(); return true; }
@@ -439,6 +523,10 @@ var REJECT_MSG = {
   started: "La partie a déjà commencé.",
   name_taken: "Ce pseudo est déjà pris.",
   kicked: "L'hôte t'a retiré de la partie.",
+  // Le même téléphone a rouvert la partie ailleurs — autre onglet, ou
+  // l'application installée à côté du navigateur. Une seule fenêtre tient le
+  // siège, sinon les deux se le volent et les votes partent au hasard.
+  replaced: "Cette partie est ouverte dans une autre fenêtre. C'est elle qui tient ta place.",
   "no-room": "Aucune partie trouvée avec ce code.",
   unknown_token: "Session expirée.",
   version: "Version incompatible — recharge la page."
@@ -454,7 +542,7 @@ function renderClient() {
       '<div class="setup-section"><label class="lbl"><span class="lbl-a">01</span> CODE DE LA PARTIE</label>' +
       '<input type="text" id="jcode" class="code-input" maxlength="6" autocapitalize="characters" autocomplete="off" placeholder="XK7P2M" value="' + (C.code || "") + '"></div>' +
       '<div class="setup-section"><label class="lbl"><span class="lbl-a">02</span> TON PSEUDO</label>' +
-      '<input type="text" id="jname" maxlength="20" placeholder="Ton prénom" value="' + (C.name || myName() || "") + '"></div>' +
+      '<input type="text" id="jname" maxlength="20" placeholder="Ton prénom" value="' + esc(C.name || myName() || "") + '"></div>' +
       (C.err ? '<p class="err-msg">⚠ ' + rejectText(C.err) + "</p>" : "") +
       '<button class="btn glow" onclick="var c=document.getElementById(\'jcode\').value,n=document.getElementById(\'jname\').value;if(!c.trim()||!n.trim()){C.err=\'Code et pseudo requis.\';render();return}clientJoin(c,n)">▶ REJOINDRE</button>' +
       '<button class="btn ghost" onclick="S.mode=\'solo\';location.hash=\'\';S.phase=\'splash\';render()">← Retour</button>' +
@@ -689,7 +777,7 @@ function bootFromHash() {
   var sv = loadClientSave();
   // Déjà connu de cette salle : on se reconnecte sans repasser par le pseudo.
   if (sv && sv.code === C.code && sv.token) {
-    C.token = sv.token; C.playerId = sv.playerId;
+    C.token = sv.token; C.playerId = sv.playerId; C.joinId = sv.joinId || null;
     C.name = sv.name || ""; C.secret = sv.secret || null;
     C.screen = "connecting"; C.link = "connecting"; C._retries = 0;
     if (NET.use("peerjs")) { checkForUpdate(); requestWake(); NET.join(C.code, clientHandlers()); }

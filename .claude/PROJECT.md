@@ -298,8 +298,52 @@ Chacun joue sur son propre téléphone. Le choix se fait à l'entrée de l'appli
 
 Enveloppe `{v:1, t:<type>, …}`.
 
-**Client → hôte** : `hello {token,name}` · `vote {target,turn,round}` · `spoke {on}` · `mw_answer {guess,turn}` · `set_name` · `ping` · `leave`
-**Hôte → client** : `welcome {token,playerId,roomCode,state}` · `reject {reason}` · `state <Snapshot>` · **`secret {turn,word,isMrWhite,category}` — ciblé uniquement** · `timer {action,remaining}` · `pong`
+**Client → hôte** : `hello {token,joinId,name}` · `vote {target,turn,round}` · `unvote {turn,round}` · `spoke {on}` · `clue {text,turn}` · `mw_answer {guess,turn}` · `set_name` · `buzz` · `ping` · `leave`
+**Hôte → client** : `welcome {token,playerId,roomCode,state}` · `reject {reason}` · `state <Snapshot>` · `seat {playerId}` · **`secret {turn,word,isMrWhite,category}` — ciblé uniquement** · **`yourvote {turn,round,target}` — ciblé uniquement** · `timer {action,remaining}` · `buzzed` · `pong`
+
+### Identité — les cinq règles
+
+Une session ne doit **jamais** glisser d'un joueur à l'autre. Cinq garde-fous, chacun corrigeant un cas observé :
+
+1. **Un siège par connexion.** `hostHello()` refuse de créer un second siège pour un `connId` déjà assis et renvoie le `welcome` du siège existant. Sans ça, une connexion pouvait s'attribuer les douze sièges en douze `hello` — et comme `sendSecretTo()` vise `seat.connId`, elle recevait au lancement autant de mots secrets. Deux suffisaient à connaître toute la paire.
+2. **Jointure idempotente par `joinId`.** Le token n'existe qu'à partir du `welcome` : si le canal meurt entre le `hello` et le `welcome`, le client revient avec un token nul, sur une **nouvelle** connexion. Le `joinId`, tiré par le client avant son premier `hello` et persisté dans `uc_net_client`, permet à l'hôte de reconnaître la même tentative. C'est un secret au même titre que le token — jamais dans le snapshot.
+3. **Reprise de siège explicite.** `uc_net_client` est partagé par tous les onglets d'un navigateur, et entre la PWA installée et l'onglet ordinaire : deux contextes présentent le **même token**. `attachSeat()` réassigne le siège au dernier arrivé puis évince l'ancien par `reject:"replaced"`. **L'ordre compte** : réassigner d'abord, fermer ensuite, sinon l'événement de fermeture retrouve encore le siège par son ancien `connId`. Le client évincé, lui, **ne vide pas** `uc_net_client` — il est partagé avec le gagnant.
+4. **Un siège exclu ne se rouvre pas.** `kickPlayer()` pose `kicked`, `hostHello()` le consulte. Le token restait valide sans ça.
+5. **Le lobby retire ses fantômes.** `hostSweep()` **supprime** un siège muet depuis 20 s en phase `lobby`, là où en partie il le conserve pour le retour du joueur. Un fantôme gonflait `S.pc` et faisait distribuer un rôle à personne.
+
+### Vote — l'état vient de l'hôte
+
+`iVoted` se dérive de `snapshot().vote.votedIds`, **jamais** d'une variable locale : `C.myVote` ne survit ni au rechargement ni à la reconnexion, et l'écran mentait alors dans les deux sens.
+
+« Pour qui » voyage par **message ciblé `yourvote`**, comme les mots secrets — à l'acquittement d'un vote, après un retrait, et à chaque reconnexion. Le snapshot ne publie que `votedIds`. Y glisser une seule cible ruinerait le secret du vote.
+
+`unvote` est un vrai message : changer d'avis reste permis, mais l'hôte l'enregistre. Avant, le bouton « Changer mon vote » se contentait d'effacer un affichage local — l'hôte gardait la voix, la comptait dans `allVoted()`, et pouvait clore le scrutin pendant que le joueur croyait choisir.
+
+**L'hôte joue selon les mêmes règles** : `hostVote()` / `hostUnvote()`, et son bloc de vote reste affiché après son choix.
+
+### Ce que l'hôte refuse
+
+| Message | Contrôle |
+|---|---|
+| `clue` | phase `playing`, joueur vivant, tour courant, **et aucun indice déjà donné** — sinon on lisait le tableau des autres avant de réécrire le sien |
+| `spoke` | phase `playing`, joueur vivant |
+| `vote` / `unvote` | phase `vote`, tour **et** round courants, votant vivant, cible parmi les candidats |
+| `mw_answer` | phase `mrwhite_guess`, expéditeur = le Mr. White démasqué |
+| `set_name` | phase `lobby` uniquement |
+| `buzz` | emoji sur liste blanche, cible existante, pas soi-même, délai respecté |
+| **tous** | `connRateOk(cid)` — 12 messages/s par connexion. Le `ping` en est exempté et rafraîchit `lastSeen` **avant** tout filtrage, sinon le balayeur déclarerait mort un joueur présent. |
+
+L'expéditeur est **toujours** déterminé par `seatByConn(cid)`, jamais par un identifiant annoncé.
+
+### Assainissement
+
+Côté hôte, rien n'entre dans `S` sans filtrage : `cleanName()`, `submitClue()` et `mw_answer` retirent `<>&"`.
+
+Côté client, `scrubSnap()` échappe **à l'entrée** tout ce qui arrive de l'hôte — noms, indices, catégorie, faute, récapitulatif, fin de partie, proposition du Mr. White — plutôt qu'aux quinze points de rendu, qui s'oublient au prochain écran ajouté. Un hôte honnête filtre déjà ; un hôte modifié contrôle le snapshot en entier et exécuterait sinon du script chez tous ses joueurs. `escN()` préserve `null`, faute de quoi le mot absent de Mr. White deviendrait une chaîne vide et basculerait l'écran affiché.
+
+### Tirage aléatoire
+
+`newRoomCode()`, `newToken()` et le `joinId` passent par `crypto.getRandomValues` via `randBytes()`. `Math.random` ne convenait pas : son état se reconstitue à partir de quelques sorties, et les trois valeurs viennent du même flux — un joueur connaissant son token pourrait déduire ceux des autres, donc leur siège, donc leur mot. Le code de salle **rejette les tirages ≥ 240** : 256 n'est pas multiple de 30, et un simple modulo ferait sortir les 16 premiers caractères 12,5 % plus souvent.
 
 ### Fonctions clés
 
@@ -419,7 +463,7 @@ Un ping privé **ne figure jamais dans le snapshot**, qui est diffusé à tous �
 ### Stockage
 
 - `uc_net_host` : `{code, seats, S (complet moins tid/net), savedAt}` — throttlé à 1/s, purgé après 6 h
-- `uc_net_client` : `{code, token, playerId, name, secret}`
+- `uc_net_client` : `{code, token, joinId, playerId, name, secret}` — **partagé entre les onglets d'un même navigateur**, d'où la règle de reprise de siège explicite
 
 ### CSP — piège de déploiement confirmé en production
 

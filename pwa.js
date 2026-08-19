@@ -79,23 +79,34 @@ function installPWA() {
 
   if (!("serviceWorker" in navigator)) return;
 
+  // « Y avait-il DÉJÀ un service worker aux commandes quand cette page s'est
+  // chargée ? » — la seule question qui distingue une mise à jour d'une
+  // première installation, et il faut la poser MAINTENANT.
+  //
+  // Le piège : sw.js appelle skipWaiting() puis clients.claim(), donc à la
+  // toute première visite le contrôleur passe de null au worker fraîchement
+  // installé — ce qui déclenche `controllerchange` exactement comme une vraie
+  // mise à jour. Tout nouveau joueur se voyait donc annoncer une « nouvelle
+  // version » à sa première connexion. Relire navigator.serviceWorker.controller
+  // depuis les écouteurs ne sert à rien : à ce moment-là il est déjà renseigné.
+  var hadController = !!navigator.serviceWorker.controller;
+
   navigator.serviceWorker.register("./sw.js").then(function (reg) {
     // Une version déjà en attente au chargement.
-    if (reg.waiting && navigator.serviceWorker.controller) showUpdateBanner();
+    if (reg.waiting && hadController) showUpdateBanner();
 
     reg.addEventListener("updatefound", function () {
       var nw = reg.installing;
       if (!nw) return;
       nw.addEventListener("statechange", function () {
-        // controller absent = première installation, rien à signaler.
-        if (nw.state === "installed" && navigator.serviceWorker.controller) showUpdateBanner();
+        if (nw.state === "installed" && hadController) showUpdateBanner();
       });
     });
   }).catch(function () {});
 
   var reloaded = false;
   navigator.serviceWorker.addEventListener("controllerchange", function () {
-    if (reloaded) return;
+    if (reloaded || !hadController) return;   // première installation : rien à signaler
     reloaded = true;
     showUpdateBanner();
   });

@@ -12,17 +12,40 @@
 
 var PROTO_V = 1;
 
+// Tirage aléatoire des SECRETS — code de salle, token de siège, joinId.
+//
+// Math.random ne convient pas ici : son état interne se reconstitue à partir de
+// quelques sorties, et ces trois valeurs proviendraient du même flux. Un joueur
+// qui connaît son propre token pourrait en déduire ceux des autres — donc leur
+// siège, donc leur mot. L'attaque est laborieuse ; le remplacement fait trois
+// lignes, ce qui coûte moins cher que d'en débattre.
+//
+// crypto est garanti présent : WebRTC exige déjà un contexte sécurisé, et sans
+// WebRTC il n'y a pas de salle du tout. Le repli ne sert qu'aux bancs d'essai.
+function randBytes(n) {
+  var a = new Uint8Array(n);
+  if (typeof crypto !== "undefined" && crypto.getRandomValues) crypto.getRandomValues(a);
+  else for (var i = 0; i < n; i++) a[i] = Math.floor(Math.random() * 256);
+  return a;
+}
+
 // Sans 0/O/1/I/L : évite les erreurs de recopie manuelle du code de salle.
 var ROOM_CHARS = "23456789ABCDEFGHJKMNPQRSTVWXYZ";
 function newRoomCode() {
-  var s = "";
-  for (var i = 0; i < 6; i++) s += ROOM_CHARS.charAt(Math.floor(Math.random() * ROOM_CHARS.length));
+  // Rejet des tirages ≥ 240 : 256 n'est pas un multiple de 30, et un simple
+  // modulo favoriserait les six premiers caractères de l'alphabet.
+  var s = "", b = randBytes(24), i = 0;
+  while (s.length < 6) {
+    if (i >= b.length) { b = randBytes(24); i = 0; }
+    var x = b[i++];
+    if (x < 240) s += ROOM_CHARS.charAt(x % 30);
+  }
   return s;
 }
 function newToken() {
-  var s = "";
-  for (var i = 0; i < 16; i++) s += "0123456789abcdef".charAt(Math.floor(Math.random() * 16));
-  return s;
+  var b = randBytes(8), s = "";
+  for (var i = 0; i < b.length; i++) s += (b[i] + 0x100).toString(16).slice(1);
+  return s;   // 16 caractères hexadécimaux, 64 bits
 }
 
 var NET = (function () {
@@ -253,6 +276,15 @@ function seatByConn(cid) {
   for (var i = 0; i < s.length; i++) if (s[i].connId === cid) return i;
   return -1;
 }
+// Le joinId est tiré par le CLIENT avant son tout premier hello, là où le token
+// n'existe pas encore. Il est de même nature que le token — un secret, jamais
+// diffusé dans le snapshot — et sert uniquement à rendre la jointure idempotente.
+function seatByJoinId(jid) {
+  if (!jid) return -1;
+  var s = S.net.seats;
+  for (var i = 0; i < s.length; i++) if (s[i].joinId === jid) return i;
+  return -1;
+}
 function cleanName(n) {
   n = String(n || "").replace(/[<>&"]/g, "").trim().slice(0, 20);
   return n || "Joueur";
@@ -329,23 +361,71 @@ function hostSweep() {
     if (s.isHost || !s.connected) return;
     if (now - (s.lastSeen || 0) > 20000) { s.connected = false; s.connId = null; changed = true; }
   });
+
+  // EN LOBBY, un siège muet est retiré, pas seulement marqué déconnecté. Sinon
+  // un siège fantôme — issu d'une tentative de jointure avortée, ou d'un joueur
+  // parti sans que le transport le signale — reste dans le roster, gonfle S.pc,
+  // et l'hôte lance une partie où un rôle est distribué à personne.
+  // En partie c'est l'inverse : le siège DOIT survivre, le joueur revient avec
+  // son token et retrouve sa place.
+  if (S.phase === "lobby") {
+    var before = S.net.seats.length;
+    S.net.seats = S.net.seats.filter(function (s) {
+      return s.isHost || s.connected || now - (s.lastSeen || 0) <= 20000;
+    });
+    if (S.net.seats.length !== before) { pushSeatIds(); syncRoster(); changed = true; }
+  }
+
   if (changed) render();
+}
+
+// Limitation de débit, par CONNEXION. Chaque message d'état déclenche un
+// render(), donc un snapshot rediffusé à toute la table : un client modifié qui
+// spamme `spoke`, `vote` ou `hello` sature l'onglet de l'hôte, et avec lui la
+// partie de tout le monde. Même principe que pingReady(), étendu au reste.
+//
+// La clé est le connId et non l'indice de siège : un siège retiré en lobby
+// décale tous les suivants, et le compteur d'un joueur se serait appliqué à son
+// voisin. Le connId, lui, ne désigne jamais qu'un seul pair.
+//
+// 12 messages/seconde : très au-dessus de ce qu'un doigt humain produit, très
+// en dessous de ce qu'il faut pour nuire. Le dépassement est ignoré en silence.
+var CONN_MSG_MAX = 12, _connRate = {};
+function connRateOk(cid) {
+  var now = Date.now(), r = _connRate[cid];
+  if (!r || now - r.at >= 1000) { _connRate[cid] = { at: now, n: 1 }; return true; }
+  r.n++;
+  return r.n <= CONN_MSG_MAX;
 }
 
 function hostOnMsg(cid, msg) {
   if (!msg || msg.v !== PROTO_V) return;
-  if (msg.t === "hello") { hostHello(cid, msg); return; }
 
+  // Tout message d'un siège connu vaut signe de vie — le battement de cœur y
+  // compris. C'est ce qui empêche le balayeur de déclarer mort un joueur
+  // parfaitement présent : à mettre à jour AVANT tout filtrage.
   var si = seatByConn(cid);
-  if (si === -1) return;
-  S.net.seats[si].lastSeen = Date.now();
-  if (!S.net.seats[si].connected) { S.net.seats[si].connected = true; render(); }
+  if (si !== -1) {
+    S.net.seats[si].lastSeen = Date.now();
+    if (!S.net.seats[si].connected) { S.net.seats[si].connected = true; render(); }
+  }
 
+  // Le battement de cœur passe avant le compteur : il est régulier, borné, et
+  // le bloquer ferait croire au client que le lien est mort.
   if (msg.t === "ping") { NET.send(cid, { v: PROTO_V, t: "pong" }); return; }
+  if (!connRateOk(cid)) return;
+
+  if (msg.t === "hello") { hostHello(cid, msg); return; }
+  if (si === -1) return;
+
   // Chacun se coche lui-même quand il a fini de parler — l'hôte peut toujours
   // le faire à sa place depuis son écran.
   if (msg.t === "spoke") {
+    // Bornée comme `clue` : hors du débat ou une fois éliminé, se cocher n'a
+    // aucun sens et ne servait qu'à polluer la liste d'attente des autres.
+    if (S.phase !== "playing") return;
     var pid = si + 1;
+    if (S.alive.indexOf(pid) === -1) return;
     var k = S.spoken.indexOf(pid);
     if (msg.on === false) { if (k !== -1) S.spoken.splice(k, 1); }
     else if (k === -1) S.spoken.push(pid);
@@ -368,8 +448,25 @@ function hostOnMsg(cid, msg) {
     if (msg.target !== -1 && cands.indexOf(msg.target) === -1) return;
     if (msg.target === -1 && (!S.skipvote || S.voteCands)) return;
     S.votes[voter] = msg.target;
+    // Accusé de réception CIBLÉ : le client n'affiche jamais un vote que l'hôte
+    // n'a pas enregistré. Un vote refusé plus haut (tour périmé) laisse donc
+    // l'écran sur les boutons, au lieu d'annoncer un choix qui n'existe pas.
+    sendYourVoteTo(voter);
     render();
     if (allVoted()) closeVote();
+    return;
+  }
+  // Changer d'avis est permis — le bouton existe déjà côté joueur — mais ça
+  // doit passer par l'hôte. Avant, « Changer mon vote » ne faisait qu'effacer un
+  // affichage local : l'hôte gardait la voix, la comptait dans allVoted(), et
+  // pouvait clore le scrutin pendant que le joueur croyait choisir.
+  if (msg.t === "unvote") {
+    if (S.phase !== "vote" || msg.turn !== S.turn || msg.round !== S.round) return;
+    var uv = si + 1;
+    if (S.votes[uv] === undefined) return;
+    delete S.votes[uv];
+    sendYourVoteTo(uv);
+    render();
     return;
   }
   if (msg.t === "mw_answer") {
@@ -388,21 +485,67 @@ function hostOnMsg(cid, msg) {
   if (msg.t === "leave") { hostOnClose(cid); return; }
 }
 
+// Un seul chemin pour « ce hello concerne un siège qui existe déjà » — reprise
+// par token, rejointure idempotente par joinId, ou hello répété sur une
+// connexion déjà assise. Les trois doivent produire exactement le même welcome,
+// sinon un client repartirait avec un état partiel selon la porte empruntée.
+function attachSeat(si, cid) {
+  var seat = S.net.seats[si];
+
+  // REPRISE EXPLICITE. uc_net_client est partagé par tous les onglets d'un même
+  // navigateur — et entre la PWA installée et l'onglet ordinaire : deux
+  // contextes présentent donc le MÊME token. Sans éviction, ils se volaient
+  // seat.connId à tour de rôle et les votes partaient de celui qui avait parlé
+  // en dernier. On tranche : le dernier arrivé prend le siège, et l'ancien
+  // l'apprend au lieu de continuer à écrire dans le vide.
+  //
+  // L'ordre compte : on réassigne AVANT de fermer l'ancienne connexion, sinon
+  // l'événement de fermeture retrouverait encore le siège par son ancien connId
+  // et le marquerait déconnecté — voire le retirerait, en lobby.
+  var old = seat.connId;
+  seat.connId = cid;
+  seat.connected = true;
+  seat.lastSeen = Date.now();
+  if (old && old !== cid) {
+    NET.send(old, { v: PROTO_V, t: "reject", reason: "replaced" });
+    NET.kick(old);
+  }
+
+  NET.send(cid, { v: PROTO_V, t: "welcome", build: (typeof BUILD === "string" ? BUILD : ""), token: seat.token, playerId: si + 1, roomCode: S.net.code, state: snapshot() });
+  // Il revient en pleine partie : on lui renvoie immédiatement son mot, son
+  // vote et l'état du timer, sinon il resterait devant un écran vide — ou, pire,
+  // devant un écran qui lui propose de voter alors que c'est déjà fait.
+  if (S.phase !== "lobby" && S.alive.indexOf(si + 1) !== -1) {
+    sendSecretTo(si + 1);
+    sendYourVoteTo(si + 1);
+    if (S.timer && S.trem > 0) NET.send(cid, { v: PROTO_V, t: "timer", action: "start", remaining: S.trem });
+  }
+  render();
+}
+
 function hostHello(cid, msg) {
-  // Reconnexion : le token retrouve le siège, la connexion est réattachée.
+  // 1. Reprise par token — le joueur revient avec son identité.
   var si = msg.token ? seatByToken(msg.token) : -1;
+
+  // 2. Rejointure idempotente par joinId. Le token n'existe qu'À PARTIR du
+  //    welcome : si le canal meurt entre le hello et le welcome, le client
+  //    revient avec un token toujours nul, sur une NOUVELLE connexion — et
+  //    créait donc un second siège. Le joinId, tiré par le client avant son
+  //    premier hello, donne à l'hôte de quoi reconnaître la même tentative.
+  if (si === -1 && msg.joinId) si = seatByJoinId(msg.joinId);
+
+  // 3. Hello répété sur une connexion qui possède déjà un siège. Sans ce
+  //    garde-fou, une seule connexion pouvait s'attribuer les douze sièges en
+  //    envoyant douze hello — et comme sendSecretTo() vise seat.connId, elle
+  //    recevait au lancement autant de mots secrets que de sièges. Deux
+  //    suffisaient : deux mots différents, c'est toute la paire.
+  if (si === -1) si = seatByConn(cid);
+
   if (si !== -1) {
-    S.net.seats[si].connId = cid;
-    S.net.seats[si].connected = true;
-    S.net.seats[si].lastSeen = Date.now();
-    NET.send(cid, { v: PROTO_V, t: "welcome", build: (typeof BUILD === "string" ? BUILD : ""), token: S.net.seats[si].token, playerId: si + 1, roomCode: S.net.code, state: snapshot() });
-    // Il revient en pleine partie : on lui renvoie immédiatement son mot et
-    // l'état du timer, sinon il resterait devant un écran vide.
-    if (S.phase !== "lobby" && S.alive.indexOf(si + 1) !== -1) {
-      sendSecretTo(si + 1);
-      if (S.timer && S.trem > 0) NET.send(cid, { v: PROTO_V, t: "timer", action: "start", remaining: S.trem });
-    }
-    render();
+    // Un siège exclu ne se rouvre JAMAIS. Sans ça, l'exclu relançait
+    // l'application et récupérait sa place : son token restait valide.
+    if (S.net.seats[si].kicked) { NET.send(cid, { v: PROTO_V, t: "reject", reason: "kicked" }); return; }
+    attachSeat(si, cid);
     return;
   }
 
@@ -413,7 +556,7 @@ function hostHello(cid, msg) {
   if (nameTaken(name)) { NET.send(cid, { v: PROTO_V, t: "reject", reason: "name_taken" }); return; }
 
   var tok = newToken();
-  S.net.seats.push({ token: tok, name: name, connId: cid, connected: true, isHost: false, lastSeen: Date.now() });
+  S.net.seats.push({ token: tok, joinId: msg.joinId || null, name: name, connId: cid, connected: true, isHost: false, lastSeen: Date.now() });
   syncRoster();
   NET.send(cid, { v: PROTO_V, t: "welcome", build: (typeof BUILD === "string" ? BUILD : ""), token: tok, playerId: S.net.seats.length, roomCode: S.net.code, state: snapshot() });
   SND.ping(); VIB(20);
@@ -453,6 +596,26 @@ function sendSecretTo(pid) {
     word: t.word,                       // null pour Mr. White
     isMrWhite: t.role === "mrwhite",
     category: S.cat ? S.ct : null
+  });
+}
+
+// « Pour qui ai-je voté ? » suit exactement le même chemin qu'un mot secret :
+// message CIBLÉ, jamais le snapshot. Le snapshot ne publie que votedIds — qui a
+// voté, jamais pour qui — et c'est ce qui rend le vote secret ; y glisser la
+// cible, même une seule, ruinerait la propriété.
+//
+// Sans ça, le client déduisait son propre vote d'une variable locale que rien ne
+// persistait : un téléphone verrouillé pendant le vote — le cas NORMAL —
+// revenait sur un écran « à toi de voter » alors que sa voix était déjà comptée.
+function sendYourVoteTo(pid) {
+  if (S.mode !== "host" || !S.net) return;
+  var seat = S.net.seats[pid - 1];
+  if (!seat || seat.isHost || !seat.connId) return;
+  var v = S.votes ? S.votes[pid] : undefined;
+  NET.send(seat.connId, {
+    v: PROTO_V, t: "yourvote",
+    turn: S.turn, round: S.round || 0,
+    target: v === undefined ? null : v
   });
 }
 
