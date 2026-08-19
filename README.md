@@ -102,11 +102,11 @@ Les paires jouées ne se répètent pas avant épuisement complet du pool (ou du
 
 ## Fonctionnalités
 
-- **Multi-appareils** — QR code, code de salle à 6 caractères, lobby live, reconnexion automatique après verrouillage du téléphone, reprise de la salle après rechargement de l'hôte
+- **Multi-appareils** — QR code, code de salle à 6 caractères, lobby live, reconnexion automatique après verrouillage du téléphone, reprise de la salle après rechargement de l'hôte. **Une place appartient à un seul joueur** : ouvrir la partie dans une seconde fenêtre déplace la place au lieu de dédoubler la session, un exclu ne revient pas, et un siège laissé vide dans le salon se libère tout seul
 - **Indices écrits** *(multi-appareils)* — chacun tape son indice sur son téléphone : la partie garde une trace de ce qui a été dit, et **prononcer son propre mot élimine sur-le-champ** — et la catégorie aussi, quand elle est cachée. **Activé d'office à l'ouverture d'une salle** (c'est l'intérêt même d'avoir chacun son écran), l'hôte reste libre de le couper
 - **Récapitulatif final** — toutes les paires jouées, tour par tour, hôte comme joueurs
 - **Wizz** *(multi-appareils)* — 🔔 pour dire « accélère », 💀 pour mettre la pression, sur un joueur ou toute la table. Plein écran une seconde, avec zoom et tremblement. Vu par tous avec décompte sur le nom visé, ou en privé. Délai anti-matraquage paramétrable, et un mode **« wizz ultime »** qui fait trembler la page entière
-- **Vote secret** — chacun vote sur son écran, **avec rappel des indices donnés**, dépouillement animé, revote en cas d'égalité, option « vote à découvert » montrant qui a voté pour qui
+- **Vote secret** — chacun vote sur son écran, **avec rappel des indices donnés**, dépouillement animé, revote en cas d'égalité, option « vote à découvert » montrant qui a voté pour qui. On peut changer d'avis tant que le scrutin est ouvert, **l'hôte compris** ; un téléphone verrouillé puis rallumé retrouve son vote au lieu de le proposer une seconde fois
 - **Options persistantes** — nombre de joueurs, noms, timer, modes et filtres restaurés au rechargement ; le pseudo est mémorisé sur l'appareil et pré-rempli à chaque connexion
 - **Filtre de catégories** — active/désactive chacune des 48 catégories, avec le nombre de paires par catégorie et la taille du pool résultant
 - **Ordre de parole** — affiché pendant le débat ; tap sur un nom pour le cocher (a parlé) ; bouton pour tout décocher
@@ -118,7 +118,7 @@ Les paires jouées ne se répètent pas avant épuisement complet du pool (ou du
 - **Règles en jeu** — bouton « ? » flottant sur tous les écrans, hôte comme joueurs : rappel du principe, du déroulé et surtout du fait que **les rôles ne changent jamais alors que les mots changent à chaque tour**
 - **Splash screen** — boot log animé au premier chargement
 - **Bouton Abandonner** — disponible pendant le débat (avec confirmation modale)
-- **PWA** — installable sur mobile via un bouton dédié, **avis de mise à jour plein écran** quand une nouvelle version est prête, **vérification forcée à chaque connexion à une salle** et alerte si l'hôte tourne sur une autre version, détection du hors-ligne
+- **PWA** — installable sur mobile via un bouton dédié, **avis de mise à jour plein écran** quand une nouvelle version est prête — et jamais à la première visite, **vérification forcée à chaque connexion à une salle** et alerte si l'hôte tourne sur une autre version, détection du hors-ligne
   | Mode | Hors ligne |
   |---|---|
   | Un seul téléphone | ✅ complet, les 816 paires sont embarquées |

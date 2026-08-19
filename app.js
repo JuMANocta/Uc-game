@@ -55,7 +55,7 @@ var DB=[
 
 // Estampille affichée sur l'accueil : permet de vérifier d'un coup d'oeil
 // quelle version le navigateur sert réellement (cache du service worker).
-var BUILD="v21-2026.08.16";
+var BUILD="v22-2026.08.19";
 var app=document.getElementById("app");
 function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t}return b}
 function G(t,c){return '<span class="glitch '+(c||'')+'" data-text="'+t+'"><span>'+t+'</span></span>'}
@@ -711,7 +711,8 @@ var cands=S.voteCands||S.alive;
 var exp=votersExpected();
 var waiting=exp.filter(function(id){return S.votes[id]===undefined});
 var nv=Object.keys(S.votes).length;
-var meVotes=S.hostPlays&&S.alive.indexOf(1)!==-1&&S.votes[1]===undefined;
+var mePlays=S.hostPlays&&S.alive.indexOf(1)!==-1;
+var meVoted=S.votes[1]!==undefined;
 app.innerHTML='<div class="hline"></div>'+
 '<div class="flex flex-between mb10"><span class="tag">TOUR '+S.turn+'</span><span class="tag">'+nv+'/'+exp.length+' VOTES</span></div>'+
 '<h2 class="orb fs18 fw700 color-red mb6">'+G(S.round?"REVOTE":"VOTE EN COURS")+'</h2>'+
@@ -721,9 +722,12 @@ app.innerHTML='<div class="hline"></div>'+
 '<div class="flex gap4 flex-wrap flex-center mb8">'+exp.map(function(id){var v=S.votes[id]!==undefined;
 return '<span class="chip'+(v?" voted":" off")+'">'+(v?"✓ ":"⋯ ")+N(id)+'</span>'}).join("")+'</div>'+
 (waiting.length?'<p class="color-dim fs12 mb8">En attente de '+waiting.map(function(i){return N(i)}).join(", ")+'</p>':'<p class="color-cyan fs13 mb8">Tout le monde a voté.</p>')+
-(meVotes?'<p class="orb fs10 color-dim3 ls2 mb4">TON VOTE</p><div class="flex flex-col gap6 mb10">'+
- cands.map(function(id){return '<button class="vote-btn" onclick="hostVote('+id+')"><span>'+N(id)+'</span></button>'}).join("")+
- (S.skipvote&&!S.voteCands?'<button class="vote-btn skip" onclick="hostVote(-1)"><span>🚫 Personne</span></button>':'')+'</div>':'')+
+(mePlays?'<p class="orb fs10 color-dim3 ls2 mb4">TON VOTE</p>'+(meVoted
+ ?'<p class="color-cyan fs15 fw600 mb6">Tu as voté '+(S.votes[1]===-1?'« personne »':'pour <strong>'+N(S.votes[1])+'</strong>')+'</p>'+
+  '<button class="btn ghost mb10" onclick="hostUnvote()">↺ Changer mon vote</button>'
+ :'<div class="flex flex-col gap6 mb10">'+
+  cands.map(function(id){return '<button class="vote-btn" onclick="hostVote('+id+')"><span>'+N(id)+'</span></button>'}).join("")+
+  (S.skipvote&&!S.voteCands?'<button class="vote-btn skip" onclick="hostVote(-1)"><span>🚫 Personne</span></button>':'')+'</div>'):'')+
 (S.mode==="host"&&S.writeClues?(function(){
 var ids=S.ro.map(function(i){return S.tp[i]?S.tp[i].id:0}).filter(function(id){return id&&S.clues[id]});
 if(!ids.length)return'';
@@ -930,6 +934,12 @@ return new RegExp("(^| )"+esc+"[sx]?( |$)").test(c)})}
 function submitClue(pid,text){
 if(S.phase!=="playing"||!S.writeClues)return;
 if(S.alive.indexOf(pid)===-1)return;
+// UN SEUL indice par tour. L'interface masque déjà le champ une fois l'indice
+// donné, mais l'hôte ne l'imposait pas : un client modifié pouvait envoyer du
+// vague, lire le tableau des autres — les indices sont diffusés à tous — puis
+// réécrire le sien pour se fondre dans le lot. C'est exactement ce que l'option
+// « indices écrits » cherche à empêcher.
+if(S.clues[pid]!==undefined)return;
 var t=String(text||"").replace(/[<>&"]/g,"").slice(0,60).trim();
 if(!t)return;
 var tp=S.tp.filter(function(x){return x.id===pid})[0];
@@ -980,6 +990,13 @@ stopTimer();S.phase="vote";S.vt=null;render()}
 function hostVote(target){
 S.votes[1]=target;
 if(allVoted())closeVote();else render()}
+// L'hôte joue selon les mêmes règles que ses joueurs. Avant, son bloc de vote
+// disparaissait dès qu'il avait voté : il ne voyait même plus son propre choix,
+// et n'avait aucun moyen de le reprendre — alors que le client, lui, propose le
+// bouton depuis toujours.
+function hostUnvote(){
+if(S.phase!=="vote"||S.votes[1]===undefined)return;
+delete S.votes[1];SND.click();VIB(20);render()}
 
 function startVote(){
 S.phase="vote";S.votes={};S.round=0;S.voteCands=null;S.tally=null;
