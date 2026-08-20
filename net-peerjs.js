@@ -329,7 +329,10 @@ var PeerAdapter = (function () {
     var c = _conns[connId];
     if (c) { try { c.conn.close(); } catch (e) {} delete _conns[connId]; }
   }
-  function destroy() { killPeer(); _status = "off"; _mode = null; _code = null; _h = null; }
+  // destroy() clot la session : on redonne sa chance au serveur du domaine.
+  // Sans ce reset, refermer une salle puis en rouvrir une resterait sur le
+  // broker public jusqu'au rechargement de la page, meme serveur revenu.
+  function destroy() { killPeer(); _status = "off"; _mode = null; _code = null; _h = null; _own = true; }
   function status() { return _status; }
 
   return {
