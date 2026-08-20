@@ -157,7 +157,7 @@ fetch('vendor/peerjs.min.js', {cache:'no-store'}).then(function(r){
     return;
   }
   row('vendor/peerjs.min.js', Math.round(txt.length/1024)+' Ko — OK','ok');
-  loadAndTest();
+  askServerIce(function(){ loadAndTest(); });
 }).catch(function(e){
   log('  ✗ Échec : '+e.message);
   row('vendor/peerjs.min.js','INACCESSIBLE','ko');
@@ -166,6 +166,57 @@ fetch('vendor/peerjs.min.js', {cache:'no-store'}).then(function(r){
 });
 
 // ── Relais TURN : saisie sans passer par la console ─────────────
+// Le serveur du domaine : memes regles que net-peerjs.js, tout est deduit de
+// l'adresse de la page et rien n'est code en dur. diag.html etant autonome,
+// ces quelques lignes y sont volontairement dupliquees plutot qu'importees.
+function netBase() {
+  var p = location.pathname;
+  return p.slice(0, p.lastIndexOf('/') + 1);
+}
+function brokerConfig() {
+  if (location.protocol !== 'https:') return null;
+  return { host: location.hostname, port: location.port ? Number(location.port) : 443,
+           path: netBase() + 'peerjs', key: 'ucnet', secure: true };
+}
+
+var srvIce = null;
+var srvIceState = 'non teste';
+
+// Le serveur du domaine delivre-t-il des identifiants TURN ? C'est desormais
+// la question decisive : sans relais, les joueurs en donnees mobiles derriere
+// un NAT symetrique ne pourront pas etre joints, quel que soit l'annuaire.
+function askServerIce(cb) {
+  if (!brokerConfig()) { srvIceState = 'non applicable (page en http)'; cb(); return; }
+  log('Interrogation de ' + netBase() + 'ice...');
+  var done = false;
+  function finish() { if (!done) { done = true; cb(); } }
+  var t = setTimeout(function () {
+    srvIceState = 'aucune reponse en 5 s'; log('  ! pas de reponse'); finish();
+  }, 5000);
+  fetch(netBase() + 'ice', { cache: 'no-store' }).then(function (r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(function (j) {
+    clearTimeout(t);
+    if (j && j.iceServers && j.iceServers.length) {
+      srvIce = j;
+      var n = 0;
+      j.iceServers.forEach(function (x) {
+        var u = typeof x.urls === 'string' ? [x.urls] : (x.urls || []);
+        u.forEach(function (y) { if (/^turns?:/.test(y)) n++; });
+      });
+      srvIceState = n + ' relais fourni(s), identifiants valables ' + Math.round((j.ttl || 0) / 60) + ' min';
+      log('  + ' + srvIceState);
+    } else { srvIceState = 'reponse vide'; log('  ! reponse vide'); }
+    finish();
+  }).catch(function (e) {
+    clearTimeout(t);
+    srvIceState = 'absent (' + (e && e.message || e) + ')';
+    log('  ! ' + srvIceState);
+    finish();
+  });
+}
+
 function showTurnState() {
   var el = document.getElementById('turnState');
   try {
@@ -209,11 +260,14 @@ function iceRow(k, v, cls) {
   document.getElementById('ice').appendChild(d);
 }
 
+// Trois sources, comme dans le jeu : surcharge manuelle, puis le serveur du
+// domaine, puis le STUN public en dernier recours.
 function iceServers() {
   try {
     var c = JSON.parse(localStorage.getItem('uc_ice') || 'null');
     if (c && c.iceServers && c.iceServers.length) return c.iceServers;
   } catch (e) {}
+  if (srvIce && srvIce.iceServers && srvIce.iceServers.length) return srvIce.iceServers;
   return [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun.cloudflare.com:3478' }
@@ -260,6 +314,7 @@ function testIce() {
     if (done) return; done = true;
     try { pc.close(); } catch (e) {}
     var turn = turnDeclared();
+    iceRow('Relais du serveur', srvIceState, srvIce ? 'ok' : '');
     iceRow('Réseau local (host)', seen.host ? seen.host + ' candidat(s)' : 'aucun', seen.host ? 'ok' : 'ko');
     iceRow('STUN (srflx)', seen.srflx ? 'répond — IP publique connue' : 'AUCUNE réponse', seen.srflx ? 'ok' : 'ko');
     iceRow('TURN (relay)',
@@ -327,7 +382,10 @@ function openRoom(){
   log('Ouverture de la salle « ucgame-'+code+' »…');
   log('  (connexion au serveur d\'annuaire 0.peerjs.com)');
   var done=false;
-  var peer=new window.Peer('ucgame-'+code,{debug:0});
+  var b=brokerConfig(), opts={debug:0};
+  if(b){opts.host=b.host;opts.port=b.port;opts.path=b.path;opts.key=b.key;opts.secure=b.secure;}
+  log(b?('  -> annuaire du domaine : '+b.path):'  -> annuaire public 0.peerjs.com');
+  var peer=new window.Peer('ucgame-'+code,opts);
 
   var wd=setTimeout(function(){
     if(done)return; done=true;

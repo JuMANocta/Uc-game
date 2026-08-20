@@ -1,5 +1,5 @@
 // Bump CACHE à chaque déploiement pour purger les anciennes versions.
-var CACHE = 'uc-game-v22';
+var CACHE = 'uc-game-v23';
 var ASSETS = [
   './',
   './index.html',
@@ -51,6 +51,11 @@ self.addEventListener('activate', function(e) {
 self.addEventListener('fetch', function(e) {
   if (e.request.method !== 'GET') return;
   if (e.request.url.indexOf(self.location.origin) !== 0) return;
+
+  // Le signaling et les identifiants TURN ne passent JAMAIS par le cache.
+  // Un /ice servi depuis le cache livrerait des identifiants expirés, et le
+  // joueur se retrouverait sans relais sans qu'aucune erreur ne le signale.
+  if (/\/(peerjs|ice)(\/|\?|$)/.test(e.request.url)) return;
 
   e.respondWith(
     caches.match(e.request).then(function(cached) {

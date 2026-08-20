@@ -279,7 +279,7 @@ Chacun joue sur son propre téléphone. Le choix se fait à l'entrée de l'appli
 | Fichier | Rôle |
 |---|---|
 | `net.js` | Façade `NET`, protocole, `snapshot()`, session hôte, Wake Lock, cycle de vie |
-| `net-peerjs.js` | Adaptateur WebRTC — **seul fichier mentionnant `Peer`** |
+| `net-peerjs.js` | Adaptateur WebRTC — **seul fichier mentionnant `Peer`** ; localise le broker et les relais à partir de `location`, sans adresse en dur |
 | `client.js` | État `C` et `renderClient()` — écrans du joueur distant |
 | `qr.js` | `drawQR(canvas, texte)` — peint le QR sans passer par les helpers à `style=""` |
 | `vendor/peerjs.min.js` | PeerJS 1.5.5 (MIT), chargé paresseusement, précaché par le SW |
@@ -469,7 +469,9 @@ Un ping privé **ne figure jamais dans le snapshot**, qui est diffusé à tous �
 
 Une CSP restrictive bloque `wss://0.peerjs.com` **sans que le jeu puisse s'en apercevoir** : le navigateur coupe la connexion au niveau du WebSocket, PeerJS ne reçoit ni `open` ni `error`, et l'écran reste figé sur « ouverture de la salle ». Seule la console signale la violation.
 
-Directives requises : `connect-src https://0.peerjs.com wss://0.peerjs.com stun: turn:`, plus `style-src-elem https://fonts.googleapis.com` et `font-src https://fonts.gstatic.com` pour les polices. Voir le README pour l'exemple nginx complet.
+Directives requises : `connect-src wss://<domaine> https://0.peerjs.com wss://0.peerjs.com stun: turn: turns:`, plus `style-src-elem https://fonts.googleapis.com` et `font-src https://fonts.gstatic.com` pour les polices. Voir le README pour l'exemple nginx complet.
+
+Le premier terme couvre le serveur de signaling auto-hébergé ; les deux suivants restent nécessaires tant que le repli vers le broker public est actif.
 
 `diag.html` écoute `securitypolicyviolation` et nomme la directive fautive — c'est le seul moyen de diagnostiquer ce cas depuis le navigateur du joueur.
 
@@ -486,12 +488,15 @@ Fichier dédié : ni logique de jeu, ni transport, uniquement le dialogue avec l
 
 - **HTTPS obligatoire** (WebRTC) — bouton désactivé avec explication sinon.
 - **12 joueurs maximum** en multi (l'hôte tient N−1 `RTCPeerConnection`) ; le solo garde 20.
-- **Ports TURN filtrés sur mobile** : les relais de PeerJS n'écoutent que sur 3478, bloqué chez certains opérateurs (Free Mobile confirmé en test réel). `ICE_DEFAULT` dans `net-peerjs.js` ajoute des relais sur 80/443/TLS-443. Surcharge possible via `localStorage['uc_ice']` pour brancher un coturn personnel. `diag.html` rapporte les types de candidats obtenus — sans `relay`, la 4G échouera.
-- ~~TURN fourni par PeerJS~~ — **FAUX, vérifié par DNS** : `eu-0.turn.peerjs.com` et `us-0.turn.peerjs.com` ne résolvent pas. Les entrées existent dans la bibliothèque, aucun relais n'est joignable. C'est la cause des échecs constatés chez Free Mobile. Ne déclarer que du STUN vérifié ; un vrai TURN se branche via `localStorage['uc_ice']`
-- **Ancienne note erronée** : la 1.5 embarque `stun.l.google.com` **plus** `turn:eu-0/us-0.turn.peerjs.com` (identifiants `peerjs`/`peerjsp`) dans sa config ICE par défaut. Le NAT symétrique des opérateurs mobiles est donc relayé sans configuration. Serveurs publics gratuits, sans SLA : passer ses propres `iceServers` au constructeur pour s'en affranchir.
-  *(Note : une lecture antérieure de la doc concluait à tort à l'absence de TURN — un `grep` tronqué au premier `]` imbriqué masquait le second bloc `urls:[…]`.)*
+- **Aucun relais par défaut** — `eu-0.turn.peerjs.com` et `us-0.turn.peerjs.com` **ne résolvent pas en DNS** (vérifié). Les entrées existent dans la bibliothèque PeerJS, aucun relais n'est joignable. `ICE_DEFAULT` ne déclare donc que du STUN vérifié : déclarer un TURN mort ne sauve personne et retarde la négociation, le navigateur attendant chaque serveur injoignable avant de conclure.
+- **Sans TURN, la 4G échoue** — et c'est la seule explication du symptôme « ça marche chez lui mais pas chez moi ». Derrière un NAT symétrique (CGNAT mobile), deux pairs ne peuvent pas se joindre directement, **quel que soit l'annuaire**. Changer de broker n'y change rien : c'est un problème de chemin, pas d'annuaire.
+  *(L'ancienne note attribuant les échecs Free Mobile à un filtrage du port 3478 était une mauvaise conclusion : les relais visés n'existaient tout simplement pas.)*
+- **Trois sources ICE**, par priorité décroissante (`net-peerjs.js`) : `localStorage['uc_ice']` (surcharge manuelle) → `<répertoire>ice` (serveur du domaine, identifiants éphémères) → `ICE_DEFAULT` (STUN seul). `loadIce()` interroge le serveur **avant** de construire le `Peer` : les `iceServers` sont un argument du constructeur, les ajouter après coup n'a aucun effet.
+- **Le serveur du domaine est optionnel** — `brokerConfig()` le déduit de `location`, jamais d'adresse en dur. S'il ne répond pas (timeout de 7 s, ou erreur `network`/`server-error`/`socket-*`), on bascule sur le broker public pour le reste de la session. Côté client, un `peer-unavailable` déclenche aussi le repli : l'hôte a pu basculer de son côté, et il faut le chercher là où il est avant d'annoncer « salle introuvable ».
+- **`/ice` et `/peerjs` sont exclus du service worker** (`sw.js`) : le cache stale-while-revalidate y servirait des identifiants TURN expirés, sans qu'aucune erreur ne le signale.
+- `diag.html` rapporte les types de candidats obtenus — sans `relay`, la 4G échouera. C'est le test qui tranche.
 - **Pas de migration d'hôte** : répliquer la table des rôles sur un appareil de secours détruirait la confidentialité. Si l'hôte meurt, la partie est finie.
-- Le broker public `peerjs.com` sert d'annuaire : Internet est requis pour **établir** la liaison.
+- Un annuaire — le sien ou le broker public — est requis pour **établir** la liaison ; Internet reste donc nécessaire au démarrage. Une fois la liaison établie, les données passent en direct entre les appareils.
 
 ### Bancs d'essai
 
