@@ -171,11 +171,24 @@ uc-game/
 ├── vendor/
 │   ├── peerjs.min.js  # PeerJS 1.5.5 (MIT)
 │   └── qrcode.js      # qrcode-generator 1.4.4 (MIT)
-└── icons/
-    └── icon.svg       # Icône PWA
+├── icons/
+│   └── icon.svg       # Icône PWA
+└── tests/             # 15 bancs d'essai, 498 assertions
+    └── run.sh
 ```
 
 **Pas de build, pas de Node, pas de bundler.** Les deux bibliothèques tierces sont commitées dans `vendor/` : un `git pull` suffit à déployer. PeerJS n'est chargé qu'au moment où l'on choisit le multi-appareils, le mode solo ne paie pas ses 90 Ko.
+
+## Tests
+
+```bash
+./tests/run.sh          # les quinze suites
+./tests/run.sh t-p13    # une seule, avec son détail
+```
+
+`node` suffit — les suites n'introduisent aucune dépendance et ne changent rien au déploiement : elles chargent les fichiers du jeu dans un faux DOM, branchent un adaptateur réseau factice et pilotent l'horloge. Ni navigateur, ni WebRTC, ni réseau, donc un résultat déterministe en une seconde.
+
+Elles couvrent le protocole multi-appareils de bout en bout, et vérifient notamment qu'**aucun mot de joueur vivant ni rôle ne sort dans une diffusion**, qu'une place appartient à un seul joueur, et que l'avis de mise à jour se déclenche exactement quand il le doit — ni à la première visite, ni jamais.
 
 ### Content-Security-Policy
 

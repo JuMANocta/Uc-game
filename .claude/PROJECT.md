@@ -522,7 +522,22 @@ Fichier dédié : ni logique de jeu, ni transport, uniquement le dialogue avec l
 
 `t-p15` est le **seul** banc qui exerce réellement `net-peerjs.js` : tous les autres branchent un adaptateur factice et ne verraient donc jamais une régression sur le repli ou la configuration ICE. Il substitue `window.Peer` par un double qui capture les options du constructeur — c'est la couture qui permet d'affirmer *quel* annuaire est visé, sans réseau.
 
-⚠️ **Les suites ne sont pas versionnées dans le dépôt** : elles vivent dans le répertoire de travail de la session Claude et disparaissent avec elle.
+Elles vivent dans `tests/` et se lancent par `./tests/run.sh` (ou `./tests/run.sh t-p13` pour le détail d'une seule). **498 assertions.** Aucune dépendance : `node` suffit, il n'y a ni build ni gestionnaire de paquets à introduire.
+
+### L'avis de mise à jour — deux questions à ne pas confondre
+
+Cette zone a cassé **deux fois, dans les deux sens**. `t-p14` la verrouille désormais sur les deux fronts.
+
+| Question | Réponse | Sert à |
+|---|---|---|
+| Un worker était-il aux commandes **au chargement** de cette page ? | instantané `hadController` | museler `controllerchange` |
+| Un **ancien** worker est-il remplacé **maintenant** ? | `navigator.serviceWorker.controller` relu à l'instant `installed` | décider d'annoncer |
+
+`sw.js` appelle `skipWaiting()` puis `clients.claim()` : à la toute première visite le contrôleur passe de `null` au worker fraîchement installé, ce qui déclenche un `controllerchange` **rigoureusement identique** à celui d'une mise à jour. D'où l'instantané.
+
+Mais répondre à la seconde question avec cet instantané fige la réponse à l'état du chargement : une page ouverte **avant** que le service worker n'existe garde « pas de contrôleur » pour toute sa vie et n'annonce plus jamais aucune mise à jour, y compris celles qui s'installent sous ses yeux. C'est ce qui a rendu la v23 invisible.
+
+**Et le navigateur ne consulte le service worker qu'à la navigation.** Une PWA installée, reprise depuis le sélecteur d'applications, ne navigue jamais : `installPWA()` appelle donc `reg.update()` au retour au premier plan (`visibilitychange` et `focus`), au plus une fois par minute. Sans ça, `checkForUpdate()` n'était déclenché que par `client.js`, à la connexion à une salle — un hôte, ou un joueur en solo, ne vérifiait jamais rien.
 
 ---
 
