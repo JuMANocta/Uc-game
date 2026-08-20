@@ -183,8 +183,9 @@ Si ton serveur envoie une CSP, elle doit autoriser le serveur d'annuaire PeerJS,
 
 | Directive | À autoriser | Pourquoi |
 |---|---|---|
-| `connect-src` | `https://0.peerjs.com wss://0.peerjs.com` | **Indispensable** — signaling PeerJS |
-| `connect-src` | `stun: turn:` | Relais pour les réseaux à NAT symétrique (4G) |
+| `connect-src` | `wss://<ton-domaine>` | Signaling, si tu héberges ton propre serveur (voir plus bas) |
+| `connect-src` | `https://0.peerjs.com wss://0.peerjs.com` | Broker public — **repli automatique**, à conserver |
+| `connect-src` | `stun: turn: turns:` | Relais pour les réseaux à NAT symétrique (4G) |
 | `style-src-elem` | `https://fonts.googleapis.com` | Polices Orbitron / Rajdhani |
 | `font-src` | `https://fonts.gstatic.com` | Fichiers de polices |
 | `script-src` | `'unsafe-inline'` | Le jeu utilise des `onclick=` en attribut |
@@ -197,7 +198,7 @@ script-src 'self' 'unsafe-inline';
 style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com;
 font-src 'self' https://fonts.gstatic.com;
 img-src 'self' data:;
-connect-src 'self' https://0.peerjs.com wss://0.peerjs.com stun: turn:;
+connect-src 'self' wss://<ton-domaine> https://0.peerjs.com wss://0.peerjs.com stun: turn: turns:;
 worker-src 'self'; manifest-src 'self';
 ```
 
@@ -252,9 +253,11 @@ Toute la logique de jeu ne parle qu'à la façade `NET` ; `net-peerjs.js` est le
 
 **Limites assumées** — 12 joueurs maximum en multi (l'hôte tient N−1 connexions, c'est lourd sur mobile ; le solo garde 20). Si le téléphone de l'hôte meurt définitivement, la partie est perdue : il n'y a pas de migration d'hôte, car répliquer la table des rôles sur un appareil de secours détruirait la confidentialité.
 
-**Traversée de NAT** — les relais TURN embarqués par PeerJS n'écoutent que sur le **port 3478**, fréquemment filtré sur les réseaux mobiles français (Free Mobile notamment, qui combine CGNAT agressif et blocage des ports non standard). La configuration ICE ajoute donc des relais sur **80, 443 et TLS/443** : un TURN en TLS sur 443 est indistinguable d'une connexion HTTPS, c'est la dernière porte qui reste ouverte.
+**Traversée de NAT** — c'est *la* cause des échecs « ça marche chez lui mais pas chez moi ». Derrière un NAT symétrique — le CGNAT des opérateurs mobiles — deux pairs ne peuvent pas se joindre directement : il leur faut un relais TURN. Le choix de l'annuaire n'y change rien.
 
-Ces relais publics sont gratuits et sans garantie. Pour une fiabilité réelle, héberger son propre **coturn** et le déclarer sans toucher au code :
+⚠️ **Les relais TURN déclarés par PeerJS n'existent pas** : `eu-0.turn.peerjs.com` et `us-0.turn.peerjs.com` ne résolvent pas en DNS. Ils figurent bien dans la bibliothèque, mais aucun n'est joignable. Par défaut, le jeu ne dispose donc **d'aucun relais** — d'où `ICE_DEFAULT`, qui ne déclare que du STUN vérifié.
+
+Deux façons d'en brancher un. La plus simple, sur un seul appareil, sans toucher au code :
 
 ```js
 localStorage.setItem('uc_ice', JSON.stringify({ iceServers: [
@@ -265,7 +268,38 @@ localStorage.setItem('uc_ice', JSON.stringify({ iceServers: [
 ]}))
 ```
 
+La seconde, pour que **tous** les joueurs en profitent sans rien configurer : héberger le serveur décrit ci-dessous, qui distribue les identifiants automatiquement.
+
 **`diag.html` teste la traversée de NAT** et indique quels chemins le réseau autorise — `host`, `srflx` (STUN), `relay` (TURN). L'absence de `relay` explique à elle seule un échec en 4G.
+
+---
+
+## Héberger son propre serveur (optionnel)
+
+Le jeu fonctionne sans rien installer : il utilise le broker public PeerJS et du STUN. Mais **sans relais TURN, les joueurs en données mobiles derrière un NAT symétrique ne peuvent pas être joints.** Héberger deux petits services sur le domaine qui sert le jeu résout ça pour tout le monde, sans que personne n'ait à configurer quoi que ce soit.
+
+### Ce que le client attend
+
+Aucune adresse n'est codée en dur. `net-peerjs.js` déduit tout de l'emplacement de la page :
+
+| Route | Rôle |
+|---|---|
+| `<répertoire du jeu>peerjs` | Serveur de signaling ([peerjs-server](https://github.com/peers/peerjs-server)), clé `ucnet` |
+| `<répertoire du jeu>ice` | JSON `{ ttl, iceServers[] }` — identifiants TURN à durée limitée |
+
+Servi depuis `https://exemple.fr/jeux/uc/`, le jeu vise donc `/jeux/uc/peerjs` et `/jeux/uc/ice`. **Si ces routes n'existent pas, il retombe tout seul sur le broker public et sur STUN** : rien ne casse, on perd simplement le relais.
+
+### Points de sécurité à ne pas manquer
+
+- **`allow_discovery: false`** sur peerjs-server. Sinon l'endpoint `/peers` liste publiquement tous les identifiants connectés.
+- **Faire écouter le service de signaling sur `127.0.0.1` uniquement**, et le publier via le reverse proxy. Il devient alors injoignable depuis Internet par construction, et non par simple filtrage.
+- **Filtrer sur l'en-tête `Origin`** au niveau du proxy, pour qu'aucun autre site ne se serve de ton annuaire. Attention : un `fetch` GET *same-origin* n'envoie **pas** d'`Origin` — il faut accepter la valeur vide, sinon le jeu se bloque lui-même.
+- **`denied-peer-ip` sur coturn**, pour toutes les plages privées et le loopback. Sans ça, quiconque obtient un identifiant peut se servir du relais pour atteindre les services internes de ta machine depuis Internet (SSRF).
+- **Identifiants TURN éphémères** (`use-auth-secret`), jamais de compte statique : le secret partagé ne quitte pas le serveur, seul un couple HMAC valable quelques heures est distribué.
+- **`Cache-Control: no-store` sur `/ice`**, et exclusion de cette route du service worker : des identifiants servis depuis un cache seraient expirés.
+- **Quotas coturn** (`total-quota`, `user-quota`, `max-bps`) pour que le relais ne devienne pas de la bande passante gratuite pour des tiers.
+
+> Le username TURN doit être **unique par client**. Une convention en `<expiration>:<nom>` seule donne le même compte à tous les joueurs qui appellent `/ice` dans la même seconde, et `user-quota` les rejette collectivement. Y ajouter quelques octets aléatoires.
 
 ---
 
