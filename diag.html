@@ -78,9 +78,11 @@ window.addEventListener('securitypolicyviolation', function (e) {
       '<br><br>Directive fautive : <code>' + e.violatedDirective + '</code><br>' +
       'URL bloquée : <code>' + uri + '</code><br><br>' +
       'Ajoute à ta <code>connect-src</code> :<br>' +
-      '<code>https://0.peerjs.com wss://0.peerjs.com</code><br><br>' +
+      '<code>wss://' + location.hostname + ' https://0.peerjs.com wss://0.peerjs.com</code><br><br>' +
+      'Le premier terme couvre ton serveur d\'annuaire ; les deux suivants restent ' +
+      'nécessaires tant que le repli vers le broker public est actif.<br><br>' +
       'Et si des joueurs passent par un relais TURN (réseaux mobiles) :<br>' +
-      '<code>stun: turn:</code>', false);
+      '<code>stun: turn: turns:</code>', false);
   } else if (/fonts\.googleapis|fonts\.gstatic/.test(uri)) {
     row('CSP — polices', 'bloquées (cosmétique)', 'wait');
   }
@@ -157,7 +159,8 @@ fetch('vendor/peerjs.min.js', {cache:'no-store'}).then(function(r){
     return;
   }
   row('vendor/peerjs.min.js', Math.round(txt.length/1024)+' Ko — OK','ok');
-  askServerIce(function(){ loadAndTest(); });
+  // La cle d'abord : brokerConfig() en depend, et tout le reste en decoule.
+  readBrokerKey(function(){ askServerIce(function(){ loadAndTest(); }); });
 }).catch(function(e){
   log('  ✗ Échec : '+e.message);
   row('vendor/peerjs.min.js','INACCESSIBLE','ko');
@@ -169,6 +172,27 @@ fetch('vendor/peerjs.min.js', {cache:'no-store'}).then(function(r){
 // Le serveur du domaine : memes regles que net-peerjs.js, tout est deduit de
 // l'adresse de la page et rien n'est code en dur. diag.html etant autonome,
 // ces quelques lignes y sont volontairement dupliquees plutot qu'importees.
+//
+// La CLE, elle, n'est PAS dupliquee : elle est relue dans net-peerjs.js. Un
+// outil de diagnostic qui interrogerait un autre serveur que le jeu ne
+// diagnostique rien — c'est exactement le piege dans lequel etait tombee la
+// verification de version du cache, figee sur uc-game-v5 pendant douze
+// versions. Repli sur la valeur historique si le fichier est introuvable.
+var BROKER_KEY = 'ucnet';
+function readBrokerKey(cb) {
+  fetch('net-peerjs.js', { cache: 'no-store' }).then(function (r) {
+    return r.ok ? r.text() : null;
+  }).then(function (txt) {
+    var m = txt && txt.match(/BROKER_KEY\s*=\s*["']([^"']+)["']/);
+    if (m) BROKER_KEY = m[1];
+    row('Cle du broker', BROKER_KEY + (m ? ' (lue dans net-peerjs.js)' : ' (valeur de repli)'), m ? 'ok' : 'wait');
+    cb();
+  }).catch(function () {
+    row('Cle du broker', BROKER_KEY + ' (valeur de repli)', 'wait');
+    cb();
+  });
+}
+
 function netBase() {
   var p = location.pathname;
   return p.slice(0, p.lastIndexOf('/') + 1);
@@ -176,7 +200,7 @@ function netBase() {
 function brokerConfig() {
   if (location.protocol !== 'https:') return null;
   return { host: location.hostname, port: location.port ? Number(location.port) : 443,
-           path: netBase() + 'peerjs', key: 'ucnet', secure: true };
+           path: netBase() + 'peerjs', key: BROKER_KEY, secure: true };
 }
 
 var srvIce = null;
@@ -213,6 +237,24 @@ function askServerIce(cb) {
     clearTimeout(t);
     srvIceState = 'absent (' + (e && e.message || e) + ')';
     log('  ! ' + srvIceState);
+    // 401/403 sur /ice alors que /peerjs fonctionne : le cas est piegeux et
+    // merite d'etre nomme. VERIFIE EN NAVIGATEUR — les deux routes ne portent
+    // PAS les memes en-tetes :
+    //   /peerjs  handshake WebSocket  -> Origin present, Referer ABSENT
+    //   /ice     fetch GET same-origin -> Origin ABSENT, Referer present
+    // Une regle qui n'inspecte que $http_origin protege donc /peerjs et bloque
+    // /ice, sans le moindre message : le jeu perd son relais en silence et le
+    // symptome ressort en 4G, loin de sa cause.
+    if (/HTTP 40[13]/.test(String(e && e.message))) {
+      log('  ! ' + netBase() + 'ice refuse l\'acces');
+      verdict('<b>Ton serveur refuse <code>' + netBase() + 'ice</code> (' + e.message + ').</b><br><br>' +
+        'Si tu filtres sur <code>Origin</code>, c\'est attendu : un <code>fetch</code> GET de meme origine ' +
+        '<b>n\'envoie pas d\'en-tete <code>Origin</code></b> — il envoie <code>Referer</code>. ' +
+        'La poignee de main WebSocket de <code>/peerjs</code>, elle, fait exactement l\'inverse.<br><br>' +
+        'Autrement dit : une regle qui n\'inspecte que <code>Origin</code> laisse passer <code>/peerjs</code> ' +
+        'et bloque <code>/ice</code>. Le jeu se lance, mais sans relais — et l\'echec ne se voit qu\'en 4G.<br><br>' +
+        'Accepte les deux : <code>$http_origin</code> <b>ou</b> <code>$http_referer</code>.', false);
+    }
     finish();
   });
 }
@@ -380,7 +422,6 @@ function loadAndTest(){
 function openRoom(){
   var code='DIAG'+Math.floor(Math.random()*9000+1000);
   log('Ouverture de la salle « ucgame-'+code+' »…');
-  log('  (connexion au serveur d\'annuaire 0.peerjs.com)');
   var done=false;
   var b=brokerConfig(), opts={debug:0};
   if(b){opts.host=b.host;opts.port=b.port;opts.path=b.path;opts.key=b.key;opts.secure=b.secure;}
@@ -394,12 +435,22 @@ function openRoom(){
     // Si une violation CSP a déjà été signalée, son verdict est plus précis :
     // ne pas l'écraser par un diagnostic générique.
     if (cspHits.some(function(h){ return /peerjs\.com|^wss:/.test(h.uri); })) return;
+    // Le diagnostic dépend de l'annuaire réellement visé : accuser le broker
+    // public alors que la page interroge le serveur du domaine enverrait
+    // chercher la panne à l'exact opposé de l'endroit où elle est.
     verdict('<b>Le serveur d\'annuaire ne répond pas.</b><br>'+
-            'Ni succès ni erreur en 15 s — le symptôme exact de ton blocage.<br><br>'+
+            'Ni succès ni erreur en 15 s.<br><br>'+
+            'Annuaire visé : <code>'+(b?('wss://'+b.host+b.path):'0.peerjs.com')+'</code><br><br>'+
             'Causes probables, par ordre de fréquence :<br>'+
-            '• ton réseau bloque les WebSockets (WiFi d\'entreprise, VPN, bloqueur de pub, DNS filtrant)<br>'+
-            '• le broker public <code>0.peerjs.com</code> est momentanément indisponible<br><br>'+
-            'À tester : réessaie en partage de connexion 4G. Si ça marche, c\'est ton réseau.', false);
+            (b
+              ? '• <code>'+b.path+'</code> n\'est pas relayé vers ton serveur node (bloc <code>location</code> manquant, ou <code>proxy_set_header Upgrade</code> oublié — sans lui la connexion WebSocket n\'aboutit jamais)<br>'+
+                '• ton service node est arrêté<br>'+
+                '• ta protection refuse la poignée de main : elle porte bien <code>Origin</code>, mais pas <code>Referer</code><br>'+
+                '• ton réseau bloque les WebSockets (WiFi d\'entreprise, VPN, bloqueur de pub)<br><br>'+
+                'À tester : <code>curl -i -H "Origin: https://'+b.host+'" https://'+b.host+b.path+'</code> depuis ta machine.'
+              : '• ton réseau bloque les WebSockets (WiFi d\'entreprise, VPN, bloqueur de pub, DNS filtrant)<br>'+
+                '• le broker public <code>0.peerjs.com</code> est momentanément indisponible<br><br>'+
+                'À tester : réessaie en partage de connexion 4G. Si ça marche, c\'est ton réseau.'), false);
     try{peer.destroy()}catch(e){}
   },15000);
 
