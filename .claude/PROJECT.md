@@ -492,7 +492,16 @@ Fichier dédié : ni logique de jeu, ni transport, uniquement le dialogue avec l
 - **Sans TURN, la 4G échoue** — et c'est la seule explication du symptôme « ça marche chez lui mais pas chez moi ». Derrière un NAT symétrique (CGNAT mobile), deux pairs ne peuvent pas se joindre directement, **quel que soit l'annuaire**. Changer de broker n'y change rien : c'est un problème de chemin, pas d'annuaire.
   *(L'ancienne note attribuant les échecs Free Mobile à un filtrage du port 3478 était une mauvaise conclusion : les relais visés n'existaient tout simplement pas.)*
 - **Trois sources ICE**, par priorité décroissante (`net-peerjs.js`) : `localStorage['uc_ice']` (surcharge manuelle) → `<répertoire>ice` (serveur du domaine, identifiants éphémères) → `ICE_DEFAULT` (STUN seul). `loadIce()` interroge le serveur **avant** de construire le `Peer` : les `iceServers` sont un argument du constructeur, les ajouter après coup n'a aucun effet.
-- **Le serveur du domaine est optionnel** — `brokerConfig()` le déduit de `location`, jamais d'adresse en dur. S'il ne répond pas (timeout de 7 s, ou erreur `network`/`server-error`/`socket-*`), on bascule sur le broker public pour le reste de la session. Côté client, un `peer-unavailable` déclenche aussi le repli : l'hôte a pu basculer de son côté, et il faut le chercher là où il est avant d'annoncer « salle introuvable ».
+- **`/peerjs` et `/ice` ne portent PAS les mêmes en-têtes** — vérifié en navigateur, pas déduit :
+
+  | Route | Nature | `Origin` | `Referer` |
+  |---|---|---|---|
+  | `/peerjs` | poignée de main WebSocket | **présent** | absent |
+  | `/ice` | `fetch` GET de même origine | **absent** | présent |
+
+  Un `fetch` GET de même origine n'émet pas d'`Origin` — la spécification ne l'ajoute que pour les requêtes CORS et les méthodes autres que GET/HEAD. Une protection qui n'inspecte que `$http_origin` laisse donc passer `/peerjs` et **bloque `/ice`** : le jeu s'ouvre normalement mais perd son relais TURN, et le symptôme ne ressort qu'en 4G, très loin de sa cause. Accepter `$http_origin` **ou** `$http_referer`. `diag.html` nomme ce cas explicitement sur un 401/403.
+
+- **Le serveur du domaine est optionnel côté code, obligatoire en pratique** — `brokerConfig()` le déduit de `location`, jamais d'adresse en dur, et le repli sur le broker public reste actif. Mais l'accès au serveur node est filtré sur l'origine : servie depuis un autre domaine, l'application retombe sur l'annuaire public **sans relais TURN**, donc sans les joueurs en données mobiles. Le repli est volontairement **silencieux** (décision actée) : il évite une panne totale, il ne remplace pas le serveur. S'il ne répond pas (timeout de 7 s, ou erreur `network`/`server-error`/`socket-*`), on bascule sur le broker public pour le reste de la session. Côté client, un `peer-unavailable` déclenche aussi le repli : l'hôte a pu basculer de son côté, et il faut le chercher là où il est avant d'annoncer « salle introuvable ».
 - **`/ice` et `/peerjs` sont exclus du service worker** (`sw.js`) : le cache stale-while-revalidate y servirait des identifiants TURN expirés, sans qu'aucune erreur ne le signale.
 - `diag.html` rapporte les types de candidats obtenus — sans `relay`, la 4G échouera. C'est le test qui tranche.
 - **Pas de migration d'hôte** : répliquer la table des rôles sur un appareil de secours détruirait la confidentialité. Si l'hôte meurt, la partie est finie.
@@ -500,7 +509,35 @@ Fichier dédié : ni logique de jeu, ni transport, uniquement le dialogue avec l
 
 ### Bancs d'essai
 
-Cinq suites Node exercent le protocole sans WebRTC (adaptateur factice, horloge et minuteries pilotées) : lobby et tokens, reconnexion et persistance, distribution des secrets et étanchéité, dépouillement et égalités, écrans de fin. Elles vérifient notamment qu'**aucun mot de joueur vivant ni champ `role` ne sort dans une diffusion**.
+**Quinze suites Node** (`t-p1` … `t-p15`) exercent le protocole sans navigateur : adaptateur NET factice, horloge et minuteries pilotées. Elles vérifient notamment qu'**aucun mot de joueur vivant ni champ `role` ne sort dans une diffusion**.
+
+| Suites | Couverture |
+|---|---|
+| `t-p1` … `t-p5` | Lobby et tokens · reconnexion et persistance · distribution des secrets et étanchéité · dépouillement et égalités · écrans de fin |
+| `t-p6` … `t-p11` | Options et catégories · l'hôte joue · indices écrits et fautes · règles en jeu · wizz et protocole · résidus de session |
+| `t-p12` | Avis de mise à jour centré, wizz plein écran, indices armés en multi |
+| `t-p13` | **Identité et vote** — reprise de siège, exclusion, jointure idempotente, sièges fantômes, retrait de vote, parité hôte/client |
+| `t-p14` | **Durcissement** — indice à usage unique, `spoke` borné, tirage cryptographique, échappement, plafond de débit |
+| `t-p15` | **Serveur auto-hébergé** — déduction du broker, `/ice`, repli sur le broker public, exclusion du service worker |
+
+`t-p15` est le **seul** banc qui exerce réellement `net-peerjs.js` : tous les autres branchent un adaptateur factice et ne verraient donc jamais une régression sur le repli ou la configuration ICE. Il substitue `window.Peer` par un double qui capture les options du constructeur — c'est la couture qui permet d'affirmer *quel* annuaire est visé, sans réseau.
+
+Elles vivent dans `tests/` et se lancent par `./tests/run.sh` (ou `./tests/run.sh t-p13` pour le détail d'une seule). **498 assertions.** Aucune dépendance : `node` suffit, il n'y a ni build ni gestionnaire de paquets à introduire.
+
+### L'avis de mise à jour — deux questions à ne pas confondre
+
+Cette zone a cassé **deux fois, dans les deux sens**. `t-p14` la verrouille désormais sur les deux fronts.
+
+| Question | Réponse | Sert à |
+|---|---|---|
+| Un worker était-il aux commandes **au chargement** de cette page ? | instantané `hadController` | museler `controllerchange` |
+| Un **ancien** worker est-il remplacé **maintenant** ? | `navigator.serviceWorker.controller` relu à l'instant `installed` | décider d'annoncer |
+
+`sw.js` appelle `skipWaiting()` puis `clients.claim()` : à la toute première visite le contrôleur passe de `null` au worker fraîchement installé, ce qui déclenche un `controllerchange` **rigoureusement identique** à celui d'une mise à jour. D'où l'instantané.
+
+Mais répondre à la seconde question avec cet instantané fige la réponse à l'état du chargement : une page ouverte **avant** que le service worker n'existe garde « pas de contrôleur » pour toute sa vie et n'annonce plus jamais aucune mise à jour, y compris celles qui s'installent sous ses yeux. C'est ce qui a rendu la v23 invisible.
+
+**Et le navigateur ne consulte le service worker qu'à la navigation.** Une PWA installée, reprise depuis le sélecteur d'applications, ne navigue jamais : `installPWA()` appelle donc `reg.update()` au retour au premier plan (`visibilitychange` et `focus`), au plus une fois par minute. Sans ça, `checkForUpdate()` n'était déclenché que par `client.js`, à la connexion à une salle — un hôte, ou un joueur en solo, ne vérifiait jamais rien.
 
 ---
 

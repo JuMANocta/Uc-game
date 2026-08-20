@@ -1,5 +1,5 @@
 // Bump CACHE à chaque déploiement pour purger les anciennes versions.
-var CACHE = 'uc-game-v23';
+var CACHE = 'uc-game-v25';
 var ASSETS = [
   './',
   './index.html',

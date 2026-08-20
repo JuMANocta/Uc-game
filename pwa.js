@@ -79,29 +79,56 @@ function installPWA() {
 
   if (!("serviceWorker" in navigator)) return;
 
-  // « Y avait-il DÉJÀ un service worker aux commandes quand cette page s'est
-  // chargée ? » — la seule question qui distingue une mise à jour d'une
-  // première installation, et il faut la poser MAINTENANT.
+  // DEUX questions différentes, et c'est tout le sujet. Les confondre a produit
+  // successivement les deux défauts opposés.
   //
-  // Le piège : sw.js appelle skipWaiting() puis clients.claim(), donc à la
-  // toute première visite le contrôleur passe de null au worker fraîchement
-  // installé — ce qui déclenche `controllerchange` exactement comme une vraie
-  // mise à jour. Tout nouveau joueur se voyait donc annoncer une « nouvelle
-  // version » à sa première connexion. Relire navigator.serviceWorker.controller
-  // depuis les écouteurs ne sert à rien : à ce moment-là il est déjà renseigné.
+  //   a) « Un worker était-il aux commandes au CHARGEMENT de cette page ? »
+  //      Instantané pris maintenant. Sert UNIQUEMENT à museler
+  //      `controllerchange` : sw.js appelle skipWaiting() puis clients.claim(),
+  //      donc à la toute première visite le contrôleur passe de null au worker
+  //      fraîchement installé — un événement rigoureusement identique à celui
+  //      d'une vraie mise à jour. Sans cet instantané, chaque nouveau joueur se
+  //      voyait annoncer une « nouvelle version » à sa première connexion.
+  //
+  //   b) « Un ANCIEN worker est-il en train d'être remplacé, là, maintenant ? »
+  //      Question posée au moment où le nouveau worker atteint l'état
+  //      `installed`, en relisant `controller` À CET INSTANT. À une première
+  //      installation il vaut null (la prise de contrôle n'a pas encore eu
+  //      lieu) ; à une mise à jour il désigne le worker sortant.
+  //
+  // Utiliser l'instantané (a) pour répondre à (b) fige la réponse à l'état du
+  // chargement : une page ouverte AVANT que le service worker n'existe garde
+  // « pas de contrôleur » pour toute sa vie, et n'annonce plus jamais aucune
+  // mise à jour — y compris celles qui s'installent sous ses yeux.
   var hadController = !!navigator.serviceWorker.controller;
+  function replacingOlder() { return !!navigator.serviceWorker.controller; }
 
   navigator.serviceWorker.register("./sw.js").then(function (reg) {
     // Une version déjà en attente au chargement.
-    if (reg.waiting && hadController) showUpdateBanner();
+    if (reg.waiting && replacingOlder()) showUpdateBanner();
 
     reg.addEventListener("updatefound", function () {
       var nw = reg.installing;
       if (!nw) return;
       nw.addEventListener("statechange", function () {
-        if (nw.state === "installed" && hadController) showUpdateBanner();
+        if (nw.state === "installed" && replacingOlder()) showUpdateBanner();
       });
     });
+
+    // Le navigateur ne consulte le service worker qu'à la navigation. Une PWA
+    // installée, reprise depuis le sélecteur d'applications, ne navigue jamais :
+    // sans cette vérification au retour à l'écran, elle peut rester des jours
+    // sur une version périmée sans que rien ne le signale.
+    var lastCheck = 0;
+    function maybeCheck() {
+      if (document.visibilityState !== "visible") return;
+      var now = Date.now();
+      if (now - lastCheck < 60000) return;   // au plus une fois par minute
+      lastCheck = now;
+      if (reg.update) { try { reg.update(); } catch (e) {} }
+    }
+    document.addEventListener("visibilitychange", maybeCheck);
+    window.addEventListener("focus", maybeCheck);
   }).catch(function () {});
 
   var reloaded = false;
